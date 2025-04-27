@@ -1,0 +1,633 @@
+export class Point {
+    constructor(id, x_pos, y_pos) {
+        this._x = 10;
+        this._y = 10;
+        this._id = id;
+        if (x_pos != undefined)
+            this._x = x_pos;
+        if (y_pos != undefined)
+            this._y = y_pos;
+    }
+    get id() { return this._id; }
+    get x() { return this._x; }
+    get y() { return this._y; }
+    set x(x_pos) { this._x = x_pos; }
+    set y(y_pos) { this._y = y_pos; }
+    // print details (name and coordinates)
+    print() { console.log(this._id, "x:" + this._x, "y:" + this._y); }
+    // move the Vertex to a specified location in the plane
+    moveTo(x_pos, y_pos) { this._x = x_pos; this._y = y_pos; }
+}
+export class Vertex extends Point {
+    constructor(id, x_pos, y_pos) {
+        super(id, x_pos, y_pos);
+        this._neighbors = [];
+    }
+    get neighbors() { return this._neighbors; }
+    // add a new neighbor
+    addNeighbor(newNeighbor) { this._neighbors.push(newNeighbor); }
+    // delete a neighbor
+    deleteNeighbor(neighbor) { this._neighbors = this._neighbors.filter(v => v != neighbor); }
+}
+export class LineSegment {
+    constructor([p1, p2]) {
+        this._points = [p1, p2];
+        this._crosses = [];
+        this._id = p1.id + '-' + p2.id;
+    }
+    get id() { return this._id; }
+    get points() { return this._points; }
+    get crossings() { return this._crosses; }
+    // add a crossing with a new edge
+    addCrossing(crossingSegment) { this._crosses.push(crossingSegment); }
+}
+export class Edge extends LineSegment {
+    constructor([v1, v2]) {
+        super([v1, v2]);
+        // bending points of the edge
+        this._bends = [];
+    }
+    // return an array with the bends of the edge
+    get bends() { return this._bends; }
+    // add a bend at coordinate (x,y)
+    addBend(x, y) { this._bends.push(new Bend(this, x, y)); }
+    ;
+    // remove the last bend of the edge
+    removeLastBend() { this._bends.pop(); }
+    // add an array of bends (used for cloning)
+    addBends(bends) {
+        for (const bend of bends) {
+            let new_bend = new Bend(this, bend.x, bend.y);
+            this._bends.push(new_bend);
+        }
+    }
+    // return the sub-edges of the edge
+    subEdges() {
+        let subedges = [];
+        const len = this._bends.length;
+        if (len) {
+            // first sub-edge
+            subedges.push(new Subedge(this.points[0], this._bends[0], this));
+            // intermediate sub-edges
+            for (let i = 0; i < len - 1; i++)
+                subedges.push(new Subedge(this._bends[i], this._bends[i + 1], this));
+            // last sub-edge
+            subedges.push(new Subedge(this._bends[len - 1], this.points[1], this));
+        }
+        else
+            subedges.push(new Subedge(this.points[0], this.points[1], this));
+        return subedges;
+    }
+}
+export class Subedge extends LineSegment {
+    constructor(p1, p2, e) {
+        super([p1, p2]);
+        this._edge = e;
+    }
+    get edge() { return this._edge; }
+}
+export class Crossing extends Point {
+    constructor(sub1, sub2, x, y) {
+        const id = sub1.id + "." + sub2.id;
+        super(id, x, y);
+        this._edges = [null, null];
+        this._legal = true;
+        this._more_than_once = false;
+        this._subedges = [sub1, sub2];
+    }
+    get edges() { return this._edges; }
+    get subedges() { return this._subedges; }
+    get legal() { return this._legal; }
+    get more_than_once() { return this._more_than_once; }
+    set edges([e1, e2]) { this._edges = [e1, e2]; }
+    set legal(leg) { this._legal = leg; }
+    set more_than_once(value) { this._more_than_once = value; }
+    // check if a given vertex is one of the vertices of the two crossing edges (i.e. if the crossing is relevant to a given vertex)
+    relevantToVertex(vertex) {
+        return (this.edges[0].points[0] === vertex || this.edges[0].points[1] === vertex || this.edges[1].points[0] === vertex || this.edges[1].points[1] === vertex);
+    }
+    // check if a crossing is legal
+    checkLegal() {
+        const [v1, v2] = this._edges[0].points;
+        const [v3, v4] = this._edges[1].points;
+        // check if the vertices have a common endpoint
+        if (v1 === v3 || v1 == v4 || v2 === v3 || v2 === v4)
+            this._legal = false;
+        else
+            this._legal = true;
+    }
+    // check if the given crossing has the same edges as this crossing
+    sameEdges(cros) {
+        return (this._edges[0] === cros.edges[0] && this._edges[1] === cros.edges[1] || this._edges[0] === cros.edges[1] && this._edges[1] === cros.edges[0]);
+    }
+}
+export class Bend extends Point {
+    constructor(e, x, y) {
+        const id = e.id + "/bend";
+        super(id, x, y);
+        this._edge = e;
+    }
+    get edge() { return this._edge; }
+}
+// Given an array of objects (e.g. Vertex, Edge) return an array of strings, containing the id's of the objects
+function extractIds(items) {
+    return items.map(item => item.id);
+}
+// Print the details of a Point array
+function printPointArray(points) {
+    for (const point of points)
+        point.print();
+}
+export class Graph {
+    constructor() {
+        this._vertices = [];
+        this._edges = [];
+        // characteristics of the graph
+        this.directed = false;
+        this.self_loops = false;
+        // store all the crossing points between edges of the graph
+        this._crossings = [];
+        // store the curve complexity of the graph
+        this._curve_complexity = 0;
+        // 
+        this._effective_crossing_update = true;
+    }
+    get vertices() { return this._vertices; }
+    get edges() { return this._edges; }
+    get crossings() { return this._crossings; }
+    get curve_complexity() { return this._curve_complexity; }
+    get effective_crossing_update() { return this._effective_crossing_update; }
+    // will be used in the cloning (Undo/Redo)
+    set vertices(vert) { this._vertices = vert; }
+    set edges(e) { this._edges = e; }
+    set effective_crossing_update(update) { this._effective_crossing_update = update; }
+    // update the curve complexity of the graph
+    updateCurveComplexity() {
+        let cc = 0;
+        let edge_complexity = 0;
+        for (const e of this._edges) {
+            edge_complexity = e.bends.length;
+            if (edge_complexity > cc)
+                cc = edge_complexity;
+        }
+        this._curve_complexity = cc;
+    }
+    // add a new vertex
+    addVertex(vertex) {
+        //check that there is no vertex in the graph with the same name
+        if (!extractIds(this._vertices).includes(vertex.id))
+            this._vertices.push(vertex);
+        else
+            console.log("WARNING: Vertex with this name (" + vertex.id + ") already exist");
+    }
+    // given the id of a vertex, return the vertex
+    getVertex(vrt_id) { return this._vertices.find(v => v.id === vrt_id); }
+    // delete a vertex and all its corresponding edges
+    deleteVertex(vertex) {
+        this._vertices = this._vertices.filter(v => v !== vertex);
+        // update neighbors
+        for (const neighbor of vertex.neighbors)
+            neighbor.deleteNeighbor(vertex);
+        // delete corresponding edges
+        this._edges = this._edges.filter(edge => edge.points[0] !== vertex && edge.points[1] !== vertex);
+        // update curve complexity
+        this.updateCurveComplexity();
+        // update crossings
+        if (this._effective_crossing_update)
+            this._crossings = this._crossings.filter(cross => !cross.relevantToVertex(vertex));
+        else
+            this.updateCrossings();
+    }
+    // delete a vertex when its id is given
+    deleteVertexId(vrt_id) {
+        let vrt = this.getVertex(vrt_id);
+        if (vrt)
+            this.deleteVertex(vrt);
+    }
+    // move a vertex to a specified (x,y) location
+    moveVertex(v, x, y, update = true) {
+        v.moveTo(x, y);
+        // update crossings
+        if (update) {
+            if (this._effective_crossing_update)
+                this.updateCrossingsByVertex(v);
+            else
+                this.updateCrossings();
+        }
+    }
+    // return the vertex near a specified (x,y) location (at distance < dist from (x,y) )
+    getVertexAtPosition(x, y, dist) {
+        for (const v of this._vertices) {
+            const dx = v.x - x;
+            const dy = v.y - y;
+            if (dx * dx + dy * dy <= dist * dist)
+                return v;
+        }
+        return null;
+    }
+    // given the id of an edge, return the edge
+    getEdge(edge_id) { return this._edges.find(e => e.id == edge_id); }
+    // given 2 vertices, return the edge that connects them (if exists)
+    getEdgeByVertices(v1, v2) { return this._edges.find(e => e.points[0] === v1 && e.points[1] == v2 || e.points[0] === v2 && e.points[1] == v1); }
+    getEdgeByVerticesId(id1, id2) {
+        let id = id1 + "-" + id2; // as used in the constructor of class Edge
+        return this.getEdge(id);
+    }
+    // add a new edge using the Id's of 2 vertices
+    addEdgeId(id1, id2) {
+        let v1 = this.getVertex(id1);
+        let v2 = this.getVertex(id2);
+        if (v1 && v2)
+            this.addEdge(v1, v2);
+        else
+            console.log("WARNING: one or both of the vertices (" + id1 + "," + id2 + ") does not exist in the graph");
+    }
+    // add a new edge between 2 vertices
+    addEdge(v1, v2, update = true) {
+        let edge_id1 = v1.id + '-' + v2.id;
+        // if the graph is undirected, check reversed edge
+        let edge_id2 = v2.id + '-' + v1.id;
+        //check that vertices belong to the graph
+        if (this._vertices.includes(v1) && this._vertices.includes(v2)) {
+            // check for self-loops
+            if (v1 === v2 && !this.self_loops)
+                console.log("WARNING: Self loops are not allowed in this graph");
+            //check that the edge does not already exits
+            else if (extractIds(this._edges).includes(edge_id1))
+                console.log("WARNING: Edge " + edge_id1 + " already exists");
+            // if the graph is undirected, check reversed edge
+            else if (!this.directed && extractIds(this._edges).includes(edge_id2))
+                console.log("WARNING: Edge " + edge_id2 + " already exists");
+            else {
+                let edge = new Edge([v1, v2]);
+                this._edges.push(edge);
+                v1.addNeighbor(v2);
+                v2.addNeighbor(v1);
+                // update crossings
+                if (update) {
+                    if (this._effective_crossing_update)
+                        this.updateCrossingsByEdge(edge);
+                    else
+                        this.updateCrossings();
+                }
+            }
+        }
+        else
+            console.log("WARNING: one or both of the vertices (" + v1.id + "," + v2.id + ") does not exist in the graph");
+    }
+    // delete an edge given the Id's of the vertices
+    deleteEdgeId(id1, id2) {
+        let v1 = this.getVertex(id1);
+        let v2 = this.getVertex(id2);
+        if (v1 && v2)
+            this.deleteEdge(v1, v2);
+        else
+            console.log("WARNING: one or both of the vertices (" + id1 + "," + id2 + ") does not exist in the graph");
+    }
+    // delete an edge between vertices v1 and v2
+    deleteEdge(v1, v2) {
+        // remove from edges list
+        this._edges = this._edges.filter(edge => !(edge.points[0] === v1 && edge.points[1] === v2) && !(edge.points[0] === v2 && edge.points[1] === v1));
+        // delete neighbors
+        v1.deleteNeighbor(v2);
+        v2.deleteNeighbor(v1);
+        // update crossings
+        if (this._effective_crossing_update) {
+            const e = this.getEdgeByVertices(v1, v2);
+            if (e)
+                this._crossings = this._crossings.filter(cross => cross.edges[0] != e && cross.edges[1] != e);
+        }
+        else
+            this.updateCrossings();
+        // update curve complexity
+        this.updateCurveComplexity();
+    }
+    // check if two STRAIGHT edges cross each other (return the crossing point) or not (return null)
+    // source: https://www.youtube.com/watch?v=bvlIYX9cgls&t=155s
+    straightCrossingPoint(sub1, sub2) {
+        if (sub1 === sub2)
+            return null;
+        const p1 = sub1.points[0];
+        const p2 = sub1.points[1];
+        const p3 = sub2.points[0];
+        const p4 = sub2.points[1];
+        // first check if edges are parallel
+        const b = (p4.x - p3.x) * (p2.y - p1.y) - (p4.y - p3.y) * (p2.x - p1.x);
+        if (Math.abs(b) < 1e-10)
+            return null;
+        // compute constants a and c
+        const a = (p4.x - p3.x) * (p3.y - p1.y) - (p4.y - p3.y) * (p3.x - p1.x);
+        const c = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+        // compute coefficients alpha and beta
+        const alpha = a / b;
+        const beta = c / b;
+        // crossing condition: 0 <= alpha <= 1 && 0 <= beta <= 1
+        const accuracy = 1e-5;
+        if (accuracy < alpha && alpha < 1 - accuracy && accuracy < beta && beta < 1 - accuracy) {
+            const x0 = p1.x + alpha * (p2.x - p1.x);
+            const y0 = p1.y + alpha * (p2.y - p1.y);
+            return new Crossing(sub1, sub2, x0, y0);
+        }
+        return null;
+    }
+    // find all the crossing points between two (bended) edges
+    crossingPoints(e1, e2) {
+        let crossings = [];
+        const subEdges1 = e1.subEdges();
+        const subEdges2 = e2.subEdges();
+        // console.log("crossingPoints of edges "+e1.id+"/"+e2.id);
+        // console.log("Subedges:\n"+extractIds(subEdges1).toString()+"\n"+extractIds(subEdges2).toString())
+        for (const sub1 of subEdges1)
+            for (const sub2 of subEdges2) {
+                const crossing = this.straightCrossingPoint(sub1, sub2);
+                if (crossing) {
+                    crossing.edges = [e1, e2];
+                    crossing.checkLegal();
+                    crossings.push(crossing);
+                }
+            }
+        return crossings;
+    }
+    // find all the crossings of the graph, examining each pair of edges
+    findAllCrossings() {
+        let totalCrossings = [];
+        for (let i = 0; i < this._edges.length; i++)
+            for (let j = i; j < this._edges.length; j++) {
+                const crossings = this.crossingPoints(this._edges[i], this._edges[j]);
+                totalCrossings = totalCrossings.concat(crossings);
+            }
+        return totalCrossings;
+    }
+    // update the crossings of an edge
+    updateCrossingsByEdge(e) {
+        // find all the crossings of the edge
+        const edgeCrossings = this.findAllCrossingsFromEdge(e);
+        // check for double or more crossings of the same pair of edges
+        const len = edgeCrossings.length;
+        for (let i = 0; i < len - 1; i++)
+            for (let j = i + 1; j < len; j++)
+                if (edgeCrossings[i].sameEdges(edgeCrossings[j])) {
+                    edgeCrossings[i].more_than_once = true;
+                    edgeCrossings[j].more_than_once = true;
+                }
+        // remove previous crossings of the edge
+        this._crossings = this._crossings.filter(cross => cross.edges[0] != e && cross.edges[1] != e);
+        // add the new crossings of the edge to the set of crossings
+        this._crossings = this._crossings.concat(edgeCrossings);
+    }
+    // update crossings when moving a vertex
+    updateCrossingsByVertex(v) {
+        // find the edges that have vertex v as a point
+        const edges = this._edges.filter(e => e.points[0] === v || e.points[1] === v);
+        for (const edge of edges)
+            this.updateCrossingsByEdge(edge);
+    }
+    // update crossings when moving a bend
+    updateCrossingsByBend(b) { this.updateCrossingsByEdge(b.edge); }
+    // move a bend and update the crossings
+    moveBend(b, x, y) {
+        b.moveTo(x, y);
+        // update crossings
+        if (this._effective_crossing_update)
+            this.updateCrossingsByBend(b);
+        else
+            this.updateCrossings();
+    }
+    // update all the crossings of the graph
+    updateCrossings() {
+        this._crossings = this.findAllCrossings();
+        const len = this._crossings.length;
+        // check for double or more crossings of the same pair of edges
+        for (let i = 0; i < len - 1; i++)
+            for (let j = i + 1; j < len; j++)
+                if (this._crossings[i].sameEdges(this._crossings[j])) {
+                    this._crossings[i].more_than_once = true;
+                    this._crossings[j].more_than_once = true;
+                }
+    }
+    // find all the crossings of a given edge with the other edges
+    findAllCrossingsFromEdge(e) {
+        let edgeCrossings = [];
+        // console.log("findAllCrossingsFromEdge "+e.id);
+        for (let i = 0; i < this._edges.length; i++) {
+            // const e1 = this._edges[i];
+            // console.log("edge:",e1.id);
+            const crossings = this.crossingPoints(e, this._edges[i]);
+            edgeCrossings = edgeCrossings.concat(crossings);
+            //console.log(extractIds(edgeCrossings).toString());
+        }
+        return edgeCrossings;
+    }
+    // add a bend to an edge (given the vertices of the edge)
+    addBend(v, u) {
+        let edge = this.getEdgeByVertices(v, u);
+        if (edge) {
+            let midx = (v.x + u.x) / 2;
+            let midy = (v.y + u.y) / 2;
+            edge.addBend(midx, midy);
+            const edge_complexity = edge.bends.length;
+            // update crossings
+            if (this._effective_crossing_update)
+                this.updateCrossingsByEdge(edge);
+            else
+                this.updateCrossings();
+            // update curve complexity
+            if (edge_complexity > this._curve_complexity)
+                this._curve_complexity = edge_complexity;
+        }
+        else
+            console.log("Edge not found.");
+    }
+    // remove a bend from an edge (given the vertices of the edge)
+    removeBend(v, u) {
+        let edge = this.getEdgeByVertices(v, u);
+        if (edge) {
+            edge.removeLastBend();
+            // update curve complexity
+            this.updateCurveComplexity();
+            // update crossings
+            if (this._effective_crossing_update)
+                this.updateCrossingsByEdge(edge);
+            else
+                this.updateCrossings();
+        }
+        else
+            console.log("Edge not found.");
+    }
+    // compute the thrackle number of the graph
+    thrackleNumber() {
+        let thrackle = this._edges.length * (this._edges.length + 1);
+        for (const vertex of this._vertices) {
+            const deg = vertex.neighbors.length;
+            thrackle = thrackle - deg * deg;
+        }
+        return thrackle / 2;
+    }
+    // make the graph clique
+    addAllEdges() {
+        for (const v1 of this._vertices)
+            for (const v2 of this._vertices)
+                this.addEdge(v1, v2, false);
+        this.updateCrossings();
+    }
+    // place all the vertices in a circle with center (x0,y0) and radius r
+    makeCircle(x0 = 0, y0 = 0, r = 10) {
+        this._vertices.forEach((vertex, index) => {
+            const angle = (index / this._vertices.length) * 2 * Math.PI;
+            // vertex.x = x0 + Math.cos(angle) * r;
+            // vertex.y = y0 + Math.sin(angle) * r;
+            // vertex.moveTo(x0 + Math.cos(angle) * r, y0 + Math.sin(angle) * r)
+            this.moveVertex(vertex, x0 + Math.cos(angle) * r, y0 + Math.sin(angle) * r, false);
+        });
+        this.updateCrossings();
+    }
+    // find the max Id of the vertices
+    maxVertexId() {
+        // Filter numeric strings and convert them to numbers
+        const numericIds = extractIds(this._vertices).filter(id => /^\d+$/.test(id)).map(Number); // Convert to number
+        //const numIds = extractIds(this._vertices).filter(id => Number.isNaN(id));
+        //console.log("Numeric Ids:",numericIds);
+        if (numericIds.length === 0)
+            return 0;
+        return Math.max(...numericIds);
+    }
+    // return the arrays of vertices and edges of the graph
+    getGraph() {
+        return { vertices: this._vertices, edges: this._edges };
+    }
+    // print the vertices and edges of the graph
+    printGraph() {
+        console.log("Graph vertices:", extractIds(this._vertices));
+        console.log("Graph edges:", extractIds(this._edges));
+    }
+    printGraphDetails() {
+        console.log("VERTICES:");
+        for (const v of this._vertices)
+            v.print();
+        console.log("EDGES:", extractIds(this._edges));
+    }
+    // print the crossings of the graph
+    printCrossings() {
+        console.log("Crossins:", this._crossings.length);
+        // printPointArray(this._crossings);
+    }
+}
+function testCrossings() {
+    let graph = new Graph();
+    let v1 = new Vertex('1', 5, 1);
+    let v2 = new Vertex('2', 6, 0);
+    let v3 = new Vertex('3', 5, 0);
+    let v4 = new Vertex('4', 6, 1);
+    // add vertices to graph
+    graph.addVertex(v1);
+    graph.addVertex(v2);
+    graph.addVertex(v3);
+    graph.addVertex(v4);
+    //add edges to graph
+    graph.addEdge(v1, v2);
+    graph.addEdge(v3, v4);
+    let e1 = graph.getEdgeByVertices(v1, v2);
+    let e2 = graph.getEdgeByVertices(v3, v4);
+    // find crossings
+    const crossings = graph.straightCrossingPoint(e2, e1);
+    console.log("CROSSINGS");
+    //for (const cros of crossings)
+    crossings === null || crossings === void 0 ? void 0 : crossings.print();
+}
+// testCrossings();
+function testCrossignsFromEdge() {
+    // create a new graph
+    let graph = new Graph();
+    // create vertices
+    let v1 = new Vertex('1', 0, 0);
+    let v2 = new Vertex('2', 0, 1);
+    let v3 = new Vertex('3', -10, 0);
+    let v4 = new Vertex('4', 10, 0);
+    // move vertices
+    v2.moveTo(6, 0);
+    v3.moveTo(0, 1);
+    v4.moveTo(6, 1);
+    // add vertices to graph
+    graph.addVertex(v1);
+    graph.addVertex(v2);
+    graph.addVertex(v3);
+    graph.addVertex(v4);
+    //add edges to graph
+    graph.addEdge(v1, v2);
+    graph.addEdge(v3, v4);
+    // add bends
+    let e1 = graph.getEdgeByVertices(v1, v2);
+    let e2 = graph.getEdgeByVertices(v3, v4);
+    e1 === null || e1 === void 0 ? void 0 : e1.addBend(1, 1);
+    e1 === null || e1 === void 0 ? void 0 : e1.addBend(2, 0);
+    e1 === null || e1 === void 0 ? void 0 : e1.addBend(3, 1);
+    e1 === null || e1 === void 0 ? void 0 : e1.addBend(4, 0);
+    e1 === null || e1 === void 0 ? void 0 : e1.addBend(5, 1);
+    e2 === null || e2 === void 0 ? void 0 : e2.addBend(1, 0);
+    e2 === null || e2 === void 0 ? void 0 : e2.addBend(2, 1);
+    e2 === null || e2 === void 0 ? void 0 : e2.addBend(3, 0);
+    e2 === null || e2 === void 0 ? void 0 : e2.addBend(4, 1);
+    e2 === null || e2 === void 0 ? void 0 : e2.addBend(5, 0);
+    // check findAllCrossingFromEdge
+    const crossings = graph.findAllCrossingsFromEdge(e1);
+    console.log("CROSSINGS");
+    for (const cros of crossings)
+        cros.print();
+}
+// testCrossignsFromEdge();
+function test() {
+    //console.log("Starting Test...")
+    // 1. Create a graph
+    let graph = new Graph();
+    //console.log("Graph created:",graph);
+    // 2. Add vertices
+    let v1 = new Vertex('1', 0, -10);
+    let v2 = new Vertex('2', 0, 10);
+    let v3 = new Vertex('3', -10, 0);
+    let v4 = new Vertex('4', 10, 0);
+    let v5 = new Vertex('5', 20, 20);
+    let v6 = new Vertex('6', 20, 20);
+    graph.addVertex(v1);
+    graph.addVertex(v2);
+    graph.addVertex(v3);
+    graph.addVertex(v4);
+    graph.addVertex(v5);
+    graph.addVertex(v6);
+    // console.log("Vertices added: ",graph.vertices);
+    // make clique
+    graph.addAllEdges();
+    let r = 2.2;
+    graph.makeCircle(0, 0, r);
+    // print Graph details
+    graph.printGraphDetails();
+    // check edge crossings
+    console.log("Crossings");
+    const crossings = graph.findAllCrossings();
+    for (const crossing of crossings)
+        crossing.print();
+    // check bends
+    let e14 = graph.getEdgeByVertices(v1, v4);
+    let e24 = graph.getEdgeByVertices(v2, v4);
+    // e1?.addBend(2*r,r);
+    /*
+    // print bends
+    console.log("Bends:")
+    const bends = e1?.bends;
+    for (const bend of bends!)
+        bend.print();
+    // print sub-edges of e1
+    const sub = e1?.subEdges();
+    console.log("Sub-edges:")
+    for (const subb of sub!)
+        console.log(subb.id);
+    */
+    const cross = graph.findAllCrossingsFromEdge(e14);
+    console.log("Crossing points of edge e1:");
+    for (const cros of cross)
+        cros.print();
+    console.log("New crossings");
+    const crossings2 = graph.findAllCrossings();
+    for (const crossing of crossings2)
+        crossing.print();
+}
+//test();

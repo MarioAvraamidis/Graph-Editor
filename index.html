@@ -1,0 +1,45 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="styles.css">
+    <title>Graph Editor</title>
+</head>
+<body>
+    <h1>Graph Editor</h1>
+    <!-- The canvas for drawing -->
+    <canvas id="graphCanvas" width="1000" height="500" style="border:1px solid #000;"></canvas>
+    
+    <!-- Controls for creating graph -->
+    <div id="controls">
+        <input type="text" id="vertexIdInput" placeholder="Vertex ID" />
+        <button id="add-vertex">New Vertex</button>
+        <button id="delete-vertex">Delete Vertex</button>
+        <!-- <button id="add-new-vertex"> Add new Vertex </button> -->
+    </div>
+
+    <div>
+        <input type="text" id="edgeFromInput" placeholder="From Vertex" />
+        <input type="text" id="edgeToInput" placeholder="To Vertex" />
+        <!-- <button id="add-edge">Add Edge</button> -->
+        <button id="delete-edge">Delete Edge</button>
+        <button id="add-bend"> Add bend </button>
+        <button id="remove-bend"> Remove bend </button>
+    </div>
+
+    <div>
+        <button id="undo-button">Undo</button>
+        <button id="redo-button">Redo</button>
+        <button id="circle-placement"> Circle</button>
+        <button id="make-clique"> Clique</button>
+    </div>
+
+    <pre id="output"> </pre> 
+    <!-- <pre id="output" style="border: 1px solid black; padding: 10px;"></pre> -->
+
+    <script type="module" src="dist/app.js"></script>
+</body>
+</html>
