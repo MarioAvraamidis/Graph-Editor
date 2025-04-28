@@ -13,6 +13,8 @@ let selectedVertex = null;
 let hasDragged = false; // will be used to distinguish vertex selection from vertex drag
 let mouse;
 let vertexRadius = 20;
+let hoveredEdge = null;
+let hoveredVertex = null;
 //window.addEventListener("DOMContentLoaded", () => {
 const canvas = document.getElementById("graphCanvas");
 const ctx = canvas.getContext("2d");
@@ -177,7 +179,7 @@ canvas.addEventListener("mousedown", e => {
     // Try selecting a bend
     for (const e of graph.edges)
         for (const bend of e.bends)
-            if (distance(mouse, { x: bend.x, y: bend.y }) < vertexRadius / 4) {
+            if (distance(mouse, { x: bend.x, y: bend.y }) < vertexRadius / 3) {
                 saveState();
                 draggingBend = bend;
                 offsetX = mouse.x - bend.x;
@@ -185,7 +187,7 @@ canvas.addEventListener("mousedown", e => {
                 return;
             }
 });
-// detect vertex moving
+// detect vertex or bend moving
 canvas.addEventListener("mousemove", e => {
     mouse = getMousePos(canvas, e);
     if (draggingVertex) {
@@ -201,18 +203,45 @@ canvas.addEventListener("mousemove", e => {
     }
     else if (selectedVertex)
         drawGraph(ctx, graph, false);
+    // detect hovering over edge
+    // hoveredEdge = null; // Reset each move
+    hoveredEdge = graph.isNearEdge(mouse.x, mouse.y, 3);
+    hoveredVertex = graph.isNearVertex(mouse.x, mouse.y, vertexRadius);
+    // don't select an edge when mouse is over an edge
+    if (hoveredVertex) {
+        // canvas.style.cursor = "pointer"; // Show hand cursor
+        hoveredEdge = null;
+    }
+    // console.log("Hovered edge", hoveredEdge?.id);
+    else if (hoveredEdge) {
+        canvas.style.cursor = "pointer"; // Show hand cursor
+    }
+    else {
+        canvas.style.cursor = "default";
+    }
+    drawGraph(ctx, graph, false);
     // renderGraph();
 });
 // detect vertex release
 canvas.addEventListener("mouseup", (e) => {
     const pos = getMousePos(canvas, e);
     const v = graph.getVertexAtPosition(pos.x, pos.y, vertexRadius);
+    const b = graph.getLastBendAtPosition(pos.x, pos.y, vertexRadius / 4);
     if (!hasDragged) {
         // It's a click, not a drag
-        if (selectedVertex && v && selectedVertex !== v) {
+        if (selectedVertex && v && selectedVertex !== v) { // create an edge between 2 existing vertices of the graph
             graph.addEdge(selectedVertex, v);
             selectedVertex = null;
         }
+        /*else if (selectedVertex)
+        {
+            // create a temporary vertex to be able to create the edge
+            const temp = graph.addVertexAtPosition("temp",pos.x,pos.y);
+            const edge = graph.addEdge(selectedVertex,temp);
+            selectedVertex = null;
+            // const newBend: Bend = new Bend(edge!,pos.x,pos.y);
+            // edge?.extend(newBend);
+        }*/
         else {
             selectedVertex = v;
         }
@@ -220,6 +249,19 @@ canvas.addEventListener("mouseup", (e) => {
     draggingVertex = null;
     draggingBend = null;
     hasDragged = false;
+    renderGraph();
+});
+canvas.addEventListener("click", (e) => {
+    if (hoveredEdge) {
+        saveState();
+        const p1 = hoveredEdge.points[0];
+        const p2 = hoveredEdge.points[1];
+        if (p1 instanceof Vertex && p2 instanceof Vertex)
+            graph.addBend(p1, p2, mouse.x, mouse.y);
+        // set it free
+        hoveredEdge = null;
+        canvas.style.cursor = "default";
+    }
     renderGraph();
 });
 /*
@@ -292,11 +334,21 @@ function drawGraph(ctx, graph, circle = true) {
                 ctx.lineTo(bends[i].x, bends[i].y);
             ctx.lineTo(v2.x, v2.y);
             ctx.strokeStyle = "#aaa";
+            if (hoveredEdge === edge)
+                ctx.lineWidth = 4;
+            else
+                ctx.lineWidth = 2;
             ctx.stroke();
             // draw bends
             for (let i = 0; i < bends.length; i++) {
                 ctx.beginPath();
-                ctx.arc(bends[i].x, bends[i].y, vertexRadius / 4, 0, 2 * Math.PI); // small green circle
+                // show bigger bend when mouse near it
+                let rad;
+                if (distance(mouse, { x: bends[i].x, y: bends[i].y }) < vertexRadius / 3)
+                    rad = vertexRadius / 3.5;
+                else
+                    rad = vertexRadius / 4;
+                ctx.arc(bends[i].x, bends[i].y, rad, 0, 2 * Math.PI); // small green circle
                 ctx.fillStyle = "yellow";
                 ctx.fill();
                 ctx.strokeStyle = "black";
@@ -313,6 +365,10 @@ function drawGraph(ctx, graph, circle = true) {
             ctx.fillStyle = "#3498db";
             ctx.fill();
             ctx.strokeStyle = "#2980b9";
+            if (hoveredVertex === vertex)
+                ctx.lineWidth = 4;
+            else
+                ctx.lineWidth = 2;
             ctx.stroke();
             // Draw label
             ctx.fillStyle = "#fff";
@@ -321,17 +377,17 @@ function drawGraph(ctx, graph, circle = true) {
             ctx.textBaseline = "middle";
             ctx.fillText(vertex.id, pos.x, pos.y);
         }
-        // Draw a temporary edge from selected vertex to mouse position
-        if (selectedVertex) {
-            ctx.beginPath();
-            ctx.moveTo(selectedVertex.x, selectedVertex.y);
-            ctx.lineTo(mouse.x, mouse.y);
-            ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
-            ctx.setLineDash([5, 5]); // dashed line
-            ctx.stroke();
-            ctx.setLineDash([]); // reset
-        }
     });
+    // Draw a temporary edge from selected vertex to mouse position
+    if (selectedVertex) {
+        ctx.beginPath();
+        ctx.moveTo(selectedVertex.x, selectedVertex.y);
+        ctx.lineTo(mouse.x, mouse.y);
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.setLineDash([5, 5]); // dashed line
+        ctx.stroke();
+        ctx.setLineDash([]); // reset
+    }
     // Draw crossings
     // graph.updateCrossings();
     for (const cross of graph.crossings) {
@@ -345,6 +401,15 @@ function drawGraph(ctx, graph, circle = true) {
             ctx.strokeStyle = "orange";
         else
             ctx.strokeStyle = "green";
+        ctx.stroke();
+    }
+    // If hovering over an edge, show a tooltip
+    if (hoveredEdge) {
+        ctx.beginPath();
+        ctx.arc(mouse.x, mouse.y, vertexRadius / 4, 0, 2 * Math.PI); // small yellow circle
+        ctx.fillStyle = "yellow";
+        ctx.fill();
+        ctx.strokeStyle = "black";
         ctx.stroke();
     }
 }

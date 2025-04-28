@@ -61,8 +61,65 @@ export abstract class LineSegment
     get points() {return this._points}
     get crossings() {return this._crosses}
 
+    set points([p1,p2]: [Point, Point]) {this._points = [p1,p2]}
+
     // add a crossing with a new edge
     addCrossing(crossingSegment: LineSegment) {this._crosses.push(crossingSegment); }
+
+    // return the coordinates of the points of LineSegment, but make it a little bit shorter by a constant c
+    /*pointsCoordinatesExcluded(c: number)
+    {
+        let x1 = this.points[0].x;    let y1 = this.points[0].y;
+        let x2 = this.points[1].x;    let y2 = this.points[1].y;
+        let angle: number;
+        // compute angle
+        if (x1===x2)
+        {
+            if (y1 < y2) { y1 = y1+c; y2 = y2-c;}
+            else if (y2 < y1) {y1 = y1-c; y2 = y2+c;}
+        }
+        else
+        {
+            angle = Math.atan((y2-y2)/(x2-x1));
+            // fix coordinates
+            x1 = x1 + c*Math.cos(angle);
+            y1 = y1 + c*Math.sin(angle);
+            x2 = x2 - c*Math.cos(angle);
+            y2 = y2 - c*Math.sin(angle);
+        }
+        /*if (x1 < x2) { x1 = x1+c; x2 = x2-c;}
+        else if (x2 < x1) {x1 = x1-c; x2 = x2+c;}
+        // y coordinates
+        if (y1 < y2) { y1 = y1+c; y2 = y2-c;}
+        else if (y2 < y1) {y1 = y1-c; y2 = y2+c;}
+        return {x1,y1,x2,y2};
+    }*/
+
+    projection(px: number, py: number)
+    {
+        const x1 = this.points[0].x;
+        const y1 = this.points[0].y;
+        const x2 = this.points[1].x;
+        const y2 = this.points[1].y;
+        // const {x1,y1,x2,y2} = this.pointsCoordinatesExcluded(dist);
+        const l2 = (x2 - x1) ** 2 + (y2 - y1) ** 2;
+        if (l2 === 0)
+            return {x: x1, y: y1};
+        let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+        t = Math.max(0, Math.min(1, t));    // if t not in [0,1], choose 0 for t<0 and 1 for t>1
+        const projX = x1 + t * (x2 - x1);
+        const projY = y1 + t * (y2 - y1);
+        return {x: projX, y: projY};
+    }
+
+    distanceFromPoint(px: number, py: number)
+    {
+        let coord = this.projection(px,py);
+        return Math.hypot(coord.x-px,coord.y-py);
+    }
+
+    // check if a point at (px,py) is near the line segment (at distance < dist)
+    isNear(px: number, py: number, dist: number) { return this.distanceFromPoint(px,py) < dist; }
 }
 
 export class Edge extends LineSegment
@@ -76,7 +133,30 @@ export class Edge extends LineSegment
     get bends() {return this._bends}
 
     // add a bend at coordinate (x,y)
-    addBend(x: number, y: number) {this._bends.push(new Bend(this,x,y))};
+    addBend(x: number, y: number)
+    {
+        // find the subedge that is more close to the bend and add it there
+        const subedges = this.subEdges();
+        let minDist = subedges[0].distanceFromPoint(x,y);
+        let dist: number, closest: LineSegment = subedges[0];
+        for (let i=1;i<subedges.length;i++)
+        {
+            dist = subedges[i].distanceFromPoint(x,y);
+            if (dist < minDist)
+            {
+                closest = subedges[i];
+                minDist = dist;
+            }
+        }
+        // find the first point of the closest subedge
+        let index = -1;
+        if (closest.points[0] instanceof Bend)
+            index = this._bends.indexOf(closest.points[0]);
+        // put the new Bend ON the closest subedge
+        const coord = closest.projection(x,y);
+        // add bend to the bends
+        this._bends.splice(index+1,0,new Bend(this,coord.x,coord.y));
+    };
     // remove the last bend of the edge
     removeLastBend() {this._bends.pop()}
     // add an array of bends (used for cloning)
@@ -107,6 +187,25 @@ export class Edge extends LineSegment
             subedges.push(new Subedge(this.points[0],this.points[1],this))
 
         return subedges;
+    }
+
+    //extend a semi-edge (i.e. add a new bend at the side or connect to an existing vertex)
+    extend(newPoint: Point)
+    {
+        if (newPoint instanceof Bend)
+            this._bends.push(newPoint);
+        // update points
+        this.points = [this.points[0],newPoint];    // assume p1 is always vertex
+    }
+
+    // check if a given point (px,py) is near (at distance < dist) to any of the subedges of the edge
+    isNearPoint(px: number, py: number, dist: number)
+    {
+        const subedges = this.subEdges();
+        for (const subedge of subedges)
+            if (subedge.isNear(px,py,dist))
+                return true;
+        return false;
     }
 }
 
@@ -181,6 +280,8 @@ export class Bend extends Point
     }
 
     get edge() {return this._edge;}
+
+    distanceFromPoints(b1:Point, b2:Point) {return Math.hypot(this.x-b1.x,this.y-b1.y) + Math.hypot(this.x-b2.x,this.y-b2.y) }
 }
 
 // Given an array of objects (e.g. Vertex, Edge) return an array of strings, containing the id's of the objects
@@ -231,6 +332,14 @@ export class Graph {
                 cc = edge_complexity;
         }
         this._curve_complexity = cc;
+    }
+
+    // create a new vertex at the given location and add it to the graph
+    addVertexAtPosition(id: string, x: number, y: number)
+    {
+        const newVertex = new Vertex(id,x,y);
+        this.addVertex(newVertex);
+        return newVertex;
     }
 
     // add a new vertex
@@ -297,6 +406,21 @@ export class Graph {
         return null;
     }
 
+    // given a (x,y) location, return the bend at distance < dist near this location
+    // ATTENTION: the bend must be the ending point of an edge
+    getLastBendAtPosition(x: number, y: number, dist: number)
+    {
+        for (const e of this._edges)
+        {
+            const p = e.points[1];  // assume points[0] is always vertex
+            const dx = p.x - x;
+            const dy = p.y - y;
+            if(dx*dx + dy*dy <= dist*dist && p instanceof Bend)
+                return p;
+        }
+        return null;
+    }
+
     // given the id of an edge, return the edge
     getEdge(edge_id: string) {return this._edges.find(e => e.id == edge_id)}
 
@@ -322,7 +446,7 @@ export class Graph {
     }
 
     // add a new edge between 2 vertices
-    addEdge(v1: Vertex, v2: Vertex, update: boolean = true) {
+    addEdge(v1: Vertex, v2: Vertex, updateCrossings: boolean = true) {
         let edge_id1 = v1.id + '-' + v2.id
         // if the graph is undirected, check reversed edge
         let edge_id2 = v2.id + '-' + v1.id
@@ -344,13 +468,14 @@ export class Graph {
                 v1.addNeighbor(v2);
                 v2.addNeighbor(v1);
                 // update crossings
-                if (update)
+                if (updateCrossings)
                 {
                     if(this._effective_crossing_update)
                         this.updateCrossingsByEdge(edge);
                     else
                         this.updateCrossings();
                 }
+                return edge;
             }
         }
         else
@@ -532,15 +657,19 @@ export class Graph {
         return edgeCrossings;
     }
 
-    // add a bend to an edge (given the vertices of the edge)
-    addBend(v: Vertex, u: Vertex)
+    // add a bend to an edge (given the vertices of the edge) to the given coordinates (or to the middlepoint of the vertices if coordinates not given)
+    addBend(v: Vertex, u: Vertex, x?: number, y?:number)
     {
         let edge = this.getEdgeByVertices(v,u);
         if (edge)
         {
-            let midx = (v.x+u.x)/2;
-            let midy = (v.y+u.y)/2;
-            edge.addBend(midx,midy);
+            if(x !== undefined && y !== undefined)
+                edge.addBend(x,y)
+            else{
+                let midx = (v.x+u.x)/2;
+                let midy = (v.y+u.y)/2;
+                edge.addBend(midx,midy);
+            }
             const edge_complexity = edge.bends.length;
             // update crossings
             if (this._effective_crossing_update)
@@ -606,6 +735,29 @@ export class Graph {
             this.moveVertex(vertex,x0 + Math.cos(angle) * r, y0 + Math.sin(angle) * r,false)
         });
         this.updateCrossings();
+    }
+
+    // check if a given (x,y) point is near any edge of the graph and return the edge (at distance < dist)
+    isNearEdge(x: number, y: number, dist: number)
+    {
+        for (const edge of this._edges)
+            if (edge.isNearPoint(x,y,dist))
+            {
+                for (const bend of edge.bends)
+                    if (Math.hypot(bend.x-x,bend.y-y)<2*dist)
+                        return null;
+                return edge;
+            }
+        return null;
+    }
+
+    // check if a given (x,y) point is near any vertex of the graph and return the vertex (at distance < dist)
+    isNearVertex(x: number, y: number, dist: number)
+    {
+        for (const vertex of this._vertices)
+            if (Math.hypot(vertex.x-x,vertex.y-y)<dist)
+                return vertex;
+        return null;
     }
 
     // find the max Id of the vertices
