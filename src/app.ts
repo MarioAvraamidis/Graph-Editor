@@ -6,14 +6,14 @@ let graph = new Graph();
 const historyStack: Graph[] = [];
 const redoStack: Graph[] = [];
 
-let draggingVertex: Vertex | null = null;
 let offsetX = 0;
 let offsetY = 0;
+let draggingVertex: Vertex | null = null;
 let draggingBend: Bend | null = null;
 let selectedVertex: Vertex | null = null;
 let hasDragged = false;     // will be used to distinguish vertex selection from vertex drag
 let mouse: {x: number,y: number};
-let vertexRadius : number  =20;
+let vertexRadius : number = 20;
 let hoveredEdge: Edge | null = null;
 let hoveredVertex: Vertex | null = null;
 
@@ -61,17 +61,6 @@ let hoveredVertex: Vertex | null = null;
         }
         renderGraph();
     });
-
-    /*
-    // Add new Vertex and give it a name
-    document.getElementById("add-new-vertex")?.addEventListener("click", () => {
-        saveState();
-        const id = graph.maxVertexId();
-        //console.log("Max numeric Id:",id);
-        const vertex = new Vertex((id+1).toString(),Math.random()*ctx.canvas.width,Math.random()*ctx.canvas.height);
-        graph.addVertex(vertex);
-        renderGraph();
-    });*/
 
     // Delete Vertex
     document.getElementById("delete-vertex")?.addEventListener("click", () => {
@@ -178,6 +167,20 @@ let hoveredVertex: Vertex | null = null;
         graph.addAllEdges();
         renderGraph();
     })
+
+    // make the graph straight line
+    document.getElementById("clear-bends")?.addEventListener("click", () => {
+        saveState();
+        graph.removeBends();
+        renderGraph();
+    })
+
+    // remove all the edges
+    document.getElementById("clear-edges")?.addEventListener("click", () => {
+        saveState();
+        graph.removeEdges();
+        renderGraph();
+    });
     
     // Initial render
     renderGraph();
@@ -190,7 +193,9 @@ canvas.addEventListener("mousedown", e => {
     // Try selecting a vertex
     for (const v of graph.vertices) {
         if (distance(mouse, { x: v.x, y: v.y }) < vertexRadius) {
-            saveState();
+            if (!selectedVertex)    // don't save when no changes made
+                saveState();
+            // console.log("mousedown"); // click is considered as mousedown
             draggingVertex = v;
             hasDragged = false;  // Reset when mouse goes down
             offsetX = mouse.x - v.x;
@@ -207,6 +212,7 @@ canvas.addEventListener("mousedown", e => {
             {
                 saveState();
                 draggingBend = bend;
+                hasDragged = false;
                 offsetX = mouse.x - bend.x;
                 offsetY = mouse.y - bend.y;
                 return;
@@ -226,20 +232,24 @@ canvas.addEventListener("mousemove", e => {
     else if (draggingBend)
     {
         graph.moveBend(draggingBend, mouse.x - offsetX, mouse.y - offsetY);
+        hasDragged = true;
         renderGraph();
         // graph.printCrossings();
     }
-    else if (selectedVertex) 
+    else if (selectedVertex)
+    {
+        // consider moving the vertex to show crossings live
         drawGraph(ctx, graph, false);
+    }
 
     // detect hovering over edge
-    // hoveredEdge = null; // Reset each move
     hoveredEdge = graph.isNearEdge(mouse.x,mouse.y,3);
     hoveredVertex = graph.isNearVertex(mouse.x,mouse.y,vertexRadius);
-    // don't select an edge when mouse is over an edge
-    if(hoveredVertex)
+
+    // don't select an edge when mouse is over a vertex or a dragging vertex/bend
+    if(hoveredVertex || hasDragged || selectedVertex)
     {
-        // canvas.style.cursor = "pointer"; // Show hand cursor
+        canvas.style.cursor = "default"; // Show default cursor
         hoveredEdge = null;
     }
     // console.log("Hovered edge", hoveredEdge?.id);
@@ -258,25 +268,29 @@ canvas.addEventListener("mouseup", (e) => {
     
     const pos = getMousePos(canvas, e);
     const v = graph.getVertexAtPosition(pos.x, pos.y, vertexRadius);
-    const b = graph.getLastBendAtPosition(pos.x, pos.y, vertexRadius/4);
+    // const b = graph.getLastBendAtPosition(pos.x, pos.y, vertexRadius/4);
 
     if (!hasDragged) {
         // It's a click, not a drag
-        if (selectedVertex && v && selectedVertex !== v) {  // create an edge between 2 existing vertices of the graph
-            graph.addEdge(selectedVertex, v);
+        if (selectedVertex && v && selectedVertex !== v) {
+            saveState();
+            graph.addEdgeAdvanced(selectedVertex, v);
             selectedVertex = null;
         } 
-        /*else if (selectedVertex)
+        else if (selectedVertex)
         {
-            // create a temporary vertex to be able to create the edge
-            const temp = graph.addVertexAtPosition("temp",pos.x,pos.y);
-            const edge = graph.addEdge(selectedVertex,temp);
+            saveState();
+            graph.extendEdge(selectedVertex,pos.x,pos.y);
             selectedVertex = null;
-            // const newBend: Bend = new Bend(edge!,pos.x,pos.y);
-            // edge?.extend(newBend);
-        }*/
+        }
         else {
             selectedVertex = v;
+            // if nothing selected, add a new vertex at the point clicked
+            if (!v && !hoveredEdge)
+            {
+                const vertex = new Vertex((graph.maxVertexId()+1).toString(),mouse.x,mouse.y);
+                graph.addVertex(vertex);
+            }
         }
     }
 
@@ -286,7 +300,7 @@ canvas.addEventListener("mouseup", (e) => {
     renderGraph();
 });
 
-canvas.addEventListener("click", (e) => {
+canvas.addEventListener("click", () => {
     if (hoveredEdge) {
         saveState();
         const p1 = hoveredEdge.points[0];
@@ -388,45 +402,24 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, circle: boolean 
             // draw bends
             for (let i=0;i<bends.length;i++)
                 {
-                    ctx.beginPath();
                     // show bigger bend when mouse near it
                     let rad: number;
                     if (distance(mouse,{x: bends[i].x, y: bends[i].y}) < vertexRadius/3)
-                        rad = vertexRadius/3.5;
+                        drawBend(ctx,bends[i].x,bends[i].y,vertexRadius/3.5);
                     else
-                        rad = vertexRadius/4;
-                    ctx.arc(bends[i].x, bends[i].y, rad , 0, 2 * Math.PI); // small green circle
-                    ctx.fillStyle = "yellow";
-                    ctx.fill();
-                    ctx.strokeStyle = "black";
-                    ctx.stroke();
+                        drawBend(ctx,bends[i].x,bends[i].y,vertexRadius/4);
                 }
         }
     });
 
     // Draw vertices
-    graph.vertices.forEach(vertex => {
-        const pos = positions.get(vertex.id);
-        if (pos) {
-            ctx.beginPath();
-            ctx.arc(pos.x, pos.y, vertexRadius, 0, 2 * Math.PI);
-            ctx.fillStyle = "#3498db";
-            ctx.fill();
-            ctx.strokeStyle = "#2980b9";
-            if (hoveredVertex === vertex)
-                ctx.lineWidth = 4;
+    graph.vertices.forEach(vertex => 
+        {
+            if (vertex.temporary)
+                drawBend(ctx,vertex.x,vertex.y,vertexRadius/3.5,true);
             else
-                ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Draw label
-            ctx.fillStyle = "#fff";
-            ctx.font = "14px sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(vertex.id, pos.x, pos.y);
-        }
-    });
+                drawVertex(ctx,vertex) 
+        });
 
     // Draw a temporary edge from selected vertex to mouse position
     if (selectedVertex) {
@@ -434,9 +427,12 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, circle: boolean 
         ctx.moveTo(selectedVertex.x, selectedVertex.y);
         ctx.lineTo(mouse.x, mouse.y);
         ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
-        ctx.setLineDash([5, 5]); // dashed line
+        ctx.setLineDash([3, 3]); // dashed line
         ctx.stroke();
         ctx.setLineDash([]); // reset
+        // draw a bend at the cursor
+        if (!graph.isNearVertex(mouse.x,mouse.y,vertexRadius))
+            drawBend(ctx,mouse.x,mouse.y,vertexRadius/4);
     }
 
     // Draw crossings
@@ -469,6 +465,40 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, circle: boolean 
 
 }
 
+// function for drawing a vertex
+function drawVertex(ctx: CanvasRenderingContext2D, vertex: Vertex)
+{
+    ctx.beginPath();
+    ctx.arc(vertex.x, vertex.y, vertexRadius, 0, 2 * Math.PI);
+    ctx.fillStyle = "#3498db";
+    ctx.fill();
+    ctx.strokeStyle = "#2980b9";
+    if (hoveredVertex === vertex)
+        ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.lineWidth = 2;
+
+    // Draw label
+    ctx.fillStyle = "#fff";
+    ctx.font = "14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(vertex.id, vertex.x, vertex.y);
+}
+
+// function for drawing a bend
+function drawBend(ctx: CanvasRenderingContext2D, x: number, y: number, rad: number, orange: boolean = false)
+{
+    ctx.beginPath();
+    // show bigger bend when mouse near it
+    ctx.arc(x, y, rad , 0, 2 * Math.PI); // small green circle
+    ctx.fillStyle = "yellow";
+    if (orange)
+        ctx.fillStyle = "orange";
+    ctx.fill();
+    ctx.strokeStyle = "black";
+    ctx.stroke();
+}
 
 
 // return the pos of the mouse in the canvas
@@ -490,7 +520,7 @@ function cloneGraph(original: Graph): Graph {
     const cloned = new Graph();
     // clone vertices
     for (const v of original.vertices) {
-        cloned.addVertex(new Vertex(v.id,v.x,v.y ));
+        cloned.addVertex(new Vertex(v.id,v.x,v.y,v.temporary ));
     }
     // clone edges
     for (const e of original.edges) {
