@@ -140,9 +140,11 @@ export class Edge extends LineSegment {
     set thickness(t) { this._thickness = t; }
     // add a bend at coordinate (x,y) (at the projection of (x,y) on the edge if onEdge is true)
     addBend(x, y, onEdge = true) {
+        let newBend;
         if (!onEdge) {
-            this._bends.push(new Bend(this, x, y));
-            return;
+            newBend = new Bend(this, x, y);
+            this._bends.push(newBend);
+            return newBend;
         }
         // find the subedge that is more close to the bend and add it there
         const subedges = this.subEdges();
@@ -163,7 +165,9 @@ export class Edge extends LineSegment {
         // put the new Bend ON the closest subedge
         const coord = subedges[closest].projection(x, y);
         // add bend to the bends
-        this._bends.splice(closest, 0, new Bend(this, coord.x, coord.y));
+        newBend = new Bend(this, coord.x, coord.y);
+        this._bends.splice(closest, 0, newBend);
+        return newBend;
     }
     ;
     // remove the last bend of the edge
@@ -172,6 +176,7 @@ export class Edge extends LineSegment {
     addBends(bends) {
         for (let i = 0; i < bends.length; i++) {
             let new_bend = new Bend(this, bends[i].x, bends[i].y);
+            new_bend.cloneCharacteristics(bends[i]);
             this._bends.push(new_bend);
         }
     }
@@ -202,12 +207,17 @@ export class Edge extends LineSegment {
     }
     // make the edge straight
     removeBends() { this._bends = []; }
-    // clone characteristics
+    // clone characteristics from a given edge e
     cloneCharacteristics(e) {
         this.addBends(e.bends);
         this._color = e.color;
         this._type = e.type;
         this._thickness = e.thickness;
+    }
+    assignCharacteristics(color, type, thickness) {
+        this._color = color;
+        this._type = type;
+        this._thickness = thickness;
     }
 }
 export class Subedge extends LineSegment {
@@ -268,9 +278,13 @@ export class Bend extends Point {
     }
     get edge() { return this._edge; }
     // clone utility
-    clone() {
-        let newBend = new Bend(this._edge, this.x, this.y);
-        return newBend;
+    cloneCharacteristics(b) {
+        this.size = b.size;
+        this.color = b.color;
+    }
+    assignCharacteristics(size, color) {
+        this.size = size;
+        this.color = color;
     }
 }
 // Given an array of objects (e.g. Vertex, Edge) return an array of strings, containing the id's of the objects
@@ -642,28 +656,34 @@ export class Graph {
         return edgeCrossings;
     }
     // add a bend to an edge (given the vertices of the edge) to the given coordinates (or to the middlepoint of the vertices if coordinates not given)
-    addBend(v, u, x, y) {
+    addBend(v, u, x, y, onEdge = true, updateCrossings = true) {
         let edge = this.getEdgeByVertices(v, u);
+        let newBend;
         if (edge) {
             if (x !== undefined && y !== undefined)
-                edge.addBend(x, y);
+                newBend = edge.addBend(x, y, onEdge);
             else {
                 let midx = (v.x + u.x) / 2;
                 let midy = (v.y + u.y) / 2;
-                edge.addBend(midx, midy);
+                newBend = edge.addBend(midx, midy);
             }
             const edge_complexity = edge.bends.length;
             // update crossings
-            if (this._effective_crossing_update)
-                this.updateCrossingsByEdge(edge);
-            else
-                this.updateCrossings();
+            if (updateCrossings) {
+                if (this._effective_crossing_update)
+                    this.updateCrossingsByEdge(edge);
+                else
+                    this.updateCrossings();
+            }
             // update curve complexity
             if (edge_complexity > this._curve_complexity)
                 this._curve_complexity = edge_complexity;
+            return newBend;
         }
-        else
+        else {
             console.log("Edge not found.");
+            return null;
+        }
     }
     // remove a given bend
     removeBend(bend) {

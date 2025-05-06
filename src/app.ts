@@ -108,9 +108,9 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
     document.getElementById("delete-vertex")?.addEventListener("click", () => {
         const input = (document.getElementById("vertexIdInput") as HTMLInputElement).value.trim();
         if (input) {
-        saveState();
-        graph.deleteVertexId(input);
-        renderGraph();
+            saveState();
+            graph.deleteVertexId(input);
+            renderGraph();
         }
     });
 
@@ -232,18 +232,42 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         renderGraph();
     });
 
+    document.getElementById("export-btn")!.addEventListener("click", () => {
+        exportGraph(graph);
+    });
+
+    document.getElementById("import-input")!.addEventListener("change", async (e) => {
+        const input = e.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) return;
+    
+        const file = input.files[0];
+        const text = await file.text();
+    
+        try {
+            const data = JSON.parse(text);
+            // console.log(data);
+            graph = restoreGraphFromJSON(data);
+            renderGraph();
+            saveState();
+        } catch (err) {
+            alert("Failed to load graph: Invalid format");
+            console.error(err);
+        }
+    });
+    
+
     // Palette for vertices
     const vertexColor = document.getElementById("vertex-color") as HTMLSelectElement
     const vertexShapeButtons = document.querySelectorAll(".shape-button");
     const vertexSize = document.getElementById("vertex-size") as HTMLInputElement;
-    const deleteVertexBtn = document.getElementById("delete-vertex")!;
+    const deleteVertexBtn = document.getElementById("delete-vertex-palette")!;
     // Palette for bends
     const bendColor = document.getElementById("bend-color") as HTMLSelectElement
     // const bendShape = document.getElementById("bend-shape") as HTMLSelectElement;
     const bendSize = document.getElementById("bend-size") as HTMLInputElement;
     const deleteBendBtn = document.getElementById("delete-bend")!;
     // Palette for Edges
-    const deleteEdgeBtn = document.getElementById("delete-edge")!;
+    const deleteEdgeBtn = document.getElementById("delete-edge-palette")!;
     const edgeThickness = document.getElementById("edge-thickness") as HTMLInputElement;
     const edgeColor = document.getElementById("edge-color") as HTMLSelectElement
 
@@ -718,7 +742,7 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph) {
 
     // Draw a temporary edge from starting vertex to mouse position and a rubbish bin to discard the new edge if necessary
     if (startingVertex) {
-        console.log("startingVertex:", startingVertex.id);
+        // console.log("startingVertex:", startingVertex.id);
         ctx.beginPath();
         ctx.moveTo(startingVertex.x, startingVertex.y);
         ctx.lineTo(mouse.x, mouse.y);
@@ -776,6 +800,7 @@ function drawVertex(ctx: CanvasRenderingContext2D, v: Vertex)
 function drawBend(ctx: CanvasRenderingContext2D, bend: Bend)
 {
     ctx.beginPath();
+    ctx.lineWidth = 2;
     // show bigger bend when mouse near it
     ctx.arc(bend.x, bend.y, bend.size , 0, 2 * Math.PI); // small green circle
     ctx.fillStyle = bend.color;
@@ -804,6 +829,7 @@ function showSelectedPoint(ctx: CanvasRenderingContext2D, p: Point)
 function drawShape(ctx: CanvasRenderingContext2D, x: number, y: number, shape: string, size: number, color: string, fill: boolean = true)
 {
     ctx.beginPath();
+    ctx.lineWidth = 2;
     if (shape === "square")
         ctx. rect(x-size, y-size, size*2, size*2);
     else if (shape === "triangle")
@@ -823,12 +849,12 @@ function drawShape(ctx: CanvasRenderingContext2D, x: number, y: number, shape: s
     //if ( (hoveredVertex === vertex && !draggingVertex) || draggingVertex === vertex) // bold line for hovered vertex or dragging vertex
       //  ctx.lineWidth = 4;
     ctx.stroke();
-    ctx.lineWidth = 2;
 }
 
 function shapeBend(ctx: CanvasRenderingContext2D, x:number, y: number, rad: number, color?: string)
 {
     ctx.beginPath();
+    ctx.lineWidth = 2;
     // show bigger bend when mouse near it
     ctx.arc(x, y, rad , 0, 2 * Math.PI); // small green circle
     if (color !== undefined)
@@ -960,31 +986,84 @@ function saveState() {
     redoStack.length = 0; // clear redo stack on new change
 }
 
-/**
- * Deep copy function for TypeScript.
- * @param T Generic type of target/copied value.
- * @param target Target value to be copied.
- * @see Source project, ts-deepcopy https://github.com/ykdr2017/ts-deepcopy
- * @see Code pen https://codepen.io/erikvullings/pen/ejyBYg
- */
-export const deepCopy = <T>(target: T): T => {
-    if (target === null) {
-      return target;
+function exportGraph(graph: Graph) {
+    const exportData = {
+      vertices: graph.vertices.map(v => ({
+        id: v.id,
+        x: v.x,
+        y: v.y,
+        color: v.color,
+        size: v.size,
+        shape: v.shape,
+      })),
+      edges: graph.edges.map(e => ({
+        v1: e.points[0].id,
+        v2: e.points[1].id,
+        type: e.type,
+        thickness: e.thickness,
+        color: e.color,
+        bends: e.bends.map(b => ({ x: b.x, y: b.y, size: b.size, color: b.color })),
+      })),
+    };
+  
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+  
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "graph.json";
+    a.click();
+  
+    URL.revokeObjectURL(url);
+  }
+
+  function restoreGraphFromJSON(data: any): Graph {
+    const newGraph = new Graph();
+
+    // Reconstruct vertices
+    for (const v of data.vertices) {
+        const vertex = new Vertex(v.id, v.x, v.y);
+        // Object.assign(vertex, v); // Copy extra fields like label, color, shape, etc.
+        if (v.color)
+            vertex.color = v.color;
+        if (v.size)
+            vertex.size = v.size;
+        if (v.shape)
+            vertex.shape = v.shape;
+        newGraph.vertices.push(vertex);
     }
-    if (target instanceof Date) {
-      return new Date(target.getTime()) as any;
+
+    // Reconstruct edges
+    for (const e of data.edges) {
+        const v1 = newGraph.vertices.find(v => v.id === e.v1);
+        const v2 = newGraph.vertices.find(v => v.id === e.v2);
+        if (v1 && v2) {
+            const edge = newGraph.addEdge(v1,v2);
+            // Object.assign(edge, e); // Copy extra fields like bends, color, etc.
+            if (e.color)
+                edge!.color = e.color;
+            if (e.thickness)
+                edge!.thickness = e.thickness;
+            if (e.type)
+                edge!.type = e.type;
+            // bends
+            for (const b of e.bends)
+            {
+                const newBend = newGraph.addBend(v1,v2,b.x,b.y,false,false);
+                if (b.size)
+                    newBend!.size = b.size;
+                if (b.color)
+                    newBend!.color = b.color;
+                //newBend?.assignCharacteristics(b.size,b.color);
+            }
+        }
     }
-    if (target instanceof Array) {
-      const cp = [] as any[];
-      (target as any[]).forEach((v) => { cp.push(v); });
-      return cp.map((n: any) => deepCopy<any>(n)) as any;
-    }
-    if (typeof target === 'object') { //  && target !== {} --> was in the if
-      const cp = { ...(target as { [key: string]: any }) } as { [key: string]: any };
-      Object.keys(cp).forEach(k => {
-        cp[k] = deepCopy<any>(cp[k]);
-      });
-      return cp as T;
-    }
-    return target;
-  };
+
+    newGraph.updateCrossings();
+    newGraph.updateCurveComplexity();
+
+    return newGraph;
+}
+
+  

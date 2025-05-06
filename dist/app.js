@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
 // src/app.ts
 import { Graph, Vertex } from "./graph.js";
@@ -206,18 +215,39 @@ function renderGraph() {
     graph.removeEdges();
     renderGraph();
 });
+document.getElementById("export-btn").addEventListener("click", () => {
+    exportGraph(graph);
+});
+document.getElementById("import-input").addEventListener("change", (e) => __awaiter(void 0, void 0, void 0, function* () {
+    const input = e.target;
+    if (!input.files || input.files.length === 0)
+        return;
+    const file = input.files[0];
+    const text = yield file.text();
+    try {
+        const data = JSON.parse(text);
+        // console.log(data);
+        graph = restoreGraphFromJSON(data);
+        renderGraph();
+        saveState();
+    }
+    catch (err) {
+        alert("Failed to load graph: Invalid format");
+        console.error(err);
+    }
+}));
 // Palette for vertices
 const vertexColor = document.getElementById("vertex-color");
 const vertexShapeButtons = document.querySelectorAll(".shape-button");
 const vertexSize = document.getElementById("vertex-size");
-const deleteVertexBtn = document.getElementById("delete-vertex");
+const deleteVertexBtn = document.getElementById("delete-vertex-palette");
 // Palette for bends
 const bendColor = document.getElementById("bend-color");
 // const bendShape = document.getElementById("bend-shape") as HTMLSelectElement;
 const bendSize = document.getElementById("bend-size");
 const deleteBendBtn = document.getElementById("delete-bend");
 // Palette for Edges
-const deleteEdgeBtn = document.getElementById("delete-edge");
+const deleteEdgeBtn = document.getElementById("delete-edge-palette");
 const edgeThickness = document.getElementById("edge-thickness");
 const edgeColor = document.getElementById("edge-color");
 // using palettes
@@ -617,7 +647,7 @@ function drawGraph(ctx, graph) {
     });
     // Draw a temporary edge from starting vertex to mouse position and a rubbish bin to discard the new edge if necessary
     if (startingVertex) {
-        console.log("startingVertex:", startingVertex.id);
+        // console.log("startingVertex:", startingVertex.id);
         ctx.beginPath();
         ctx.moveTo(startingVertex.x, startingVertex.y);
         ctx.lineTo(mouse.x, mouse.y);
@@ -665,6 +695,7 @@ function drawVertex(ctx, v) {
 // function for drawing a bend at position x,y
 function drawBend(ctx, bend) {
     ctx.beginPath();
+    ctx.lineWidth = 2;
     // show bigger bend when mouse near it
     ctx.arc(bend.x, bend.y, bend.size, 0, 2 * Math.PI); // small green circle
     ctx.fillStyle = bend.color;
@@ -688,6 +719,7 @@ function showSelectedPoint(ctx, p) {
 }
 function drawShape(ctx, x, y, shape, size, color, fill = true) {
     ctx.beginPath();
+    ctx.lineWidth = 2;
     if (shape === "square")
         ctx.rect(x - size, y - size, size * 2, size * 2);
     else if (shape === "triangle") {
@@ -706,10 +738,10 @@ function drawShape(ctx, x, y, shape, size, color, fill = true) {
     //if ( (hoveredVertex === vertex && !draggingVertex) || draggingVertex === vertex) // bold line for hovered vertex or dragging vertex
     //  ctx.lineWidth = 4;
     ctx.stroke();
-    ctx.lineWidth = 2;
 }
 function shapeBend(ctx, x, y, rad, color) {
     ctx.beginPath();
+    ctx.lineWidth = 2;
     // show bigger bend when mouse near it
     ctx.arc(x, y, rad, 0, 2 * Math.PI); // small green circle
     if (color !== undefined)
@@ -825,31 +857,73 @@ function saveState() {
     historyStack.push(graph.clone());
     redoStack.length = 0; // clear redo stack on new change
 }
-/**
- * Deep copy function for TypeScript.
- * @param T Generic type of target/copied value.
- * @param target Target value to be copied.
- * @see Source project, ts-deepcopy https://github.com/ykdr2017/ts-deepcopy
- * @see Code pen https://codepen.io/erikvullings/pen/ejyBYg
- */
-export const deepCopy = (target) => {
-    if (target === null) {
-        return target;
+function exportGraph(graph) {
+    const exportData = {
+        vertices: graph.vertices.map(v => ({
+            id: v.id,
+            x: v.x,
+            y: v.y,
+            color: v.color,
+            size: v.size,
+            shape: v.shape,
+        })),
+        edges: graph.edges.map(e => ({
+            v1: e.points[0].id,
+            v2: e.points[1].id,
+            type: e.type,
+            thickness: e.thickness,
+            color: e.color,
+            bends: e.bends.map(b => ({ x: b.x, y: b.y, size: b.size, color: b.color })),
+        })),
+    };
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "graph.json";
+    a.click();
+    URL.revokeObjectURL(url);
+}
+function restoreGraphFromJSON(data) {
+    const newGraph = new Graph();
+    // Reconstruct vertices
+    for (const v of data.vertices) {
+        const vertex = new Vertex(v.id, v.x, v.y);
+        // Object.assign(vertex, v); // Copy extra fields like label, color, shape, etc.
+        if (v.color)
+            vertex.color = v.color;
+        if (v.size)
+            vertex.size = v.size;
+        if (v.shape)
+            vertex.shape = v.shape;
+        newGraph.vertices.push(vertex);
     }
-    if (target instanceof Date) {
-        return new Date(target.getTime());
+    // Reconstruct edges
+    for (const e of data.edges) {
+        const v1 = newGraph.vertices.find(v => v.id === e.v1);
+        const v2 = newGraph.vertices.find(v => v.id === e.v2);
+        if (v1 && v2) {
+            const edge = newGraph.addEdge(v1, v2);
+            // Object.assign(edge, e); // Copy extra fields like bends, color, etc.
+            if (e.color)
+                edge.color = e.color;
+            if (e.thickness)
+                edge.thickness = e.thickness;
+            if (e.type)
+                edge.type = e.type;
+            // bends
+            for (const b of e.bends) {
+                const newBend = newGraph.addBend(v1, v2, b.x, b.y, false, false);
+                if (b.size)
+                    newBend.size = b.size;
+                if (b.color)
+                    newBend.color = b.color;
+                //newBend?.assignCharacteristics(b.size,b.color);
+            }
+        }
     }
-    if (target instanceof Array) {
-        const cp = [];
-        target.forEach((v) => { cp.push(v); });
-        return cp.map((n) => deepCopy(n));
-    }
-    if (typeof target === 'object') { //  && target !== {} --> was in the if
-        const cp = Object.assign({}, target);
-        Object.keys(cp).forEach(k => {
-            cp[k] = deepCopy(cp[k]);
-        });
-        return cp;
-    }
-    return target;
-};
+    newGraph.updateCrossings();
+    newGraph.updateCurveComplexity();
+    return newGraph;
+}
