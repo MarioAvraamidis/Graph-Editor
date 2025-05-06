@@ -1,3 +1,25 @@
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 20px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 30px;
+}
+
+.main-container {
+    display: flex;
+    /* flex-direction: column; */
+    align-items: flex-start;
+  }
+  
+.graphCanvas {
+    border: 1px solid #ccc;
+  }
+  
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
@@ -11,3 +33,116 @@ body {
 #controls button {
     margin-right: 10px;
 }
+.mode-container {
+    display: flex;
+    gap: 10px;
+    /* margin-bottom: 10px; */
+}
+
+.mode-button {
+    /* height: 50px; /* Adjust to your desired height */
+    padding: 10px 20px;
+    border: none;
+    background-color: #ddd;
+    cursor: pointer;
+    border-radius: 5px;
+    font-weight: bold;
+    color: #555;
+    transition: background-color 0.2s ease;
+}
+
+.mode-button:hover {
+    background-color: #ccc;
+}
+
+.mode-button.active {
+    background-color: hsl(323, 70%, 53%);
+    color: white;
+}
+  
+.palette-container {
+    display: flex;
+    flex-direction: column;
+    margin-left: 10px;
+  }
+  
+  .palette {
+    padding: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    background: #fff;
+    font-size: 12px;
+    width: 140px; /* adjust width as needed */
+  }
+  
+  .palette h3 {
+    margin: 0 0 6px 0;
+    font-size: 14px;
+  }
+  
+  .palette label {
+    margin-top: 4px;
+    display: block;
+    font-size: 11px;
+  }
+  
+  .palette input,
+  .palette select,
+  .palette button {
+    margin-top: 2px;
+    margin-bottom: 6px;
+    padding: 2px 4px;
+    font-size: 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+
+.palette.disabled {
+    opacity: 0.5;
+    pointer-events: none; /* Optional: prevents interaction */
+}
+
+.palette-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+  
+  .palette-row label {
+    margin-right: 8px;
+    white-space: nowrap;
+    flex: 1;
+  }
+  
+  .palette-row input,
+  .palette-row select {
+    flex: 2;
+    padding: 2px 4px;
+    font-size: 12px;
+  }
+  
+  .shape-options {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+  }
+  
+  .shape-button {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .shape-button.active {
+    background: lightblue;
+    border-color: blue;
+  }
+  

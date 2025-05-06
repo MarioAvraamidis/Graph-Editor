@@ -3,6 +3,9 @@ export abstract class Point
     private _id: string ;
     private _x: number = 10;
     private _y: number = 10;
+    
+    private _size: number = 5;  //  if circle, size = radius, if square, size = side length
+    private _color: string = "#000000";
 
     constructor(id: string, x_pos?:number, y_pos?:number)
     {
@@ -16,9 +19,13 @@ export abstract class Point
     get id(){ return this._id;}
     get x() { return this._x;}
     get y() { return this._y;}
+    get size() { return this._size; }
+    get color() { return this._color; }
 
     set x(x_pos) {this._x = x_pos}
     set y(y_pos) {this._y = y_pos}
+    set size(s: number) { this._size = s; }
+    set color(c: string) {this._color = c; }
 
     // print details (name and coordinates)
     print() {console.log(this._id,"x:"+this._x,"y:"+this._y)}
@@ -29,7 +36,9 @@ export abstract class Point
 export class Vertex extends Point
 {
     private _neighbors: Vertex[];
-    private _temporary: boolean = false;
+    private _temporary: boolean = false;    // used when drawing a new edge from a vertex
+    private _shape: string = "circle";
+    // private _shape: "circle" | "square" | "triangle" = "circle";
 
     constructor(id: string, x_pos?:number, y_pos?:number, temp?: boolean)
     {
@@ -37,12 +46,15 @@ export class Vertex extends Point
         if (temp !== undefined)     // used in cloning
             this._temporary = temp;
         this._neighbors = [];
+        this.color = "#000000";
     }
 
     get neighbors() { return this._neighbors; }
     get temporary() { return this._temporary; }
+    get shape() { return this._shape; }
 
     set temporary(temp: boolean) { this._temporary = temp;}
+    set shape(sh) {this._shape = sh; }
 
     // add a new neighbor
     addNeighbor(newNeighbor: Vertex) {this._neighbors.push(newNeighbor)}
@@ -50,29 +62,39 @@ export class Vertex extends Point
     deleteNeighbor(neighbor: Vertex) {this._neighbors = this._neighbors.filter(v => v != neighbor)}
     // delete all the neighbors
     clearNeighbors() {this._neighbors = []};
+    // clone utility
+    // IMPORTANT: neighbors are not cloned. They will be added when the graph is cloned
+    clone()
+    {
+        let newVertex = new Vertex(this.id, this.x, this.y, this._temporary);
+        newVertex.shape = this._shape;
+        newVertex.color = this.color;
+        newVertex.size = this.size;
+        return newVertex;
+    }
 }
 
 export abstract class LineSegment
 {
     private _points: [Point,Point];
-    private _crosses: LineSegment[];
+    // private _crosses: LineSegment[];
     private _id: string;
 
     constructor([p1,p2]: [Point,Point])
     {
         this._points = [p1,p2]
-        this._crosses = []
+        // this._crosses = []
         this._id = p1.id + '-' + p2.id
     }
 
     get id() {return this._id}
     get points() {return this._points}
-    get crossings() {return this._crosses}
+    // get crossings() {return this._crosses}
 
     set points([p1,p2]: [Point, Point]) {this._points = [p1,p2]}
 
     // add a crossing with a new edge
-    addCrossing(crossingSegment: LineSegment) {this._crosses.push(crossingSegment); }
+    // addCrossing(crossingSegment: LineSegment) {this._crosses.push(crossingSegment); }
 
     // return the coordinates of the points of LineSegment, but make it a little bit shorter by a constant c
     /*pointsCoordinatesExcluded(c: number)
@@ -103,6 +125,7 @@ export abstract class LineSegment
         return {x1,y1,x2,y2};
     }*/
 
+    // given a point at (px,py), return its projection on the LineSegment (if projection not on the line segment, return the closer endpoint)
     projection(px: number, py: number)
     {
         const x1 = this.points[0].x;
@@ -120,6 +143,7 @@ export abstract class LineSegment
         return {x: projX, y: projY};
     }
 
+    // return the distance of a point (px,py) from the LineSegment
     distanceFromPoint(px: number, py: number)
     {
         let coord = this.projection(px,py);
@@ -134,13 +158,23 @@ export class Edge extends LineSegment
 {
     // bending points of the edge
     private _bends: Bend[] = [];
+    private _color: string = "#898989"; // open gray
+    private _type: "continuous" | "dashed" | "dots" = "continuous";
+    private _thickness: number = 2;
 
-    constructor([v1,v2]: [Point,Point])  { super([v1,v2]); }
+    constructor([v1,v2]: [Vertex,Vertex])  { super([v1,v2]); }
 
     // return an array with the bends of the edge
     get bends() {return this._bends}
+    get color() { return this._color }
+    get type() { return this._type}
+    get thickness() { return this._thickness; }
 
-    // add a bend at coordinate (x,y)
+    set color(c: string) { this._color = c; }
+    set type(t) {this._type = t; }
+    set thickness(t) {this._thickness = t; }
+
+    // add a bend at coordinate (x,y) (at the projection of (x,y) on the edge if onEdge is true)
     addBend(x: number, y: number, onEdge: boolean = true)
     {
         if (!onEdge)
@@ -150,29 +184,30 @@ export class Edge extends LineSegment
         }
         // find the subedge that is more close to the bend and add it there
         const subedges = this.subEdges();
-        let minDist = subedges[0].distanceFromPoint(x,y);
-        let dist: number, closest: LineSegment = subedges[0];
+        let minDist = subedges[0].distanceFromPoint(x,y);   // initialize the value
+        let dist: number; // distance of each subedge from new bend
+        let closest: number = 0;  // index of the closest subedge to (x,y)
         for (let i=1;i<subedges.length;i++)
         {
             dist = subedges[i].distanceFromPoint(x,y);
             if (dist < minDist)
             {
-                closest = subedges[i];
+                closest = i;
                 minDist = dist;
             }
         }
-        // find the first point of the closest subedge
-        let index = -1;
-        if (closest.points[0] instanceof Bend)
-            index = this._bends.indexOf(closest.points[0]);
+        // find the first endpoint of the closest subedge
+        // let index = -1;
+        //if (closest.points[0] instanceof Bend)
+        //    index = this._bends.indexOf(closest.points[0]);
         // put the new Bend ON the closest subedge
-        const coord = closest.projection(x,y);
+        const coord = subedges[closest].projection(x,y);
         // add bend to the bends
-        this._bends.splice(index+1,0,new Bend(this,coord.x,coord.y));
+        this._bends.splice(closest,0,new Bend(this,coord.x,coord.y));
     };
     // remove the last bend of the edge
     removeLastBend() {this._bends.pop()}
-    // add an array of bends (used for cloning)
+    // add an array of bends (used for cloning and connecting edges)
     addBends(bends: Bend[])
     {
         for (let i=0;i<bends.length;i++)
@@ -213,7 +248,16 @@ export class Edge extends LineSegment
     }
 
     // make the edge straight
-    removeBends(updateCrossings: boolean = true) { this._bends = []; }
+    removeBends() { this._bends = []; }
+
+    // clone characteristics
+    cloneCharacteristics(e: Edge)
+    {
+        this.addBends(e.bends);
+        this._color = e.color;
+        this._type = e.type;
+        this._thickness = e.thickness;
+    }
 }
 
 export class Subedge extends LineSegment
@@ -233,8 +277,8 @@ export class Crossing extends Point
 {
     private _edges: [Edge | null, Edge | null] = [null,null];
     private _subedges: [LineSegment, LineSegment];      // LineSegment used as an edge can be assigned to the _subedges array
-    private _legal: boolean = true;     
-    private _more_than_once: boolean = false;
+    private _legal: boolean = true;     // indicates if the crossing is legal (used in the graph class)   
+    private _more_than_once: boolean = false;   // indicates that the edges crossed at this point cross each other more than once (used for drawing)
 
     constructor(sub1: LineSegment, sub2: LineSegment, x: number, y: number)
     {
@@ -268,10 +312,18 @@ export class Crossing extends Point
         else
             this._legal = true;
     }
-    // check if the given crossing has the same edges as this crossing
+    // check if the given crossing cros has the same edges as this crossing
     sameEdges(cros: Crossing)
     {
         return (this._edges[0] === cros.edges[0] && this._edges[1] === cros.edges[1] || this._edges[0] === cros.edges[1] && this._edges[1] === cros.edges[0]);
+    }
+    // clone utility
+    clone()
+    {
+        let newCrossing = new Crossing(this.subedges[0],this.subedges[1],this.x,this.y);
+        newCrossing.legal = this._legal;
+        newCrossing.more_than_once = this._more_than_once;
+        return newCrossing;
     }
 }
 
@@ -284,11 +336,17 @@ export class Bend extends Point
         const id = e.id+"/bend";
         super(id,x,y);
         this._edge = e;
+        this.color = "#ffde21";
     }
 
     get edge() {return this._edge;}
 
-    distanceFromPoints(b1:Point, b2:Point) {return Math.hypot(this.x-b1.x,this.y-b1.y) + Math.hypot(this.x-b2.x,this.y-b2.y) }
+    // clone utility
+    clone()
+    {
+        let newBend = new Bend(this._edge, this.x, this.y);
+        return newBend;
+    }
 }
 
 // Given an array of objects (e.g. Vertex, Edge) return an array of strings, containing the id's of the objects
@@ -309,11 +367,12 @@ export class Graph {
     // characteristics of the graph
     private directed: boolean = false;
     private self_loops: boolean = false;
+    private simple: boolean = true;
     // store all the crossing points between edges of the graph
     private _crossings: Crossing[] = [];
     // store the curve complexity of the graph
     private _curve_complexity: number = 0;
-    // 
+    // decide which method will be used for updating crossings
     private _effective_crossing_update: boolean = true;
     private tempCount: number = 0;  // counting temporary vertices
 
@@ -394,31 +453,46 @@ export class Graph {
     }
 
     // return the vertex near a specified (x,y) location (at distance < dist from (x,y) )
-    getVertexAtPosition(x: number, y: number, dist: number)
+    // first check the array of vertices given
+    getVertexAtPosition(x: number, y: number, vert: Vertex[] = [])
     {
-        for (const v of this._vertices)
-        {
-            const dx = v.x - x;
-            const dy = v.y - y;
-            if (dx*dx + dy*dy <= dist*dist)
+        // check vertices of the array
+        for (const v of vert)
+            if (Math.hypot(v.x-x,v.y-y) < v.size+3 && !v.temporary)
                 return v;
-        }
+        // check all the vertices
+        for (const v of this._vertices)
+            if (Math.hypot(v.x-x,v.y-y) < v.size+3 && !v.temporary)
+                return v;
         return null;
     }
 
     // given a (x,y) location, return the bend at distance < dist near this location
-    // ATTENTION: the bend must be the ending point of an edge
-    getLastBendAtPosition(x: number, y: number, dist: number)
+    getBendAtPosition(x: number, y: number, b: Bend[] = [])
     {
+        // first check given bends
+        for (const bend of b)
+            if (Math.hypot(bend.x-x, bend.y-y) < bend.size+3)
+                return bend;
+        // check all the bends of the graph
         for (const e of this._edges)
-        {
-            const p = e.points[1];  // assume points[0] is always vertex
-            const dx = p.x - x;
-            const dy = p.y - y;
-            if(dx*dx + dy*dy <= dist*dist && p instanceof Bend)
-                return p;
-        }
+            for (const bend of e.bends)
+                if (Math.hypot(bend.x-x, bend.y-y) < bend.size + 3)
+                    return bend;
         return null;
+    }
+
+    // return the point (vertex or bend) at position (x,y)
+    // first check the array of given points
+    getPointAtPosition(x: number, y: number, points: Point[] = [])
+    {
+        const pv = points.filter(p => p instanceof Vertex);
+        const pb = points.filter(p => p instanceof Bend);
+        const v = this.getVertexAtPosition(x,y,pv);
+        if (v)
+            return v;
+        else
+            return this.getBendAtPosition(x,y,pb);
     }
 
     // given the id of an edge, return the edge
@@ -430,56 +504,103 @@ export class Graph {
 
     getEdgeByVerticesId(id1: string, id2: string)
     {
-        let id = id1+ "-" + id2;    // as used in the constructor of class Edge
-        return this.getEdge(id);
+        const edge = this.getEdge(id1+"-"+id2);
+        if (edge)
+            return edge;
+        return this.getEdge(id2+"-"+id1);
     }
 
     // add a new edge using the Id's of 2 vertices
     addEdgeId(id1: string, id2: string)
     {
-        let v1 = this.getVertex(id1)
-        let v2 = this.getVertex(id2)
+        const v1 = this.getVertex(id1)
+        const v2 = this.getVertex(id2)
         if (v1 && v2)
-            this.addEdge(v1,v2)
-        else
-            console.log("WARNING: one or both of the vertices ("+id1+","+id2+") does not exist in the graph")
+            return this.addEdge(v1,v2)
+        // else
+        //    console.log("WARNING: one or both of the vertices ("+id1+","+id2+") does not exist in the graph")
     }
 
     // add a new edge between 2 vertices
     addEdge(v1: Vertex, v2: Vertex, updateCrossings: boolean = true) {
+        if (this.checkEdgeId(v1,v2))
+        {
+            let edge = new Edge([v1,v2])
+            this._edges.push(edge);
+            // update neighbors
+            v1.addNeighbor(v2);
+            v2.addNeighbor(v1);
+            // update crossings
+            if (updateCrossings)
+            {
+                if(this._effective_crossing_update)
+                    this.updateCrossingsByEdge(edge);
+                else
+                    this.updateCrossings();
+            }
+            return edge;
+        }
+        else
+            return null;
+    }
+
+    // used for cloning
+    addEdgee(e: Edge, updateCrossings: boolean = true)
+    {
+        const v1 = e.points[0], v2 = e.points[1];
+        if (v1 instanceof Vertex && v2 instanceof Vertex && this.checkEdgeId(v1,v2))
+        {
+            this._edges.push(e);
+            // update neighbors
+            v1.addNeighbor(v2);
+            v2.addNeighbor(v1);
+            // update crossings
+            if (updateCrossings)
+            {
+                if(this._effective_crossing_update)
+                    this.updateCrossingsByEdge(e);
+                else
+                    this.updateCrossings();
+            }
+            return e;
+        }
+        else
+            return null;
+    }
+
+    // check if an edge can be created between 2 given vertices
+    checkEdgeId(v1: Vertex, v2: Vertex)
+    {
+        // first check that the 2 vertices belong to the graph
+        if (!this._vertices.includes(v1) || !this._vertices.includes(v2) )
+        {
+            console.log("WARNING: one or both of the vertices ("+v1.id+","+v2.id+") does not exist in the graph");
+            return false;
+        }
+
+        // check by id
         let edge_id1 = v1.id + '-' + v2.id
         // if the graph is undirected, check reversed edge
         let edge_id2 = v2.id + '-' + v1.id
-        //check that vertices belong to the graph
-        if (this._vertices.includes(v1) && this._vertices.includes(v2)) {
-            // check for self-loops
-            if (v1===v2 && !this.self_loops)
-                console.log("WARNING: Self loops are not allowed in this graph")
-            //check that the edge does not already exits
-            else if  (extractIds(this._edges).includes(edge_id1))
-                console.log("WARNING: Edge " + edge_id1 + " already exists")
-            // if the graph is undirected, check reversed edge
-            else if (!this.directed && extractIds(this._edges).includes(edge_id2))
-                console.log("WARNING: Edge " + edge_id2 + " already exists")
-            else
-            {
-                let edge = new Edge([v1,v2])
-                this._edges.push(edge);
-                v1.addNeighbor(v2);
-                v2.addNeighbor(v1);
-                // update crossings
-                if (updateCrossings)
-                {
-                    if(this._effective_crossing_update)
-                        this.updateCrossingsByEdge(edge);
-                    else
-                        this.updateCrossings();
-                }
-                return edge;
-            }
+
+        if (v1===v2 && !this.self_loops)
+        {
+            console.log("WARNING: Self loops are not allowed in this graph");
+            return false;
         }
-        else
-            console.log("WARNING: one or both of the vertices ("+v1.id+","+v2.id+") does not exist in the graph")
+        //check that the edge does not already exits
+        else if  (extractIds(this._edges).includes(edge_id1) && this.simple)
+        {
+            console.log("WARNING: Edge " + edge_id1 + " already exists and the graph is simple");
+            return false;
+        }
+        // if the graph is undirected, check reversed edge
+        else if (!this.directed && extractIds(this._edges).includes(edge_id2))
+        {
+            console.log("WARNING: Edge " + edge_id2 + " already exists");
+            return false;
+        }
+        return true;
     }
 
     // delete an edge given the Id's of the vertices
@@ -496,19 +617,17 @@ export class Graph {
     // delete an edge between vertices v1 and v2
     deleteEdge(v1: Vertex, v2: Vertex, updateCrossings: boolean = true) {
         // remove from edges list
-        this._edges = this._edges.filter(edge => !(edge.points[0] === v1 && edge.points[1] === v2) && !(edge.points[0] === v2 && edge.points[1] === v1));
+        const e = this.getEdgeByVertices(v1,v2);
+        this._edges = this._edges.filter(edge => edge != e);
+        // this._edges = this._edges.filter(edge => !(edge.points[0] === v1 && edge.points[1] === v2) && !(edge.points[0] === v2 && edge.points[1] === v1));
         // delete neighbors
         v1.deleteNeighbor(v2);
         v2.deleteNeighbor(v1);
         // update crossings
         if (updateCrossings)
         {
-            if(this._effective_crossing_update)
-                {
-                    const e = this.getEdgeByVertices(v1,v2);
-                    if (e)
-                    this._crossings = this._crossings.filter(cross => cross.edges[0] != e && cross.edges[1] != e);
-                }
+            if(this._effective_crossing_update && e)
+                this._crossings = this._crossings.filter(cross => cross.edges[0] != e && cross.edges[1] != e);
             else
                 this.updateCrossings();
         }
@@ -635,6 +754,15 @@ export class Graph {
         else
             this.updateCrossings();
     }
+
+    // move a point (vertex or bend)
+    movePoint(p: Point, x: number, y: number)
+    {
+        if (p instanceof Vertex)
+            this.moveVertex(p,x,y);
+        else if (p instanceof Bend)
+            this.moveBend(p,x,y);
+    }
     
 
     // update all the crossings of the graph
@@ -695,8 +823,20 @@ export class Graph {
             console.log("Edge not found.")
     }
 
-    // remove a bend from an edge (given the vertices of the edge)
-    removeBend(v: Vertex, u: Vertex)
+    // remove a given bend
+    removeBend(bend: Bend)
+    {
+        const edge = bend.edge;
+        const index = edge.bends.indexOf(bend);
+        edge.bends.splice(index,1);
+        if (this.effective_crossing_update)
+            this.updateCrossingsByEdge(edge);
+        else
+            this.updateCrossings();
+    }
+
+    // remove a bend from an edge (given the vertices of the edge) - the bend removed is the last one
+    removeBendd(v: Vertex, u: Vertex)
     {
         let edge = this.getEdgeByVertices(v,u);
         if (edge)
@@ -726,29 +866,44 @@ export class Graph {
         return thrackle/2;
     }
 
-    // make the graph clique
-    addAllEdges()
+    // make the graph clique (use only non-temporary vertices)
+    addAllEdges(vert: Vertex[] = [])
     {
-        for (const v1 of this._vertices)
-            for (const v2 of this._vertices)
+        let nonTempVertices: Vertex[];
+        if (vert.length > 0)
+            nonTempVertices = vert;
+        else
+            nonTempVertices = this._vertices.filter(vertex => !vertex.temporary); // array with the non-temporary vertices
+
+        for (const v1 of nonTempVertices)
+            for (const v2 of nonTempVertices)
                 this.addEdge(v1,v2,false);
         this.updateCrossings();
     }
 
-    // place all the vertices in a circle with center (x0,y0) and radius r
-    makeCircle(x0=0,y0=0,r=10)
+    // place all the non-temporary vertices in a circle with center (x0,y0) and radius r
+    makeCircle(x0=0,y0=0,r=10,vert: Vertex[]=[])
     {
-        this._vertices.forEach((vertex, index) => {
-            const angle = (index / this._vertices.length) * 2 * Math.PI;
-            // vertex.x = x0 + Math.cos(angle) * r;
-            // vertex.y = y0 + Math.sin(angle) * r;
-            // vertex.moveTo(x0 + Math.cos(angle) * r, y0 + Math.sin(angle) * r)
-            this.moveVertex(vertex,x0 + Math.cos(angle) * r, y0 + Math.sin(angle) * r,false)
-        });
-        this.updateCrossings();
+        // place a selected group of vertices in a circle
+        if (vert.length > 0)
+        {
+            vert.forEach((vertex,index) => {
+                const angle = (index/ vert.length)*2*Math.PI;
+                this.moveVertex(vertex, x0+Math.cos(angle)*r, y0 + Math.sin(angle)*r);
+            })
+        }
+        else{
+            const nonTempVertices = this._vertices.filter(vertex => !vertex.temporary); // array with the non-temporary vertices
+            nonTempVertices.forEach((vertex, index) => {
+                const angle = (index / nonTempVertices.length) * 2 * Math.PI;
+                this.moveVertex(vertex,x0 + Math.cos(angle) * r, y0 + Math.sin(angle) * r,false)    // don't update crossings for each vertex movement
+            });
+            this.updateCrossings();
+        }
     }
 
     // check if a given (x,y) point is near any edge of the graph and return the edge (at distance < dist)
+    // if the point is near a bend of the edge, do not return the edge (used for drawing)
     isNearEdge(x: number, y: number, dist: number)
     {
         for (const edge of this._edges)
@@ -763,24 +918,46 @@ export class Graph {
     }
 
     // check if a given (x,y) point is near any vertex of the graph and return the vertex (at distance < dist)
-    isNearVertex(x: number, y: number, dist: number)
+    isNearVertex(x: number, y: number)
     {
         for (const vertex of this._vertices)
-            if (Math.hypot(vertex.x-x,vertex.y-y)<dist)
+            if (Math.hypot(vertex.x-x,vertex.y-y)<vertex.size+3)
                 return vertex;
         return null;
     }
 
-    // this function is used when the user creates a new edge, starting from a (maybe temporary) vertex
+    // check if a given (x,y) point is near any vertex of a given array of vertices and return the vertex (at distance < dist)
+    isNearVertices(x: number, y: number, v: Vertex[])
+    {
+        for (const vertex of v)
+            if (Math.hypot(vertex.x-x,vertex.y-y)<vertex.size+3)
+                return vertex;
+        return null;
+    }
+
+    // check if a given (x,y) point is near any bends of the graph and return the bend (at distance < dist)
+    isNearBend(x: number, y: number, dist: number)
+    {
+        for (const e of this._edges)
+            for (const bend of e.bends)
+                if (Math.hypot(bend.x-x, bend.y-y,)< dist)
+                    return bend;
+        return null;
+    }
+
+    // this function is used when the user creates a new edge, starting from a (probably temporary) vertex
     // given a vertex and a point(x,y), extend the edge from vertex to (x,y)
-    extendEdge(vertex: Vertex, x: number, y: number)
+    // return the new vertex and the edge created
+    extendEdge(v: Vertex, x: number, y: number)
     {
         // create a temporary vertex to be able to create the edge
         const temp = new Vertex("t"+this.tempCount.toString(),x,y);
         temp.temporary = true;
         this.addVertex(temp);
         this.tempCount++;
-        this.extendEdgeToVertex(vertex,temp);
+        // this.extendEdgeToVertex(v,temp);
+        // return the vertex
+        return {vertex: temp, edge: this.extendEdgeToVertex(v,temp)};
     }
 
     // extend an unfinished edge (whose endpoint is vertex) to meet a newVertex
@@ -790,15 +967,13 @@ export class Graph {
         if (vertex.temporary)
         {
             const neighbor = vertex.neighbors[0];   // if temporary, it has only one neighbor    
-            // check if an edge already exists
-            if (this.getEdgeByVertices(neighbor,newVertex)) { console.log("Edge already exists"); return; }
-            // check self loops
-            if (neighbor === newVertex) { console.log("Self-loops not allowed"); return; }
             const edge = this.addEdge(neighbor,newVertex);   // create a new edge with the new temporary vertex
+            if (!edge)
+                return null;
             // update bends
             const prevEdge = this.getEdgeByVertices(neighbor,vertex);
             edge?.addBends(prevEdge!.bends);
-            edge?.addBend(vertex.x,vertex.y,false);   // the previous temporary vertex now becomes bend
+            edge?.addBend(vertex.x,vertex.y,false);   // the previous temporary vertex now becomes the last bend of the new edge
             // remove temporary vertex from vertices
             this.deleteVertex(vertex);
             // update crossings
@@ -817,22 +992,20 @@ export class Graph {
             return this.extendEdgeToVertex(u,v);
         else if (!u.temporary)
             return this.extendEdgeToVertex(v,u);
-        // both vertices temporary case
+        // both vertices temporary
         const uNeighbor = u.neighbors[0];
         const vNeighbor = v.neighbors[0];
-        // check self loops
-        if (uNeighbor === vNeighbor) { console.log("Self-loops not allowed"); return; }
-        // check if an edge already exists
-        if (this.getEdgeByVertices(uNeighbor,vNeighbor)) { console.log("Edge already exists"); return; }
-        const edge = this.addEdge(uNeighbor,vNeighbor);   // create a new edge with the new temporary vertex
-        // update bends
+        const edge = this.addEdge(uNeighbor,vNeighbor);   // create a new edge between the two neighbors
+        if (!edge)  
+            return null;     // if edge not created, return null;
+        // update bends and store them in the right order
         const uEdge = this.getEdgeByVertices(uNeighbor,u);
         const vEdge = this.getEdgeByVertices(vNeighbor,v);
         edge?.addBends(uEdge!.bends);
         edge?.addBend(u.x,u.y,false);   // the previous temporary vertex now becomes bend
         edge?.addBend(v.x,v.y,false);   // the previous temporary vertex now becomes bend
-        edge?.addBends(vEdge!.bends.reverse());
-        // remove temporary vertex from vertices
+        edge?.addBends(vEdge!.bends.reverse()); // add them in reversed order
+        // remove temporary vertices
         this.deleteVertex(u);
         this.deleteVertex(v);
         // update crossings
@@ -896,6 +1069,25 @@ export class Graph {
     {
         console.log("Crossins:",this._crossings.length)
         // printPointArray(this._crossings);
+    }
+
+    // Clone utility to store independent copies of graph
+    clone() {
+        const cloned = new Graph();
+        // clone vertices
+        for (const v of this._vertices) {
+            cloned.addVertex(v.clone());
+        }
+        // clone edges and their characteristics
+        for (const e of this.edges)
+        {
+            const newEdge = cloned.addEdgeId(e.points[0].id,e.points[1].id);
+            newEdge!.cloneCharacteristics(e);
+        }
+        // update crossings - consider cloning the crossings
+        cloned.updateCrossings();
+        cloned.updateCurveComplexity();
+        return cloned;
     }
 }
 
