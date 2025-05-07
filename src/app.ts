@@ -23,6 +23,7 @@ let currentMode: "select" | "addBend" = "select";   // | "createEdge"
 let hoveredEdge: Edge | null = null;
 let hoveredVertex: Vertex | null = null;
 let hoveredBend: Bend | null = null;
+let hoveredLabelVertex: Vertex | null = null;
 // selected items
 let startingVertex: Vertex | null = null;     // the vertex from which an edge starts
 let selectedPoint: Point | null = null;
@@ -39,6 +40,8 @@ let positionsAtMouseDown: {x: number,y: number}[] = [];
 let isSelecting = false;
 let selectionStart = { x: 0, y: 0 };
 let selectionRect = { x: 0, y: 0, width: 0, height: 0 };
+// moving labels
+let draggingLabelVertex: Vertex | null = null;
 
 function setMode(mode: typeof currentMode) {
     currentMode = mode;     // update mode
@@ -394,9 +397,12 @@ canvas.addEventListener("mousedown", (e) => {
     if (selectedPoints.length === 0 && !startingVertex && hasDragged)   // hasDragged for not setting starting vertex a selected vertex
         startingVertex = hoveredVertex;
 
+    // label move
+    if (selectedPoints.length === 0 && !startingVertex)
+        draggingLabelVertex = hoveredLabelVertex;
     
     // create a rectangle showing selected space
-    if (selectedPoints.length === 0 && !startingVertex && !e.ctrlKey)
+    if (selectedPoints.length === 0 && !startingVertex && !e.ctrlKey && !draggingLabelVertex)
         {
             isSelecting = true;
             selectionStart.x = mouse.x;
@@ -462,6 +468,13 @@ canvas.addEventListener("mousemove", e => {
         selectionRect.width = Math.abs(mouse.x - selectionStart.x);
         selectionRect.height = Math.abs(mouse.y - selectionStart.y);
         drawGraph(ctx, graph); // Redraw with selection box
+    }
+
+    // label move
+    if (draggingLabelVertex && hasDragged)
+    {
+        draggingLabelVertex.labelOffsetX = inLimits(mouse.x - draggingLabelVertex.x,40);
+        draggingLabelVertex.labelOffsetY = inLimits(- mouse.y + draggingLabelVertex.y,40);
     }
 
     renderGraph();
@@ -545,12 +558,28 @@ canvas.addEventListener("mouseup", (e) => {
     // CHEEEEECK AGAAAAIIIIIIIIINNNNNNN
     if (hasDragged && draggingPoints.length > 0)
         saveState();
+
+    draggingLabelVertex = null;
     draggingPoints = [];
     draggingBend = null;
     // hasDragged = false;
     mousedown = false;
     renderGraph();
 });
+
+/* canvas.addEventListener("dblclick", (e) => {
+    // const { x, y } = getMousePos(canvas, e);
+    for (const v of graph.vertices) {
+      if (isNearLabel(v, mouse.x, mouse.y)) {
+        const newLabel = prompt("Enter new label:", v.id);
+        if (newLabel !== null && !graph.vertexIdExists(newLabel)) {
+          v.id = newLabel;  // changing the name needs a lot more changes (id changes of edges, bends etc)
+          renderGraph();
+        }
+        break;
+      }
+    }
+  });*/
 
 canvas.addEventListener("click", (e) => {
 
@@ -561,7 +590,7 @@ canvas.addEventListener("click", (e) => {
     checkHovered();
 
     // if nothing hovered or selected, add a new vertex at the clicked position
-    if (!hoveredVertex && !hoveredBend && !hoveredEdge && !selectedPoints.length && !selectedEdges.length)
+    if (!hoveredVertex && !hoveredBend && !hoveredEdge && !selectedPoints.length && !selectedEdges.length && !draggingLabelVertex)
         {
             saveState();
             const vertex = new Vertex((graph.maxVertexId()+1).toString(),mouse.x,mouse.y);
@@ -597,9 +626,19 @@ canvas.addEventListener("click", (e) => {
     }
     selectedPointsUpdate();
 
+    // select a vertex label
+    /*for (const v of graph.vertices) {
+        if (isNearLabel(v, mouse.x, mouse.y)) {
+          draggingLabelVertex = v;
+          e.preventDefault();
+          // return;
+        }
+    }*/
+
     // updatePaletteState();
     renderGraph();
 });
+  
 
 // Add the selected object (vertex, bend, edge) to the appropriate array of selected objects
 function select(obj: Object, array: Object[], e:MouseEvent)
@@ -646,6 +685,17 @@ function isMouseNear(x: number, y: number, dist: number)
     return Math.hypot(mouse.x-x,mouse.y-y)<dist;
 }
 
+// check if the given number is in [-limit, limit]. If not, return the nearest endpoint
+// limit must be non negative
+function inLimits(x: number, limit: number)
+{
+    if (x < -limit)
+        return -limit;
+    if (x > limit)
+        return limit;
+    return x;
+}
+
 // detect the hovering object
 function checkHovered()
 {
@@ -665,6 +715,17 @@ function checkHovered()
             hoveredEdge = null;
         else    // detect hovering over edge (if not hoveredBend)
         hoveredEdge = graph.isNearEdge(mouse.x,mouse.y,3);
+    }
+
+    hoveredLabelVertex = null;
+    if (!hoveredVertex && !hoveredBend && !hoveredEdge)
+    {
+        for (const v of graph.vertices)
+            if (isNearLabel(v,mouse.x,mouse.y))
+            {
+                hoveredLabelVertex = v;
+                break;
+            }
     }
 }
 
@@ -828,14 +889,20 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph) {
 // function for drawing a vertex
 function drawVertex(ctx: CanvasRenderingContext2D, v: Vertex)
 {
-    drawShape(ctx,v.x,v.y,v.shape,v.size,v.color,true);
+    let size: number = v.size;
+    if (hoveredVertex === v)
+        size = size+1;
+    drawShape(ctx,v.x,v.y,v.shape,size,v.color,true);
 
     // Draw label
     ctx.fillStyle = "#000";
+    if (hoveredLabelVertex === v)
+        ctx.fillStyle = "red";
     ctx.font = "14px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    ctx.fillText(v.id, v.x, v.y - v.size - 15);
+    ctx.fillText(v.id, v.x + v.labelOffsetX , v.y - v.size - v.labelOffsetY);   // positive is down in canvas
+    ctx.fillStyle = "#000";
 
     // add an orange circle around a selected vertex
     if (selectedVertices.includes(v)) 
@@ -955,6 +1022,16 @@ function drawEdge(ctx: CanvasRenderingContext2D, edge: Edge)
         }
     }
 }
+
+function isNearLabel(vertex: Vertex, x: number, y: number): boolean {
+    const labelX = vertex.x + vertex.labelOffsetX;
+    const labelY = vertex.y - vertex.size - vertex.labelOffsetY;    // check that label is positioned at these coordinates
+    const width = 20;
+    const height = 20;
+    return x >= labelX - width/2 && x <= labelX + width/2 &&
+           y >= labelY && y <= labelY + height;
+}
+  
 
 
 // return the pos of the mouse in the canvas

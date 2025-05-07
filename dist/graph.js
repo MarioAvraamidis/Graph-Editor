@@ -15,6 +15,7 @@ export class Point {
     get y() { return this._y; }
     get size() { return this._size; }
     get color() { return this._color; }
+    set id(id) { this._id = id; }
     set x(x_pos) { this._x = x_pos; }
     set y(y_pos) { this._y = y_pos; }
     set size(s) { this._size = s; }
@@ -27,11 +28,13 @@ export class Point {
     isIn(x, y, width, height) { return x <= this._x && this._x <= x + width && y <= this._y && this._y <= y + height; }
 }
 export class Vertex extends Point {
-    // private _shape: "circle" | "square" | "triangle" = "circle";
     constructor(id, x_pos, y_pos, temp) {
         super(id, x_pos, y_pos);
         this._temporary = false; // used when drawing a new edge from a vertex
         this._shape = "circle";
+        // private _shape: "circle" | "square" | "triangle" = "circle";
+        this.labelOffsetX = 0;
+        this.labelOffsetY = 15; // remember that positive is down in canvas
         if (temp !== undefined) // used in cloning
             this._temporary = temp;
         this._neighbors = [];
@@ -351,6 +354,8 @@ export class Graph {
         else
             console.log("WARNING: Vertex with this name (" + vertex.id + ") already exist");
     }
+    // check if there exists a vertex in the graph with the given id
+    vertexIdExists(id) { return extractIds(this._vertices).includes(id); }
     // given the id of a vertex, return the vertex
     getVertex(vrt_id) { return this._vertices.find(v => v.id === vrt_id); }
     // delete a vertex and all its corresponding edges

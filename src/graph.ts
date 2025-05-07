@@ -22,6 +22,7 @@ export abstract class Point
     get size() { return this._size; }
     get color() { return this._color; }
 
+    set id(id: string) {this._id = id;}
     set x(x_pos) {this._x = x_pos}
     set y(y_pos) {this._y = y_pos}
     set size(s: number) { this._size = s; }
@@ -42,6 +43,8 @@ export class Vertex extends Point
     private _temporary: boolean = false;    // used when drawing a new edge from a vertex
     private _shape: string = "circle";
     // private _shape: "circle" | "square" | "triangle" = "circle";
+    labelOffsetX: number = 0;
+    labelOffsetY: number = 15;  // remember that positive is down in canvas
 
     constructor(id: string, x_pos?:number, y_pos?:number, temp?: boolean)
     {
@@ -438,6 +441,9 @@ export class Graph {
         else
             console.log("WARNING: Vertex with this name ("+vertex.id+") already exist")
     }
+
+    // check if there exists a vertex in the graph with the given id
+    vertexIdExists(id: string)  { return extractIds(this._vertices).includes(id); }
 
     // given the id of a vertex, return the vertex
     getVertex(vrt_id: string)   {   return this._vertices.find(v => v.id === vrt_id)   }
