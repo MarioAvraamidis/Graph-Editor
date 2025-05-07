@@ -35,6 +35,10 @@ let mousedown: boolean = false;
 let clickedX: number = 0;
 let clickedY: number = 0;
 let positionsAtMouseDown: {x: number,y: number}[] = [];
+// creating a rectangle for selected space
+let isSelecting = false;
+let selectionStart = { x: 0, y: 0 };
+let selectionRect = { x: 0, y: 0, width: 0, height: 0 };
 
 function setMode(mode: typeof currentMode) {
     currentMode = mode;     // update mode
@@ -363,7 +367,7 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
 //});
 
 // detect vertex/bend selection
-canvas.addEventListener("mousedown", () => {
+canvas.addEventListener("mousedown", (e) => {
 
     // check if the clicked point belongs to the selected ones
     // if yes, set dragging points = selected points and store the positions of selected vertices at the time of mousedown
@@ -389,6 +393,15 @@ canvas.addEventListener("mousedown", () => {
     // selectedVertex = graph.getVertexAtPosition(mouse.x,mouse.y);
     if (selectedPoints.length === 0 && !startingVertex && hasDragged)   // hasDragged for not setting starting vertex a selected vertex
         startingVertex = hoveredVertex;
+
+    
+    // create a rectangle showing selected space
+    if (selectedPoints.length === 0 && !startingVertex && !e.ctrlKey)
+        {
+            isSelecting = true;
+            selectionStart.x = mouse.x;
+            selectionStart.y = mouse.y;
+        }    
 
     hasDragged = false;
     mousedown = true;
@@ -439,6 +452,16 @@ canvas.addEventListener("mousemove", e => {
             canvas.style.cursor = "default";
         }
         drawGraph(ctx,graph);
+    }
+
+    // rectangle for selected space
+    if (isSelecting)
+    {
+        selectionRect.x = Math.min(selectionStart.x, mouse.x);
+        selectionRect.y = Math.min(selectionStart.y, mouse.y);
+        selectionRect.width = Math.abs(mouse.x - selectionStart.x);
+        selectionRect.height = Math.abs(mouse.y - selectionStart.y);
+        drawGraph(ctx, graph); // Redraw with selection box
     }
 
     renderGraph();
@@ -508,6 +531,15 @@ canvas.addEventListener("mouseup", (e) => {
             selectedVertex = v;
         }
     }*/
+
+    if(isSelecting)
+    {
+        selectedPoints = graph.pointsInRect(selectionRect.x, selectionRect.y, selectionRect.width, selectionRect.height);
+        selectedVertices = selectedPoints.filter(v => v instanceof Vertex);
+        selectedBends = selectedPoints.filter(v => v instanceof Bend);
+        selectedEdges = graph.edgesInRect(selectionRect.x, selectionRect.y, selectionRect.width, selectionRect.height);
+        isSelecting = false;
+    }
 
     // save state when moving
     // CHEEEEECK AGAAAAIIIIIIIIINNNNNNN
@@ -776,6 +808,20 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph) {
     // If hovering over an edge on add bend mode, show a bend (to add)
     if (hoveredEdge && currentMode === "addBend") 
         shapeBend(ctx,mouse.x,mouse.y,bendRadius);
+
+    // draw selection rectangle
+    if (isSelecting) {
+        ctx.strokeStyle = "rgba(15, 15, 62, 0.86)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6]);
+        ctx.strokeRect(
+          selectionRect.x,
+          selectionRect.y,
+          selectionRect.width,
+          selectionRect.height
+        );
+        ctx.setLineDash([]);
+      }
 
 }
 

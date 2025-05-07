@@ -31,6 +31,9 @@ export abstract class Point
     print() {console.log(this._id,"x:"+this._x,"y:"+this._y)}
     // move the Vertex to a specified location in the plane
     moveTo(x_pos: number, y_pos: number) {this._x = x_pos; this._y = y_pos;}
+    // check if the point is in a given rectangle
+    isIn(x: number, y: number, width: number, height: number)
+    {return x <= this._x && this._x <= x+width && y <= this._y && this._y <= y+height;}
 }
 
 export class Vertex extends Point
@@ -267,6 +270,17 @@ export class Edge extends LineSegment
     assignCharacteristics(color: string, type: "continuous" | "dashed" | "dots", thickness: number)
     {
         this._color = color; this._type = type; this._thickness = thickness;
+    }
+
+    // check if the entire edge is in a rectangle
+    isIn(x: number, y: number, width: number, height: number)
+    {
+        if (!this.points[0].isIn(x,y,width,height) || !this.points[1].isIn(x,y,width,height))
+            return false;
+        for (const bend of this._bends)
+            if (!bend.isIn(x,y,width,height))
+                return false;
+        return true;
     }
 }
 
@@ -1052,6 +1066,30 @@ export class Graph {
         for (const e of this._edges)
             e.removeBends();
         this.updateCrossings();
+    }
+
+    // find which points of the graph are within a rectangle
+    pointsInRect(x: number, y: number, width: number, height: number)
+    {
+        const pointsIn: Point[] = [];
+        for (const v of this._vertices)
+            if (v.isIn(x,y,width,height))
+                pointsIn.push(v);
+        for (const e of this._edges)
+            for (const b of e.bends)
+                if (b.isIn(x,y,width,height))
+                    pointsIn.push(b);
+        return pointsIn;
+    }
+
+    // find which edges of the graph are within a rectangle
+    edgesInRect(x: number, y: number, width: number, height: number)
+    {
+        const edgesIn: Edge[] = [];
+        for (const e of this._edges)
+            if (e.isIn(x,y,width,height))
+                edgesIn.push(e);
+        return edgesIn;
     }
 
     // find the max Id of the vertices
