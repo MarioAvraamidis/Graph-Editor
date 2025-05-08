@@ -876,6 +876,7 @@ export class Graph {
             this.updateCrossingsByEdge(edge);
         else
             this.updateCrossings();
+        this.updateCurveComplexity();
     }
 
     // remove a bend from an edge (given the vertices of the edge) - the bend removed is the last one
@@ -1079,7 +1080,7 @@ export class Graph {
     {
         const pointsIn: Point[] = [];
         for (const v of this._vertices)
-            if (v.isIn(x,y,width,height))
+            if (v.isIn(x,y,width,height) && !v.temporary)
                 pointsIn.push(v);
         for (const e of this._edges)
             for (const b of e.bends)

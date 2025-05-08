@@ -20,7 +20,6 @@ let offsetY = 0;
 let draggingPoints = [];
 let draggingBend = null;
 let hasDragged = false; // will be used to distinguish vertex selection from vertex drag
-let creatingEdge = false; // will be used to check if a new edge is being drawn
 let edgeCreated = null;
 let mouse;
 let vertexRadius = 20;
@@ -33,12 +32,15 @@ let hoveredVertex = null;
 let hoveredBend = null;
 let hoveredLabelVertex = null;
 // selected items
-let startingVertex = null; // the vertex from which an edge starts
-let selectedPoint = null;
+let hoveredPoint = null;
 let selectedPoints = [];
 let selectedVertices = [];
 let selectedBends = [];
 let selectedEdges = [];
+// creating edge
+let creatingEdge = false; // will be used to check if a new edge is being drawn
+let startingVertex = null; // the vertex from which an edge starts
+let canClick = true; // is activated a click after an edge creation is done
 // mousedown
 let mousedown = false;
 let clickedX = 0;
@@ -235,8 +237,8 @@ document.getElementById("import-input").addEventListener("change", (e) => __awai
         const data = JSON.parse(text);
         // console.log(data);
         graph = restoreGraphFromJSON(data);
-        renderGraph();
         saveState();
+        renderGraph();
     }
     catch (err) {
         alert("Failed to load graph: Invalid format");
@@ -312,7 +314,13 @@ edgeThickness.addEventListener("input", () => {
 // deletions
 deleteVertexBtn.addEventListener("click", () => {
     saveState();
+    const deletedVertices = [];
     selectedVertices.forEach(v => graph.deleteVertex(v));
+    // remove the corresponding edges from selectedEdges
+    selectedEdges = selectedEdges.filter(e => e.points[0] instanceof Vertex && !selectedVertices.includes(e.points[0]) && e.points[1] instanceof Vertex && !selectedVertices.includes(e.points[1]));
+    // remove the corresponding bends from selectedBends
+    selectedBends = selectedBends.filter(b => b.edge.points[0] instanceof Vertex && !selectedVertices.includes(b.edge.points[0]) && b.edge.points[1] instanceof Vertex && !selectedVertices.includes(b.edge.points[1]));
+    // update selectedVertices
     selectedVertices.length = 0;
     renderGraph();
 });
@@ -333,10 +341,12 @@ renderGraph();
 //});
 // detect vertex/bend selection
 canvas.addEventListener("mousedown", (e) => {
+    checkHovered();
     // check if the clicked point belongs to the selected ones
     // if yes, set dragging points = selected points and store the positions of selected vertices at the time of mousedown
-    selectedPoint = graph.getPointAtPosition(mouse.x, mouse.y, selectedPoints);
-    if (selectedPoint && selectedPoints.includes(selectedPoint) || hoveredEdge && selectedEdges.includes(hoveredEdge)) {
+    hoveredPoint = graph.getPointAtPosition(mouse.x, mouse.y);
+    if (hoveredPoint && selectedPoints.includes(hoveredPoint) || hoveredEdge && selectedEdges.includes(hoveredEdge)) {
+        saveState();
         draggingPoints = selectedPoints;
         // also add to dragging points the endpoints and bends of selected edges
         for (const se of selectedEdges) {
@@ -350,25 +360,27 @@ canvas.addEventListener("mousedown", (e) => {
         for (let i = 0; i < selectedPoints.length; i++)
             positionsAtMouseDown.push({ x: selectedPoints[i].x, y: selectedPoints[i].y });
     }
-    // starting vertex will be used for edge creation
-    // selectedVertex = graph.getVertexAtPosition(mouse.x,mouse.y);
-    if (selectedPoints.length === 0 && !startingVertex && hasDragged) // hasDragged for not setting starting vertex a selected vertex
+    // starting vertex for edge creation
+    if (selectedPoints.length === 0 && !creatingEdge) // hasDragged for not setting starting vertex a selected vertex
+     {
         startingVertex = hoveredVertex;
-    // label move
-    if (selectedPoints.length === 0 && !startingVertex)
-        draggingLabelVertex = hoveredLabelVertex;
-    // create a rectangle showing selected space
-    if (selectedPoints.length === 0 && !startingVertex && !e.ctrlKey && !draggingLabelVertex) {
-        isSelecting = true;
-        selectionStart.x = mouse.x;
-        selectionStart.y = mouse.y;
+        /*if (startingVertex)
+            console.log("mousedown, startingVertex="+startingVertex.id);
+        else
+            console.log("mousedown, startingVertex = null");*/
     }
+    // label move
+    if (selectedPoints.length === 0 && !creatingEdge)
+        draggingLabelVertex = hoveredLabelVertex;
     hasDragged = false;
     mousedown = true;
     // save mouse position
     clickedX = mouse.x;
     clickedY = mouse.y;
     // console.log("mousedown:",clickedX,clickedY);
+    // selection rectangle starting points
+    selectionStart.x = mouse.x;
+    selectionStart.y = mouse.y;
 });
 // detect vertex or bend moving
 canvas.addEventListener("mousemove", e => {
@@ -380,8 +392,15 @@ canvas.addEventListener("mousemove", e => {
     // console.log("mousemove:",mouse.x,mouse.y,clickedX,clickedY);
     if (mousedown && Math.hypot(offsetX, offsetY) > 3) {
         hasDragged = true;
-        if (startingVertex)
+        if (startingVertex && selectedPoints.length === 0) // creatingEdge is activated only if we have a starting vertex and no selected points
+         {
             creatingEdge = true;
+            canClick = false;
+        }
+        else {
+            // startingVertex = null;
+            creatingEdge = false;
+        }
         // if (selectedPoints.length > 0)
         // saveState();
     }
@@ -407,25 +426,31 @@ canvas.addEventListener("mousemove", e => {
         }
         drawGraph(ctx, graph);
     }
+    // label move
+    if (draggingLabelVertex && hasDragged) {
+        draggingLabelVertex.labelOffsetX = inLimits(mouse.x - draggingLabelVertex.x, 40);
+        draggingLabelVertex.labelOffsetY = inLimits(-mouse.y + draggingLabelVertex.y, 40);
+    }
+    // create a rectangle showing selected space
+    if (selectedPoints.length === 0 && !creatingEdge && !e.ctrlKey && !draggingLabelVertex && mousedown && hasDragged) {
+        isSelecting = true;
+        // console.log("creatingEdge=",creatingEdge);
+    }
     // rectangle for selected space
     if (isSelecting) {
+        // console.log("is selecting = true, creatingEdge=",creatingEdge);
         selectionRect.x = Math.min(selectionStart.x, mouse.x);
         selectionRect.y = Math.min(selectionStart.y, mouse.y);
         selectionRect.width = Math.abs(mouse.x - selectionStart.x);
         selectionRect.height = Math.abs(mouse.y - selectionStart.y);
         drawGraph(ctx, graph); // Redraw with selection box
     }
-    // label move
-    if (draggingLabelVertex && hasDragged) {
-        draggingLabelVertex.labelOffsetX = inLimits(mouse.x - draggingLabelVertex.x, 40);
-        draggingLabelVertex.labelOffsetY = inLimits(-mouse.y + draggingLabelVertex.y, 40);
-    }
     renderGraph();
 });
 // detect vertex release
 canvas.addEventListener("mouseup", (e) => {
     checkHovered();
-    if (startingVertex) {
+    if (startingVertex && creatingEdge) {
         if (hoveredVertex) // add a straight edge
          {
             const edge = graph.addEdgeAdvanced(startingVertex, hoveredVertex);
@@ -433,7 +458,7 @@ canvas.addEventListener("mouseup", (e) => {
              {
                 saveState();
                 startingVertex = null;
-                // creatingEdge = false;
+                creatingEdge = false;
                 // hasDragged = true;  // to not select the hoveredVertex
                 // edgeCreated = edge;
             }
@@ -446,7 +471,7 @@ canvas.addEventListener("mouseup", (e) => {
                 graph.deleteVertex(startingVertex);
             edgeCreated = null;
             startingVertex = null;
-            // creatingEdge = false;
+            creatingEdge = false;
             // hasDragged = true;  // to not create a new edge when rubbish bin is clicked
         }
         else // continue creating a bended edge
@@ -458,7 +483,7 @@ canvas.addEventListener("mouseup", (e) => {
         }
     }
     else
-        creatingEdge = false;
+        canClick = true;
     /*
     if (!hasDragged) {
         // It's a click, not a drag
@@ -484,18 +509,19 @@ canvas.addEventListener("mouseup", (e) => {
     }*/
     if (isSelecting) {
         selectedPoints = graph.pointsInRect(selectionRect.x, selectionRect.y, selectionRect.width, selectionRect.height);
+        // console.log("mouseup",selectedPoints.length);
         selectedVertices = selectedPoints.filter(v => v instanceof Vertex);
         selectedBends = selectedPoints.filter(v => v instanceof Bend);
         selectedEdges = graph.edgesInRect(selectionRect.x, selectionRect.y, selectionRect.width, selectionRect.height);
-        isSelecting = false;
+        // isSelecting = false;
     }
     // save state when moving
     // CHEEEEECK AGAAAAIIIIIIIIINNNNNNN
-    if (hasDragged && draggingPoints.length > 0)
-        saveState();
+    //if (hasDragged && draggingPoints.length > 0)
+    //  saveState();
+    isSelecting = false;
     draggingLabelVertex = null;
     draggingPoints = [];
-    draggingBend = null;
     // hasDragged = false;
     mousedown = false;
     renderGraph();
@@ -514,15 +540,18 @@ canvas.addEventListener("mouseup", (e) => {
     }
   });*/
 canvas.addEventListener("click", (e) => {
+    // console.log("click")
     // if dragging cursor, don't consider it a click
-    if (hasDragged || creatingEdge)
+    if (hasDragged || !canClick)
         return;
+    // console.log("click passed",selectedPoints.length);
     checkHovered();
     // if nothing hovered or selected, add a new vertex at the clicked position
     if (!hoveredVertex && !hoveredBend && !hoveredEdge && !selectedPoints.length && !selectedEdges.length && !draggingLabelVertex) {
         saveState();
         const vertex = new Vertex((graph.maxVertexId() + 1).toString(), mouse.x, mouse.y);
         graph.addVertex(vertex);
+        // hoveredVertex = vertex;
     }
     // add a new bend in the addBend mode if hovering over an edge
     // IMPORTANT: the following piece of code (in the brackets of if) must remain below the above piece of code
@@ -536,7 +565,7 @@ canvas.addEventListener("click", (e) => {
         hoveredEdge = null;
         canvas.style.cursor = "default";
     }
-    // select a vertex and update selected vertices
+    // select a vertex/bend/edge and update selected vertices
     if (hoveredVertex)
         select(hoveredVertex, selectedVertices, e);
     else if (hoveredBend)
@@ -544,9 +573,10 @@ canvas.addEventListener("click", (e) => {
     else if (hoveredEdge)
         select(hoveredEdge, selectedEdges, e);
     else {
-        selectedVertices = [];
-        selectedBends = [];
-        selectedEdges = [];
+        selectedVertices.length = 0;
+        selectedBends.length = 0;
+        selectedEdges.length = 0;
+        // console.log("else",selectedVertices.length,selectedBends.length);
     }
     selectedPointsUpdate();
     // select a vertex label
@@ -586,6 +616,7 @@ function selectedPointsUpdate() {
         selectedPoints.push(v);
     for (const b of selectedBends)
         selectedPoints.push(b);
+    // console.log("called", selectedPoints.length);
 }
 // not sure if necessary
 function selectEdge(e) {
@@ -721,7 +752,7 @@ function drawGraph(ctx, graph) {
             drawVertex(ctx, vertex);
     });
     // Draw a temporary edge from starting vertex to mouse position and a rubbish bin to discard the new edge if necessary
-    if (startingVertex) {
+    if (creatingEdge && startingVertex) {
         // console.log("startingVertex:", startingVertex.id);
         ctx.beginPath();
         ctx.moveTo(startingVertex.x, startingVertex.y);
@@ -766,7 +797,7 @@ function drawGraph(ctx, graph) {
 function drawVertex(ctx, v) {
     let size = v.size;
     if (hoveredVertex === v)
-        size = size + 1;
+        size = size + 0.5;
     drawShape(ctx, v.x, v.y, v.shape, size, v.color, true);
     // Draw label
     ctx.fillStyle = "#000";
