@@ -182,6 +182,7 @@ function renderGraph() {
 });*/
 (_j = document.getElementById("undo-button")) === null || _j === void 0 ? void 0 : _j.addEventListener("click", () => {
     if (historyStack.length > 0) {
+        setNothingSelected();
         const current = graph.clone();
         redoStack.push(current);
         const prev = historyStack.pop();
@@ -614,13 +615,19 @@ function select(obj, array, e) {
     }
     else // if not control key pushed, remove all the selected objects and then add the selected one
      {
-        selectedVertices.length = 0;
-        selectedBends.length = 0;
-        selectedEdges.length = 0;
+        setNothingSelected();
         array.length = 0; // clear the array in place
         array.push(obj);
     }
 }
+// set no object of the graph selected
+function setNothingSelected() {
+    selectedVertices.length = 0;
+    selectedBends.length = 0;
+    selectedEdges.length = 0;
+}
+// check that no one of the main acts is in process
+function nothingInProcess() { return !creatingEdge && !draggingLabelVertex && !hasDragged && !isSelecting; }
 // selected Points = selected Vertices & selected Bends
 function selectedPointsUpdate() {
     selectedPoints.length = 0;
@@ -763,6 +770,16 @@ function drawGraph(ctx, graph) {
         else
             drawVertex(ctx, vertex);
     });
+    // show vertex info of hoveredVertex
+    if (hoveredVertex)
+        showVertexInfo(hoveredVertex);
+    else
+        hideVertexInfo();
+    // show edge info of hoveredVertex
+    if (hoveredEdge)
+        showEdgeInfo(hoveredEdge);
+    else
+        hideEdgeInfo();
     // Draw a temporary edge from starting vertex to mouse position and a rubbish bin to discard the new edge if necessary
     if (creatingEdge && startingVertex) {
         // console.log("startingVertex:", startingVertex.id);
@@ -823,6 +840,22 @@ function drawVertex(ctx, v) {
     // add an orange circle around a selected vertex
     if (selectedVertices.includes(v))
         drawShape(ctx, v.x, v.y, v.shape, v.size + 2, "#FFA500", false);
+}
+function showVertexInfo(vertex) {
+    const infoBox = document.getElementById("vertex-info");
+    const rect = canvas.getBoundingClientRect();
+    const neighborsList = vertex.neighbors.map(v => v.id).join(", ");
+    const infoText = ` Vertex ID: ${vertex.id}<br>
+                        Degree: ${vertex.neighbors.length}<br>
+                        Neighbor(s): ${neighborsList}`;
+    infoBox.innerHTML = infoText;
+    infoBox.style.left = `${rect.left + vertex.x - 100}px`;
+    infoBox.style.top = `${rect.top + vertex.y - 50}px`;
+    infoBox.style.display = "block";
+}
+function hideVertexInfo() {
+    const infoBox = document.getElementById("vertex-info");
+    infoBox.style.display = "none";
 }
 // function for drawing a bend at position x,y
 function drawBend(ctx, bend) {
@@ -935,6 +968,20 @@ function drawEdge(ctx, edge) {
             drawBend(ctx, bend);
         }
     }
+}
+function showEdgeInfo(edge) {
+    const infoBox = document.getElementById("edge-info");
+    const rect = canvas.getBoundingClientRect();
+    const infoText = ` Edge: ${edge.id}<br>
+                        CC: ${edge.bends.length}`;
+    infoBox.innerHTML = infoText;
+    infoBox.style.left = `${rect.left + mouse.x + 5}px`;
+    infoBox.style.top = `${rect.top + mouse.y + 5}px`;
+    infoBox.style.display = "block";
+}
+function hideEdgeInfo() {
+    const infoBox = document.getElementById("edge-info");
+    infoBox.style.display = "none";
 }
 function isNearLabel(vertex, x, y) {
     const labelX = vertex.x + vertex.labelOffsetX;
