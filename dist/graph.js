@@ -132,16 +132,16 @@ export class Edge extends LineSegment {
         // bending points of the edge
         this._bends = [];
         this._color = "#898989"; // open gray
-        this._type = "continuous";
+        this._dashed = false;
         this._thickness = 2;
     }
     // return an array with the bends of the edge
     get bends() { return this._bends; }
     get color() { return this._color; }
-    get type() { return this._type; }
+    get dashed() { return this._dashed; }
     get thickness() { return this._thickness; }
     set color(c) { this._color = c; }
-    set type(t) { this._type = t; }
+    set dashed(t) { this._dashed = t; }
     set thickness(t) { this._thickness = t; }
     // add a bend at coordinate (x,y) (at the projection of (x,y) on the edge if onEdge is true)
     addBend(x, y, onEdge = true) {
@@ -216,12 +216,12 @@ export class Edge extends LineSegment {
     cloneCharacteristics(e) {
         this.addBends(e.bends);
         this._color = e.color;
-        this._type = e.type;
+        this._dashed = e.dashed;
         this._thickness = e.thickness;
     }
-    assignCharacteristics(color, type, thickness) {
+    assignCharacteristics(color, dashed, thickness) {
         this._color = color;
-        this._type = type;
+        this._dashed = dashed;
         this._thickness = thickness;
     }
     // check if the entire edge is in a rectangle

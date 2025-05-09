@@ -337,6 +337,15 @@ deleteEdgeBtn.addEventListener("click", () => {
     selectedEdges.length = 0;
     renderGraph();
 });
+document.getElementById("toggle-dashed").addEventListener("click", () => {
+    if (selectedEdges.length > 0) {
+        saveState();
+        const dashed = !selectedEdges[0].dashed;
+        for (const e of selectedEdges)
+            e.dashed = dashed;
+        renderGraph();
+    }
+});
 // Initial render
 renderGraph();
 //});
@@ -474,6 +483,7 @@ canvas.addEventListener("mouseup", (e) => {
             edgeCreated = null;
             startingVertex = null;
             creatingEdge = false;
+            historyStack.pop(); // don't save state if no edge created
             // hasDragged = true;  // to not create a new edge when rubbish bin is clicked
         }
         else // continue creating a bended edge
@@ -853,6 +863,13 @@ function drawShape(ctx, x, y, shape, size, color, fill = true) {
         ctx.lineTo(x + size, y + size);
         ctx.closePath();
     }
+    else if (shape === "rhombus") {
+        ctx.moveTo(x, y - size); // top
+        ctx.lineTo(x + size, y); // right
+        ctx.lineTo(x, y + size); // bottom
+        ctx.lineTo(x - size, y); // left
+        ctx.closePath();
+    }
     else if (shape === "circle")
         ctx.arc(x, y, size, 0, 2 * Math.PI);
     ctx.strokeStyle = color;
@@ -883,6 +900,8 @@ function drawEdge(ctx, edge) {
     if (v1 && v2) {
         ctx.beginPath();
         ctx.moveTo(v1.x, v1.y);
+        if (edge.dashed)
+            ctx.setLineDash([5, 5]); // Dash pattern: [dashLength, gapLength]
         ctx.lineWidth = edge.thickness;
         const bends = edge.bends;
         // draw the edge passing through bends
@@ -904,9 +923,9 @@ function drawEdge(ctx, edge) {
             ctx.setLineDash([5, 3]); // dashed line
             ctx.lineWidth = edge.thickness + 1;
             ctx.stroke();
-            //reset
-            ctx.setLineDash([]);
         }
+        //reset
+        ctx.setLineDash([]);
         ctx.lineWidth = edge.thickness;
         // draw bends
         for (const bend of edge.bends) {
@@ -1003,7 +1022,7 @@ function exportGraph(graph) {
         edges: graph.edges.map(e => ({
             v1: e.points[0].id,
             v2: e.points[1].id,
-            type: e.type,
+            dashed: e.dashed,
             thickness: e.thickness,
             color: e.color,
             bends: e.bends.map(b => ({ x: b.x, y: b.y, size: b.size, color: b.color })),
@@ -1043,8 +1062,8 @@ function restoreGraphFromJSON(data) {
                 edge.color = e.color;
             if (e.thickness)
                 edge.thickness = e.thickness;
-            if (e.type)
-                edge.type = e.type;
+            if (e.dashed)
+                edge.dashed = e.dashed;
             // bends
             for (const b of e.bends) {
                 const newBend = newGraph.addBend(v1, v2, b.x, b.y, false, false);

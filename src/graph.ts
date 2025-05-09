@@ -165,7 +165,7 @@ export class Edge extends LineSegment
     // bending points of the edge
     private _bends: Bend[] = [];
     private _color: string = "#898989"; // open gray
-    private _type: "continuous" | "dashed" | "dots" = "continuous";
+    private _dashed: boolean = false;
     private _thickness: number = 2;
 
     constructor([v1,v2]: [Vertex,Vertex])  { super([v1,v2]); }
@@ -173,11 +173,11 @@ export class Edge extends LineSegment
     // return an array with the bends of the edge
     get bends() {return this._bends}
     get color() { return this._color }
-    get type() { return this._type}
+    get dashed() { return this._dashed}
     get thickness() { return this._thickness; }
 
     set color(c: string) { this._color = c; }
-    set type(t) {this._type = t; }
+    set dashed(t) {this._dashed = t; }
     set thickness(t) {this._thickness = t; }
 
     // add a bend at coordinate (x,y) (at the projection of (x,y) on the edge if onEdge is true)
@@ -266,13 +266,13 @@ export class Edge extends LineSegment
     {
         this.addBends(e.bends);
         this._color = e.color;
-        this._type = e.type;
+        this._dashed = e.dashed;
         this._thickness = e.thickness;
     }
 
-    assignCharacteristics(color: string, type: "continuous" | "dashed" | "dots", thickness: number)
+    assignCharacteristics(color: string, dashed: boolean, thickness: number)
     {
-        this._color = color; this._type = type; this._thickness = thickness;
+        this._color = color; this._dashed = dashed; this._thickness = thickness;
     }
 
     // check if the entire edge is in a rectangle
