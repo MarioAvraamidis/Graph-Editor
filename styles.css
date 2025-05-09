@@ -151,3 +151,26 @@ body {
     padding: 3px 5px;
     font-size: 12px;
   }
+
+  #vertex-palette .palette-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  
+  #vertex-palette .palette-row input[type="text"] {
+    flex: 1;
+    min-width: 50px;
+    box-sizing: border-box;
+    padding: 4px;
+    font-size: 12px;
+  }
+  
+  #vertex-palette .palette-row button {
+    padding: 3px 3px;
+    font-size: 12px;
+    white-space: nowrap;
+    /*flex-shrink: 0;*/
+  }
+  

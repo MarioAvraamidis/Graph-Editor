@@ -315,6 +315,17 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         renderGraph();
     });
 
+    // Vertex rename
+    document.getElementById("rename-vertex")?.addEventListener("click", () => {
+        const input = (document.getElementById("vertexIdInput") as HTMLInputElement).value.trim();
+        if (input && selectedVertices.length===1) {
+            saveState();
+            const selectedVertex = selectedVertices[0];
+            graph.renameVertex(selectedVertex,input);
+            renderGraph();
+        }
+    });
+
     bendColor.addEventListener("change", () => {
         saveState();
         selectedBends.forEach(b => b.color = bendColor.value);
@@ -859,6 +870,8 @@ function updatePaletteState() {
             btn.classList.add("active");
             }
         });
+
+        updateRenameControls(selectedVertices.length === 1);
       }
 
     if (bendSelected) {
@@ -874,6 +887,15 @@ function updatePaletteState() {
         edgeThickness.value = e.thickness.toString();
       }
 }
+
+function updateRenameControls(enabled: boolean) 
+{
+    const input = document.getElementById("vertexIdInput") as HTMLInputElement;
+    const button = document.getElementById("rename-vertex") as HTMLButtonElement;
+  
+    input.disabled = !enabled;
+    button.disabled = !enabled;
+  }  
       
 
 // draw the graph

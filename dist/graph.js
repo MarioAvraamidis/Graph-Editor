@@ -66,12 +66,14 @@ export class LineSegment {
     constructor([p1, p2]) {
         this._points = [p1, p2];
         // this._crosses = []
-        this._id = p1.id + '-' + p2.id;
+        this._id = this.setId(p1, p2);
     }
     get id() { return this._id; }
     get points() { return this._points; }
     // get crossings() {return this._crosses}
     set points([p1, p2]) { this._points = [p1, p2]; }
+    set id(id) { this._id = id; }
+    setId(p1, p2) { return p1.id + '-' + p2.id; }
     // add a crossing with a new edge
     // addCrossing(crossingSegment: LineSegment) {this._crosses.push(crossingSegment); }
     // return the coordinates of the points of LineSegment, but make it a little bit shorter by a constant c
@@ -291,6 +293,7 @@ export class Bend extends Point {
         this.color = "#ffde21";
     }
     get edge() { return this._edge; }
+    setId() { return this._edge.id + "/bend"; }
     // clone utility
     cloneCharacteristics(b) {
         this.size = b.size;
@@ -403,6 +406,32 @@ export class Graph {
             if (Math.hypot(v.x - x, v.y - y) < v.size + 3 && !v.temporary)
                 return v;
         return null;
+    }
+    renameVertex(vertex, newId) {
+        if (!this._vertices.includes(vertex)) {
+            console.log("vertex not in graph");
+            return null;
+        }
+        if (extractIds(this._vertices).includes(newId)) {
+            console.log("Id already in use");
+            return null;
+        }
+        vertex.id = newId;
+        this._edges.forEach(e => {
+            if (e.points[0] === vertex || e.points[1] === vertex) {
+                // update edge id
+                e.id = e.setId(e.points[0], e.points[1]);
+                // update bend ids
+                e.bends.forEach(b => b.id = b.setId());
+            }
+        });
+        // update crossings (so crossings ids are updated)
+        if (this.effective_crossing_update)
+            this.updateCrossingsByVertex(vertex);
+        else
+            this.updateCrossings();
+        // return the vertex with the newId
+        return vertex;
     }
     // given a (x,y) location, return the bend at distance < dist near this location
     getBendAtPosition(x, y, b = []) {

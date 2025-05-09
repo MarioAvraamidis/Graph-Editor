@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
 // src/app.ts
 import { Graph, Vertex, Bend } from "./graph.js";
 // Create a graph instance
@@ -286,6 +286,16 @@ vertexSize.addEventListener("input", () => {
     const size = parseInt(vertexSize.value);
     selectedVertices.forEach(v => v.size = size);
     renderGraph();
+});
+// Vertex rename
+(_q = document.getElementById("rename-vertex")) === null || _q === void 0 ? void 0 : _q.addEventListener("click", () => {
+    const input = document.getElementById("vertexIdInput").value.trim();
+    if (input && selectedVertices.length === 1) {
+        saveState();
+        const selectedVertex = selectedVertices[0];
+        graph.renameVertex(selectedVertex, input);
+        renderGraph();
+    }
 });
 bendColor.addEventListener("change", () => {
     saveState();
@@ -745,6 +755,7 @@ function updatePaletteState() {
                 btn.classList.add("active");
             }
         });
+        updateRenameControls(selectedVertices.length === 1);
     }
     if (bendSelected) {
         const b = selectedBends[selectedBends.length - 1]; // use last selected
@@ -757,6 +768,12 @@ function updatePaletteState() {
         edgeColorPicker.value = e.color;
         edgeThickness.value = e.thickness.toString();
     }
+}
+function updateRenameControls(enabled) {
+    const input = document.getElementById("vertexIdInput");
+    const button = document.getElementById("rename-vertex");
+    input.disabled = !enabled;
+    button.disabled = !enabled;
 }
 // draw the graph
 function drawGraph(ctx, graph) {
