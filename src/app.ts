@@ -31,6 +31,7 @@ let selectedBends: Bend[] = [];
 let selectedEdges: Edge[] = [];
 // creating edge
 let creatingEdge: boolean = false;  // will be used to check if a new edge is being drawn
+let creatingEdgeStarted: boolean = false;   // catch the time of the start of the creation of an edge
 let startingVertex: Vertex | null = null;     // the vertex from which an edge starts
 let canClick: boolean = true;   // is activated a click after an edge creation is done
 // mousedown
@@ -128,9 +129,9 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         const from = (document.getElementById("edgeFromInput") as HTMLInputElement).value.trim();
         const to = (document.getElementById("edgeToInput") as HTMLInputElement).value.trim();
         if (from && to) {
-        saveState();
-        graph.addEdgeId(from, to);
-        renderGraph();
+            saveState();
+            graph.addEdgeId(from, to);
+            renderGraph();
         }
     });
 
@@ -253,10 +254,10 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         const text = await file.text();
     
         try {
+            saveState();
             const data = JSON.parse(text);
             // console.log(data);
             graph = restoreGraphFromJSON(data);
-            saveState();
             renderGraph();
         } catch (err) {
             alert("Failed to load graph: Invalid format");
@@ -440,16 +441,17 @@ canvas.addEventListener("mousemove", e => {
     if (mousedown && Math.hypot(offsetX,offsetY) > 3)
     {
         hasDragged = true;
-        if (startingVertex && selectedPoints.length===0)    // creatingEdge is activated only if we have a starting vertex and no selected points
+        if (startingVertex && selectedPoints.length===0 && !creatingEdge)    // creatingEdge is activated only if we have a starting vertex and no selected points
         {
             creatingEdge = true;
             canClick = false;
+            saveState();
         }
-        else
+        /*else
         {
             // startingVertex = null;
             creatingEdge = false;
-        }
+        }*/
         // if (selectedPoints.length > 0)
            // saveState();
     }
@@ -519,7 +521,6 @@ canvas.addEventListener("mouseup", (e) => {
             const edge = graph.addEdgeAdvanced(startingVertex,hoveredVertex);
             if (edge)   // check if the edge can be created, based on the restrictions for self loops, simple graph etc
             {
-                saveState();
                 startingVertex = null;
                 creatingEdge = false;
                 // hasDragged = true;  // to not select the hoveredVertex
@@ -951,7 +952,10 @@ function drawBend(ctx: CanvasRenderingContext2D, bend: Bend)
     ctx.beginPath();
     ctx.lineWidth = 2;
     // show bigger bend when mouse near it
-    ctx.arc(bend.x, bend.y, bend.size , 0, 2 * Math.PI); // small green circle
+    let size = bend.size;
+    if (bend === hoveredBend)
+        size = size+0.5;
+    ctx.arc(bend.x, bend.y, size , 0, 2 * Math.PI); // small green circle
     ctx.fillStyle = bend.color;
     ctx.fill();
     ctx.strokeStyle = "black";

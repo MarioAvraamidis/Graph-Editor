@@ -604,7 +604,7 @@ export class Graph {
     }
 
     // check if an edge can be created between 2 given vertices
-    checkEdgeId(v1: Vertex, v2: Vertex)
+    checkEdgeId(v1: Vertex, v2: Vertex): boolean
     {
         // first check that the 2 vertices belong to the graph
         if (!this._vertices.includes(v1) || !this._vertices.includes(v2) )
@@ -612,6 +612,12 @@ export class Graph {
             console.log("WARNING: one or both of the vertices ("+v1.id+","+v2.id+") does not exist in the graph");
             return false;
         }
+
+        // if vertices are temporary, check their neighbors
+        /*if (v1.temporary)
+            return this.checkEdgeId(v1.neighbors[0],v2);
+        if (v2.temporary)
+            return this.checkEdgeId(v1,v2.neighbors[0]);*/
 
         // check by id
         let edge_id1 = v1.id + '-' + v2.id
@@ -1056,6 +1062,14 @@ export class Graph {
         this.updateCrossingsByEdge(edge!);
         //printPointArray(edge!.bends);
         return edge;
+    }
+
+    // check if an edge can be created between a (probably temporary) starting vertex and an ending vertex
+    checkEdgeExtension(starting: Vertex, ending: Vertex)
+    {
+        if (starting.temporary)
+            return this.checkEdgeId(starting.neighbors[0],ending);
+        return this.checkEdgeId(starting,ending);
     }
 
     // remove all the edges from the graph

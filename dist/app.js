@@ -39,6 +39,7 @@ let selectedBends = [];
 let selectedEdges = [];
 // creating edge
 let creatingEdge = false; // will be used to check if a new edge is being drawn
+let creatingEdgeStarted = false; // catch the time of the start of the creation of an edge
 let startingVertex = null; // the vertex from which an edge starts
 let canClick = true; // is activated a click after an edge creation is done
 // mousedown
@@ -234,10 +235,10 @@ document.getElementById("import-input").addEventListener("change", (e) => __awai
     const file = input.files[0];
     const text = yield file.text();
     try {
+        saveState();
         const data = JSON.parse(text);
         // console.log(data);
         graph = restoreGraphFromJSON(data);
-        saveState();
         renderGraph();
     }
     catch (err) {
@@ -392,15 +393,17 @@ canvas.addEventListener("mousemove", e => {
     // console.log("mousemove:",mouse.x,mouse.y,clickedX,clickedY);
     if (mousedown && Math.hypot(offsetX, offsetY) > 3) {
         hasDragged = true;
-        if (startingVertex && selectedPoints.length === 0) // creatingEdge is activated only if we have a starting vertex and no selected points
+        if (startingVertex && selectedPoints.length === 0 && !creatingEdge) // creatingEdge is activated only if we have a starting vertex and no selected points
          {
             creatingEdge = true;
             canClick = false;
+            saveState();
         }
-        else {
+        /*else
+        {
             // startingVertex = null;
             creatingEdge = false;
-        }
+        }*/
         // if (selectedPoints.length > 0)
         // saveState();
     }
@@ -456,7 +459,6 @@ canvas.addEventListener("mouseup", (e) => {
             const edge = graph.addEdgeAdvanced(startingVertex, hoveredVertex);
             if (edge) // check if the edge can be created, based on the restrictions for self loops, simple graph etc
              {
-                saveState();
                 startingVertex = null;
                 creatingEdge = false;
                 // hasDragged = true;  // to not select the hoveredVertex
@@ -817,7 +819,10 @@ function drawBend(ctx, bend) {
     ctx.beginPath();
     ctx.lineWidth = 2;
     // show bigger bend when mouse near it
-    ctx.arc(bend.x, bend.y, bend.size, 0, 2 * Math.PI); // small green circle
+    let size = bend.size;
+    if (bend === hoveredBend)
+        size = size + 0.5;
+    ctx.arc(bend.x, bend.y, size, 0, 2 * Math.PI); // small green circle
     ctx.fillStyle = bend.color;
     ctx.fill();
     ctx.strokeStyle = "black";

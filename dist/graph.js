@@ -494,6 +494,11 @@ export class Graph {
             console.log("WARNING: one or both of the vertices (" + v1.id + "," + v2.id + ") does not exist in the graph");
             return false;
         }
+        // if vertices are temporary, check their neighbors
+        /*if (v1.temporary)
+            return this.checkEdgeId(v1.neighbors[0],v2);
+        if (v2.temporary)
+            return this.checkEdgeId(v1,v2.neighbors[0]);*/
         // check by id
         let edge_id1 = v1.id + '-' + v2.id;
         // if the graph is undirected, check reversed edge
@@ -862,6 +867,12 @@ export class Graph {
         this.updateCrossingsByEdge(edge);
         //printPointArray(edge!.bends);
         return edge;
+    }
+    // check if an edge can be created between a (probably temporary) starting vertex and an ending vertex
+    checkEdgeExtension(starting, ending) {
+        if (starting.temporary)
+            return this.checkEdgeId(starting.neighbors[0], ending);
+        return this.checkEdgeId(starting, ending);
     }
     // remove all the edges from the graph
     removeEdges() {
