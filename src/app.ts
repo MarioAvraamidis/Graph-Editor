@@ -243,9 +243,15 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         renderGraph();
     });
 
-    document.getElementById("export-btn")!.addEventListener("click", () => {
+    document.getElementById("export-json-btn")!.addEventListener("click", () => {
         exportGraph(graph);
     });
+
+    document.getElementById("export-image")!.addEventListener("click", () => {
+        drawGraph(ctx,graph,false);
+        exportCanvasAsImage();
+        drawGraph(ctx,graph);
+    } )
 
     document.getElementById("import-input")!.addEventListener("change", async (e) => {
         const input = e.target as HTMLInputElement;
@@ -256,6 +262,7 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
     
         try {
             saveState();
+            setNothingSelected();
             const data = JSON.parse(text);
             // console.log(data);
             graph = restoreGraphFromJSON(data);
@@ -439,7 +446,7 @@ canvas.addEventListener("mousedown", (e) => {
     }
 
     // label move
-    if (selectedPoints.length === 0 && !creatingEdge)
+    if (!creatingEdge)
         draggingLabelVertex = hoveredLabelVertex;  
 
     hasDragged = false;
@@ -899,9 +906,11 @@ function updateRenameControls(enabled: boolean)
       
 
 // draw the graph
-function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph) {
+function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, labels: boolean = true) {
 
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    // if (latexLabels)
+       // clearLatexLabels();
 
     // Draw edges first
     graph.edges.forEach(edge => { drawEdge(ctx,edge )});
@@ -912,7 +921,7 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph) {
         if (vertex.temporary)
             shapeBend(ctx,vertex.x,vertex.y,bendRadius,"yellow");
         else
-            drawVertex(ctx,vertex);
+            drawVertex(ctx,vertex,labels);
     });
     
     // show vertex info of hoveredVertex
@@ -980,7 +989,7 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph) {
 }
 
 // function for drawing a vertex
-function drawVertex(ctx: CanvasRenderingContext2D, v: Vertex)
+function drawVertex(ctx: CanvasRenderingContext2D, v: Vertex, labels: boolean = true)
 {
     let size: number = v.size;
     if (hoveredVertex === v)
@@ -988,20 +997,47 @@ function drawVertex(ctx: CanvasRenderingContext2D, v: Vertex)
     drawShape(ctx,v.x,v.y,v.shape,size,v.color,true);
 
     // Draw label
-    ctx.fillStyle = "#000";
-    if (hoveredLabelVertex === v)
-        ctx.fillStyle = "red";
-    ctx.font = "14px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "top";
-    ctx.fillText(v.id, v.x + v.labelOffsetX , v.y - v.size - v.labelOffsetY);   // positive is down in canvas
-    ctx.fillStyle = "#000";
+    if (labels)
+    {
+        ctx.fillStyle = "#000";
+        if (hoveredLabelVertex === v)
+            ctx.fillStyle = "red";
+        ctx.font = "14px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(v.id, v.x + v.labelOffsetX , v.y - v.size - v.labelOffsetY);   // positive is down in canvas
+        ctx.fillStyle = "#000";
+    }
 
     // add an orange circle around a selected vertex
     if (selectedVertices.includes(v)) 
         drawShape(ctx, v.x, v.y, v.shape, v.size+2, "#FFA500", false);
 }
 
+declare var MathJax: any;
+function renderLatexLabel(vertex: Vertex) {
+    let labelDiv = document.getElementById(`latex-label-${vertex.id}`);
+    if (!labelDiv) {
+      labelDiv = document.createElement("div");
+      labelDiv.id = `latex-label-${vertex.id}`;
+      labelDiv.style.position = "absolute";
+      labelDiv.style.pointerEvents = "none"; // Make sure it doesn't block mouse events
+      document.body.appendChild(labelDiv);
+    }
+  
+    labelDiv.innerHTML = `\\(v_{${vertex.id}}\\)`; // LaTeX format
+    labelDiv.style.left = `${canvas.offsetLeft + vertex.x + vertex.labelOffsetX}px`; // adjust as needed
+    labelDiv.style.top = `${canvas.offsetTop + vertex.y - vertex.size - vertex.labelOffsetY}px`;
+  
+    MathJax.typesetPromise([labelDiv]); // re-render the LaTeX
+  }
+
+function clearLatexLabels() {
+    document.querySelectorAll('[id^="latex-label-"]').forEach(el => el.remove());
+}
+  
+  
+// show a box with information about the hovered verted
 function showVertexInfo(vertex: Vertex) {
     const infoBox = document.getElementById("vertex-info")!;
     const rect = canvas.getBoundingClientRect();
@@ -1263,6 +1299,8 @@ function exportGraph(graph: Graph) {
         color: v.color,
         size: v.size,
         shape: v.shape,
+        labelOffsetX: v.labelOffsetX,
+        labelOffsetY: v.labelOffsetY,
       })),
       edges: graph.edges.map(e => ({
         v1: e.points[0].id,
@@ -1299,6 +1337,10 @@ function exportGraph(graph: Graph) {
             vertex.size = v.size;
         if (v.shape)
             vertex.shape = v.shape;
+        if (v.labelOffsetX)
+            vertex.labelOffsetX = v.labelOffsetX;
+        if (v.labelOffsetY)
+            vertex.labelOffsetY = v.labelOffsetY;
         newGraph.vertices.push(vertex);
     }
 
@@ -1334,4 +1376,67 @@ function exportGraph(graph: Graph) {
     return newGraph;
 }
 
+// function for rendering latex content to image (to add the vertex labels as images to the graph picture)
+async function renderLatexToImage(latex: string): Promise<HTMLImageElement> {
+    const tempDiv = document.createElement("div");
+    tempDiv.style.position = "absolute";
+    tempDiv.style.visibility = "hidden";
+    tempDiv.innerHTML = `\\(${latex}\\)`;
+    document.body.appendChild(tempDiv);
+
+    await MathJax.typesetPromise([tempDiv]);
+
+    const svgElement = tempDiv.querySelector("svg");
+    if (!svgElement) throw new Error("Failed to render LaTeX");
+
+    const svgData = new XMLSerializer().serializeToString(svgElement);
+    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+
+    const img = new Image();
+    img.src = url;
+
+    await new Promise<void>((resolve) => {
+        img.onload = () => {
+            document.body.removeChild(tempDiv);
+            URL.revokeObjectURL(url);
+            resolve();
+        };
+    });
+
+    return img;
+}
+
+async function exportCanvasAsImage() {
+    
+    // First draw graph normally...
+    const canvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
+    // Create an off-screen canvas to not affect the visible one
+    const exportCanvas = document.createElement("canvas");
+    exportCanvas.width = canvas.width;
+    exportCanvas.height = canvas.height;
   
+    const exportCtx = exportCanvas.getContext("2d");
+    if (!exportCtx) return;
+  
+    // Fill white background
+    exportCtx.fillStyle = "white";
+    exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+  
+    // Copy original canvas content
+    exportCtx.drawImage(canvas, 0, 0);
+
+    // add latex vertex labels
+    for (const vertex of graph.vertices) {
+        const label = "v_"+vertex.id; // or vertex.label if you use one
+        const img = await renderLatexToImage(label);
+        const x = vertex.x + vertex.labelOffsetX;
+        const y = vertex.y - vertex.size - vertex.labelOffsetY; // adjust position above the vertex
+        exportCtx.drawImage(img, x, y);
+    }
+
+    const link = document.createElement("a");
+    link.download = "graph.png";
+    link.href = exportCanvas.toDataURL();
+    link.click();
+}

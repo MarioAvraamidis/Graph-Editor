@@ -8,7 +8,12 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <link rel="stylesheet" href="styles.css" />
   <title>Graph Editor</title>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvg@3.0.7/lib/umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
+
 <body>
     <div class="top-bar">
         <h1>Graph Editor</h1>
@@ -22,6 +27,8 @@
     <!-- <canvas id="graphCanvas" width="1000" height="500" style="border:1px solid #000;"></canvas> -->
 
     <div class="main-container">
+
+      
         <canvas id="graphCanvas" width="800" height="500" style="border:1px solid #000;"></canvas>
 
         <div class="palette-container">
@@ -143,7 +150,8 @@
         <button id="make-clique"> Clique</button>
         <button id="clear-edges"> Clear Edges</button>
         <button id="clear-bends"> Clear Bends</button>
-        <button id="export-btn">Export</button>
+        <button id="export-json-btn">Export JSON</button>
+        <button id="export-image">Export PNG</button>
         <input type="file" id="import-input" accept=".json">
     </div>
 
