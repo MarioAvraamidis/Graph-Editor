@@ -924,16 +924,8 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, labels: boolean 
             drawVertex(ctx,vertex,labels);
     });
     
-    // show vertex info of hoveredVertex
-    if (hoveredVertex)
-        showVertexInfo(hoveredVertex);
-    else
-        hideVertexInfo();
-    // show edge info of hoveredVertex
-    if (hoveredEdge)
-        showEdgeInfo(hoveredEdge);
-    else
-        hideEdgeInfo();
+    // show information for the hovering objects
+    showHoveredInfo();
 
     // Draw a temporary edge from starting vertex to mouse position and a rubbish bin to discard the new edge if necessary
     if (creatingEdge && startingVertex) {
@@ -1038,6 +1030,25 @@ function clearLatexLabels() {
     document.querySelectorAll('[id^="latex-label-"]').forEach(el => el.remove());
 }
   
+function showHoveredInfo()
+{
+    if (creatingEdge || draggingPoints.length>0)
+    {
+        hideVertexInfo();
+        hideEdgeInfo();
+        return;
+    }
+    // show vertex info of hoveredVertex
+    if (hoveredVertex)
+        showVertexInfo(hoveredVertex);
+    else
+        hideVertexInfo();
+    // show edge info of hoveredVertex
+    if (hoveredEdge)
+        showEdgeInfo(hoveredEdge);
+    else
+        hideEdgeInfo();
+}
   
 // show a box with information about the hovered verted
 function showVertexInfo(vertex: Vertex) {
