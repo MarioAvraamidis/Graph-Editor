@@ -250,8 +250,10 @@ export class Crossing extends Point {
         this._edges = [null, null];
         this._legal = true; // indicates if the crossing is legal (used in the graph class)   
         this._more_than_once = false; // indicates that the edges crossed at this point cross each other more than once (used for drawing)
+        this._selfCrossing = false; // the crossing is a self-crossing
         this._subedges = [sub1, sub2];
     }
+    get selfCrossing() { return this._selfCrossing; }
     get edges() { return this._edges; }
     get subedges() { return this._subedges; }
     get legal() { return this._legal; }
@@ -265,6 +267,13 @@ export class Crossing extends Point {
     }
     // check if a crossing is legal
     checkLegal() {
+        // self-crossing case
+        if (this._edges[0] === this._edges[1]) {
+            this._selfCrossing = true;
+            this._legal = false;
+            return;
+        }
+        // not self-crossing case
         const [v1, v2] = this._edges[0].points;
         const [v3, v4] = this._edges[1].points;
         // check if the vertices have a common endpoint
@@ -613,6 +622,21 @@ export class Graph {
     // find all the crossing points between two (bended) edges
     crossingPoints(e1, e2) {
         let crossings = [];
+        // if e1=e2, check for self-crossings
+        if (e1 === e2) {
+            const subEdges = e1.subEdges();
+            for (let i = 0; i < subEdges.length - 1; i++)
+                for (let j = i + 1; j < subEdges.length; j++) {
+                    const crossing = this.straightCrossingPoint(subEdges[i], subEdges[j]);
+                    if (crossing) {
+                        crossing.edges = [e1, e1];
+                        crossing.checkLegal();
+                        crossings.push(crossing);
+                    }
+                }
+            return crossings;
+        }
+        // e1 != e2 case
         const subEdges1 = e1.subEdges();
         const subEdges2 = e2.subEdges();
         // console.log("crossingPoints of edges "+e1.id+"/"+e2.id);

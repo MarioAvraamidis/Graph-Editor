@@ -959,7 +959,9 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, labels: boolean 
         ctx.beginPath();
         ctx.arc(cross.x, cross.y, bendRadius , 0, 2 * Math.PI); // small green circle
         // different colors for different types of crossings
-        if (!cross.legal)
+        if (cross.selfCrossing)
+            ctx.strokeStyle = "purple";     // purple for self-crossings
+        else if (!cross.legal)
             ctx.strokeStyle = "red";        // red for illegal crossings
         else if (cross.more_than_once)
             ctx.strokeStyle = "orange";     // orange for double crossings

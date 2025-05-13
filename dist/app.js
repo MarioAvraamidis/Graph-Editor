@@ -827,7 +827,9 @@ function drawGraph(ctx, graph, labels = true) {
         ctx.beginPath();
         ctx.arc(cross.x, cross.y, bendRadius, 0, 2 * Math.PI); // small green circle
         // different colors for different types of crossings
-        if (!cross.legal)
+        if (cross.selfCrossing)
+            ctx.strokeStyle = "purple"; // purple for self-crossings
+        else if (!cross.legal)
             ctx.strokeStyle = "red"; // red for illegal crossings
         else if (cross.more_than_once)
             ctx.strokeStyle = "orange"; // orange for double crossings
@@ -1234,83 +1236,3 @@ function exportCanvasAsImage() {
         link.click();
     });
 }
-function exportCanvasOnly(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) {
-        console.error("Canvas not found");
-        return;
-    }
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-        console.error("Failed to get canvas context");
-        return;
-    }
-    // Create an off-screen canvas to not affect the visible one
-    const exportCanvas = document.createElement("canvas");
-    exportCanvas.width = canvas.width;
-    exportCanvas.height = canvas.height;
-    const exportCtx = exportCanvas.getContext("2d");
-    if (!exportCtx)
-        return;
-    // Fill white background
-    exportCtx.fillStyle = "white";
-    exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-    // Copy original canvas content
-    exportCtx.drawImage(canvas, 0, 0);
-    drawLatexLabelToCanvas(exportCtx, "v_1", graph.vertices[0].x + 20, graph.vertices[0].y - 20);
-    // Export the image
-    const imageData = exportCanvas.toDataURL("image/png");
-    const a = document.createElement("a");
-    a.href = imageData;
-    a.download = "graph.png";
-    a.click();
-}
-function drawLatexLabelToCanvas(ctx, latex, x, y) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            // Generate SVG with MathJax
-            const svg = MathJax.tex2svg(latex, { display: false });
-            const svgString = MathJax.startup.adaptor.outerHTML(svg);
-            console.log("Raw SVG:", svgString);
-            // Add namespace (optional, for safety)
-            const svgWithNamespace = svgString.replace(/^<svg /, '<svg xmlns="http://www.w3.org/2000/svg" ');
-            console.log("SVG with xmlns:", svgWithNamespace);
-            // Debug preview: Open a new window to check the SVG
-            const svgBlob = new Blob([svgWithNamespace], { type: "image/svg+xml" });
-            const debugUrl = URL.createObjectURL(svgBlob);
-            window.open(debugUrl, "_blank");
-            const encodedSvg = encodeURIComponent(svgWithNamespace);
-            const dataUrl = `data:image/svg+xml;charset=utf-8,${encodedSvg}`;
-            // Load into an image
-            yield new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => {
-                    ctx.drawImage(img, x, y);
-                    resolve();
-                };
-                img.onerror = (e) => {
-                    console.error("Image load error:", e);
-                    reject(new Error("Failed to load LaTeX image"));
-                };
-                img.src = dataUrl;
-            });
-        }
-        catch (err) {
-            console.error(`Failed to render LaTeX: ${latex}`, err);
-        }
-    });
-}
-/*import html2canvas from "html2canvas";
-
-function exportGraphAsImage() {
-  const container = document.getElementById("main-container");
-  if (!container) return;
-
-  html2canvas(container).then((canvas) => {
-    const imageData = canvas.toDataURL("image/png");
-    const a = document.createElement("a");
-    a.href = imageData;
-    a.download = "graph_with_labels.png";
-    a.click();
-  });
-}*/
