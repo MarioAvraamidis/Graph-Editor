@@ -6,16 +6,15 @@ let graph = new Graph();
 // history stack and redo stack for undo/redo
 const historyStack: Graph[] = [];
 const redoStack: Graph[] = [];
-
-let offsetX = 0;
-let offsetY = 0;
-let draggingPoints: Point[] = [];
-let draggingBend: Bend | null = null;
-let hasDragged = false;     // will be used to distinguish vertex selection from vertex drag
-let edgeCreated: Edge | null = null;
+// mouse
 let mouse: {x: number,y: number};
-let vertexRadius : number = 20;
-let bendRadius: number = 5;
+let offsetX = 0;    // x-offset between click position and mouse's current position
+let offsetY = 0;    // y-offset between click position and mouse's current position
+// dragging
+let draggingPoints: Point[] = [];
+let hasDragged = false;     // will be used to distinguish vertex selection from vertex drag
+// bends
+let bendRadius: number = 5; // radius of bends
 // mode
 let currentMode: "select" | "addBend" = "select";   // | "createEdge"
 // hovered objects
@@ -23,22 +22,22 @@ let hoveredEdge: Edge | null = null;
 let hoveredVertex: Vertex | null = null;
 let hoveredBend: Bend | null = null;
 let hoveredLabelVertex: Vertex | null = null;
-// selected items
 let hoveredPoint: Point | null = null;
+// selected items
 let selectedPoints: Point[] = [];
 let selectedVertices: Vertex[] = [];
 let selectedBends: Bend[] = [];
 let selectedEdges: Edge[] = [];
 // creating edge
-let creatingEdge: boolean = false;  // will be used to check if a new edge is being drawn
-let creatingEdgeStarted: boolean = false;   // catch the time of the start of the creation of an edge
-let startingVertex: Vertex | null = null;     // the vertex from which an edge starts
-let canClick: boolean = true;   // is activated a click after an edge creation is done
+let creatingEdge: boolean = false;          // will be used to check if a new edge is being drawn
+let startingVertex: Vertex | null = null;   // the vertex from which an edge starts
+let canClick: boolean = true;               // is activated a click after an edge creation is done
+let edgeCreated: Edge | null = null;        // the new edge that is being created during edge creation
 // mousedown
 let mousedown: boolean = false;
-let clickedX: number = 0;
-let clickedY: number = 0;
-let positionsAtMouseDown: {x: number,y: number}[] = [];
+let clickedX: number = 0;                               // mouse x-coordinate at mousedown
+let clickedY: number = 0;                               // mouse y-coordinate at mousedown
+let positionsAtMouseDown: {x: number,y: number}[] = []; // positions of selected objects at mousedown time
 // creating a rectangle for selected space
 let isSelecting = false;
 let selectionStart = { x: 0, y: 0 };
@@ -80,17 +79,22 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
     function renderGraph() {
         const output = document.getElementById("output");
         if (output) {
-        const vertexList = graph.vertices.map(v => v.id).join(", ");
-        const edgeList = graph.edges.map(e => `(${e.points[0].id}-${e.points[1].id})`).join(", ");
+            const vertexList = graph.vertices.map(v => v.id).join(", ");
+            const edgeList = graph.edges.map(e => `(${e.points[0].id}-${e.points[1].id})`).join(", ");
         
-        output.textContent = `Crossings: ${graph.crossings.length} (Thrackle: ${graph.thrackleNumber()}) \nCurve Complexity: ${graph.curve_complexity}`;
-        // output.textContent = `Vertices: ${vertexList}\nEdges: ${edgeList}`;
+            output.textContent = `Crossings: ${graph.crossings.length} (Thrackle: ${graph.thrackleNumber()}) \nCurve Complexity: ${graph.curve_complexity}`;
+            // output.textContent = `Vertices: ${vertexList}\nEdges: ${edgeList}`;
         }
         // draw the graph
         if(ctx)
             drawGraph(ctx, graph);
         updatePaletteState();
-    }  
+    }
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
 
     // Add Vertex
     document.getElementById("add-vertex")?.addEventListener("click", () => {
@@ -180,17 +184,6 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         }
     });
 
-    // BEFOREEEEEEE CHANGEEEEEEEEE PHILOSOPHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
-    // Undo button
-    /*document.getElementById("undo-button")?.addEventListener("click", () => {
-        if (historyStack.length > 0) {
-            const current = graph.clone();
-            redoStack.push(current);
-            const prev = historyStack.pop()!;
-            graph = prev;
-            renderGraph();
-        }
-    });*/
     document.getElementById("undo-button")?.addEventListener("click", () => {
         if (historyStack.length > 0) {
             setNothingSelected();
@@ -296,6 +289,7 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         renderGraph();
     });
 
+    // vertex shape buttons
     vertexShapeButtons.forEach((btn) => {
         btn.addEventListener("click", () => {
         // Remove active class from all buttons
@@ -315,6 +309,7 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
     });
       });
 
+    // vertex size
     vertexSize.addEventListener("input", () => {
         saveState();
         const size = parseInt(vertexSize.value);
@@ -333,18 +328,14 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         }
     });
 
+    // bend color
     bendColor.addEventListener("change", () => {
         saveState();
         selectedBends.forEach(b => b.color = bendColor.value);
         renderGraph();
     });
 
-    /* bendShape.addEventListener("change", () => {
-        saveState();
-        selectedBends.forEach(b => b.shape = bendShape.value as any);
-        renderGraph();
-    });*/
-
+    // bend size
     bendSize.addEventListener("input", () => {
         saveState();
         const size = parseInt(bendSize.value);
@@ -352,19 +343,21 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         renderGraph();
     });
 
+    // edge color
     edgeColor.addEventListener("change", () => {
         saveState();
         selectedEdges.forEach(e => e.color = edgeColor.value);
         renderGraph();
     });
 
+    // edge thickness
     edgeThickness.addEventListener("input", () => {
         saveState();
         selectedEdges.forEach(e => e.thickness = parseInt(edgeThickness.value))
         renderGraph();
     });
 
-    // deletions
+    // delete vertex button
     deleteVertexBtn.addEventListener("click", () => {
         saveState();
         const deletedVertices: Vertex[] = [];
@@ -378,6 +371,7 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         renderGraph();
     });
 
+    // delete bend button
     deleteBendBtn.addEventListener("click", () => {
         saveState();
         selectedBends.forEach(b => graph.removeBend(b));
@@ -385,6 +379,7 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         renderGraph();
     });
 
+    // delete edge button
     deleteEdgeBtn.addEventListener("click", () => {
         saveState();
         selectedEdges.forEach(e => graph.deleteEdgee(e));
@@ -392,6 +387,7 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         renderGraph();
     });
 
+    // dashed edge button
     document.getElementById("toggle-dashed")!.addEventListener("click", () => {
         if (selectedEdges.length > 0)
         {
@@ -401,11 +397,10 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
                 e.dashed = dashed;
             renderGraph();
         }
-      });
-      
-
+    });
     
     // Initial render
+    // resizeCanvas();
     renderGraph();
 //});
 
@@ -788,7 +783,7 @@ function checkHovered()
         hoveredBend = null;
     }
     else{   // detect hovering over bend (if not hoveredVertex)
-        hoveredBend = graph.isNearBend(mouse.x,mouse.y,bendRadius);
+        hoveredBend = graph.isNearBend(mouse.x,mouse.y);
         if (hoveredBend)
             hoveredEdge = null;
         else    // detect hovering over edge (if not hoveredBend)
@@ -919,7 +914,7 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, labels: boolean 
     graph.vertices.forEach(vertex => 
     {
         if (vertex.temporary)
-            shapeBend(ctx,vertex.x,vertex.y,bendRadius,"yellow");
+            shapeBend(ctx,vertex.x,vertex.y,bendRadius,"#0000FF");  // same color as bend class constructor
         else
             drawVertex(ctx,vertex,labels);
     });
@@ -1076,7 +1071,7 @@ function hideVertexInfo() {
 function drawBend(ctx: CanvasRenderingContext2D, bend: Bend)
 {
     ctx.beginPath();
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1;
     // show bigger bend when mouse near it
     let size = bend.size;
     if (bend === hoveredBend)
@@ -1086,6 +1081,7 @@ function drawBend(ctx: CanvasRenderingContext2D, bend: Bend)
     ctx.fill();
     ctx.strokeStyle = "black";
     ctx.stroke();
+    ctx.lineWidth = 2;
 
     // add a dashed circle around a selected bend
     if (selectedBends.includes(bend)) 
@@ -1141,16 +1137,17 @@ function drawShape(ctx: CanvasRenderingContext2D, x: number, y: number, shape: s
 function shapeBend(ctx: CanvasRenderingContext2D, x:number, y: number, rad: number, color?: string)
 {
     ctx.beginPath();
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1;
     // show bigger bend when mouse near it
     ctx.arc(x, y, rad , 0, 2 * Math.PI); // small green circle
     if (color !== undefined)
         ctx.fillStyle = color;
     else
-       ctx.fillStyle = "yellow";
+       ctx.fillStyle = "#0000FF";   // same as color in bend class constructor
     ctx.fill();
     ctx.strokeStyle = "black";
     ctx.stroke();
+    ctx.lineWidth = 2;
 }
 
 function drawEdge(ctx: CanvasRenderingContext2D, edge: Edge)
@@ -1190,12 +1187,7 @@ function drawEdge(ctx: CanvasRenderingContext2D, edge: Edge)
         ctx.lineWidth = edge.thickness;
         // draw bends
         for (const bend of edge.bends)
-        {
-            let rad: number = bendRadius;
-            if (hoveredBend === bend)
-                rad = bendRadius*1.3;
             drawBend(ctx,bend);
-        }
     }
 }
 

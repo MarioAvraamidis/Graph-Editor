@@ -53,6 +53,7 @@ export class Vertex extends Point
             this._temporary = temp;
         this._neighbors = [];
         this.color = "#000000";
+        this.size = 7;
     }
 
     get neighbors() { return this._neighbors; }
@@ -376,7 +377,7 @@ export class Bend extends Point
         const id = e.id+"/bend";
         super(id,x,y);
         this._edge = e;
-        this.color = "#ffde21";
+        this.color = "#0000FF";
     }
 
     get edge() {return this._edge;}
@@ -1052,11 +1053,11 @@ export class Graph {
     }
 
     // check if a given (x,y) point is near any bends of the graph and return the bend (at distance < dist)
-    isNearBend(x: number, y: number, dist: number)
+    isNearBend(x: number, y: number)
     {
         for (const e of this._edges)
             for (const bend of e.bends)
-                if (Math.hypot(bend.x-x, bend.y-y,)< dist)
+                if (Math.hypot(bend.x-x, bend.y-y,)< bend.size+2)
                     return bend;
         return null;
     }
