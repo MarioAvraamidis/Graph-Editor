@@ -55,6 +55,12 @@ let selectionStart = { x: 0, y: 0 };
 let selectionRect = { x: 0, y: 0, width: 0, height: 0 };
 // moving labels
 let draggingLabelVertex = null;
+// default colors for crossings
+let crossings_colors = { self: "purple", neighbor: "red", multiple: "orange", legal: "green" };
+// palette settings
+let vertexChars = { color: "#000", size: 7, shape: "circle" }; // default settings of class Vertex
+let edgeChars = { color: "#898989", thickness: 2, dashed: false }; // default of class Edge
+let bendChars = { size: 5, color: "#0000FF" };
 function setMode(mode) {
     var _a;
     currentMode = mode; // update mode
@@ -79,7 +85,6 @@ const ctx = canvas.getContext("2d");
 if (!ctx) {
     throw new Error("Could not get canvas rendering context");
 }
-let crossings_colors = { self: "purple", neighbor: "red", multiple: "orange", legal: "green" };
 function renderGraph() {
     const output = document.getElementById("output");
     if (output) {
@@ -230,13 +235,17 @@ document.addEventListener('keydown', (e) => {
     }
     else if (e.key === 'Delete') {
         e.preventDefault();
-        deleteSelectedVertices();
-        deleteSelectedBends();
-        deleteSelectedEdges();
-        checkHovered();
-        renderGraph();
+        if (selectedPoints.length > 0 || selectedEdges.length > 0) {
+            saveState();
+            deleteSelectedVertices();
+            deleteSelectedBends();
+            deleteSelectedEdges();
+            checkHovered();
+            renderGraph();
+        }
     }
 });
+// undo utility
 function undo() {
     if (historyStack.length > 0) {
         setNothingSelected();
@@ -247,6 +256,7 @@ function undo() {
         renderGraph();
     }
 }
+// redo utility
 function redo() {
     if (redoStack.length > 0) {
         const current = graph.clone();
@@ -325,9 +335,15 @@ const edgeThickness = document.getElementById("edge-thickness");
 const edgeColor = document.getElementById("edge-color");
 // using palettes
 vertexColor.addEventListener("change", () => {
-    saveState();
-    selectedVertices.forEach(v => v.color = vertexColor.value);
-    renderGraph();
+    // update selected vertices' color
+    if (selectedVertices.length > 0) {
+        saveState();
+        selectedVertices.forEach(v => v.color = vertexColor.value);
+        renderGraph();
+    }
+    // set the color for new vertices
+    else
+        vertexChars.color = vertexColor.value;
 });
 // vertex shape buttons
 vertexShapeButtons.forEach((btn) => {
@@ -337,19 +353,26 @@ vertexShapeButtons.forEach((btn) => {
         // Add active to the clicked one
         btn.classList.add("active");
         const selectedShape = btn.getAttribute("data-shape");
-        if (selectedVertices.length > 0 && btn.classList) {
+        if (selectedVertices.length > 0 && btn.classList) // update shape of selected vertices
+         {
             saveState();
             selectedVertices.forEach(v => v.shape = selectedShape);
             renderGraph();
         }
+        else // set shape for new vertices
+            vertexChars.shape = selectedShape;
     });
 });
 // vertex size
 vertexSize.addEventListener("input", () => {
-    saveState();
     const size = parseInt(vertexSize.value);
-    selectedVertices.forEach(v => v.size = size);
-    renderGraph();
+    if (selectedVertices.length > 0) {
+        saveState();
+        selectedVertices.forEach(v => v.size = size);
+        renderGraph();
+    }
+    else
+        vertexChars.size = size;
 });
 // Vertex rename
 (_q = document.getElementById("rename-vertex")) === null || _q === void 0 ? void 0 : _q.addEventListener("click", () => {
@@ -363,44 +386,66 @@ vertexSize.addEventListener("input", () => {
 });
 // bend color
 bendColor.addEventListener("change", () => {
-    saveState();
-    selectedBends.forEach(b => b.color = bendColor.value);
-    renderGraph();
+    if (selectedBends.length > 0) // apply change on selected bends
+     {
+        saveState();
+        selectedBends.forEach(b => b.color = bendColor.value);
+        renderGraph();
+    }
+    else // set color for new bends
+        bendChars.color = bendColor.value;
 });
 // bend size
 bendSize.addEventListener("input", () => {
-    saveState();
     const size = parseInt(bendSize.value);
-    selectedBends.forEach(b => b.size = size);
-    renderGraph();
+    if (selectedBends.length > 0) {
+        saveState();
+        selectedBends.forEach(b => b.size = size);
+        renderGraph();
+    }
+    else
+        bendChars.size = size;
 });
 // edge color
 edgeColor.addEventListener("change", () => {
-    saveState();
-    selectedEdges.forEach(e => e.color = edgeColor.value);
-    renderGraph();
+    if (selectedEdges.length > 0) {
+        saveState();
+        selectedEdges.forEach(e => e.color = edgeColor.value);
+        renderGraph();
+    }
+    else
+        edgeChars.color = edgeColor.value;
 });
 // edge thickness
 edgeThickness.addEventListener("input", () => {
-    saveState();
-    selectedEdges.forEach(e => e.thickness = parseInt(edgeThickness.value));
-    renderGraph();
+    if (selectedEdges.length > 0) {
+        saveState();
+        selectedEdges.forEach(e => e.thickness = parseInt(edgeThickness.value));
+        renderGraph();
+    }
+    else
+        edgeChars.thickness = parseInt(edgeThickness.value);
 });
 // delete vertex button
 deleteVertexBtn.addEventListener("click", () => {
+    saveState();
     deleteSelectedVertices();
+    renderGraph();
 });
 // delete bend button
 deleteBendBtn.addEventListener("click", () => {
+    saveState();
     deleteSelectedBends();
+    renderGraph();
 });
 // delete edge button
 deleteEdgeBtn.addEventListener("click", () => {
+    saveState();
     deleteSelectedEdges();
+    renderGraph();
 });
 // deletion of selected vertices (and removal of their corresponding edges and bends from selected objects)
 function deleteSelectedVertices() {
-    saveState();
     selectedVertices.forEach(v => graph.deleteVertex(v));
     // remove the corresponding edges from selectedEdges
     selectedEdges = selectedEdges.filter(e => e.points[0] instanceof Vertex && !selectedVertices.includes(e.points[0]) && e.points[1] instanceof Vertex && !selectedVertices.includes(e.points[1]));
@@ -408,21 +453,16 @@ function deleteSelectedVertices() {
     selectedBends = selectedBends.filter(b => b.edge.points[0] instanceof Vertex && !selectedVertices.includes(b.edge.points[0]) && b.edge.points[1] instanceof Vertex && !selectedVertices.includes(b.edge.points[1]));
     // update selectedVertices
     selectedVertices.length = 0;
-    renderGraph();
 }
 // deletion of selected bends
 function deleteSelectedBends() {
-    saveState();
     selectedBends.forEach(b => graph.removeBend(b));
     selectedBends.length = 0;
-    renderGraph();
 }
 // deletion of selected edges
 function deleteSelectedEdges() {
-    saveState();
     selectedEdges.forEach(e => graph.deleteEdgee(e));
     selectedEdges.length = 0;
-    renderGraph();
 }
 // dashed edge button
 document.getElementById("toggle-dashed").addEventListener("click", () => {
@@ -559,6 +599,9 @@ canvas.addEventListener("mouseup", (e) => {
              {
                 startingVertex = null;
                 creatingEdge = false;
+                // set characteristics for the new edge
+                edge.assignCharacteristics(edgeChars.color, edgeChars.dashed, edgeChars.thickness);
+                edge.assignBendCharacteristics(bendChars.color, bendChars.size);
                 // hasDragged = true;  // to not select the hoveredVertex
                 // edgeCreated = edge;
             }
@@ -581,6 +624,11 @@ canvas.addEventListener("mouseup", (e) => {
             let combo = graph.extendEdge(startingVertex, mouse.x, mouse.y);
             startingVertex = combo.vertex;
             edgeCreated = combo.edge;
+            // set characteristics for the new edge
+            if (edgeCreated) {
+                edgeCreated.assignCharacteristics(edgeChars.color, edgeChars.dashed, edgeChars.thickness);
+                edgeCreated.assignBendCharacteristics(bendChars.color, bendChars.size);
+            }
         }
     }
     else
@@ -651,6 +699,9 @@ canvas.addEventListener("click", (e) => {
     if (!hoveredVertex && !hoveredBend && !hoveredEdge && !selectedPoints.length && !selectedEdges.length && !draggingLabelVertex) {
         saveState();
         const vertex = new Vertex((graph.maxVertexId() + 1).toString(), mouse.x, mouse.y);
+        vertex.size = vertexChars.size;
+        vertex.shape = vertexChars.shape;
+        vertex.color = vertexChars.color;
         graph.addVertex(vertex);
         // hoveredVertex = vertex;
     }
@@ -835,6 +886,19 @@ function updatePaletteState() {
             }
         });
     }
+    else // show default values on palette
+     {
+        vertexColorPicker.value = vertexChars.color;
+        vertexSize.value = vertexChars.size.toString();
+        vertexShapeButtons.forEach(btn => {
+            btn.removeAttribute("disabled");
+            btn.classList.remove("active");
+            // Highlight the correct shape button
+            if (btn.getAttribute("data-shape") === vertexChars.shape) {
+                btn.classList.add("active");
+            }
+        });
+    }
     updateRenameControls(selectedVertices.length === 1);
     if (bendSelected) {
         const b = selectedBends[selectedBends.length - 1]; // use last selected
@@ -842,10 +906,18 @@ function updatePaletteState() {
         // bendShape.value = b.shape;
         bendSize.value = b.size.toString();
     }
+    else {
+        bendColorPicker.value = bendChars.color;
+        bendSize.value = bendChars.size.toString();
+    }
     if (edgeSelected) {
         const e = selectedEdges[selectedEdges.length - 1];
         edgeColorPicker.value = e.color;
         edgeThickness.value = e.thickness.toString();
+    }
+    else {
+        edgeColorPicker.value = edgeChars.color;
+        edgeThickness.value = edgeChars.thickness.toString();
     }
 }
 function updateRenameControls(enabled) {
@@ -865,7 +937,7 @@ function drawGraph(ctx, graph, labels = true) {
     // Draw vertices
     graph.vertices.forEach(vertex => {
         if (vertex.temporary)
-            shapeBend(ctx, vertex.x, vertex.y, bendRadius, "#0000FF"); // same color as bend class constructor
+            shapeBend(ctx, vertex.x, vertex.y, bendChars.size, bendChars.color); // same color as bend class constructor
         else
             drawVertex(ctx, vertex, labels);
     });
@@ -900,7 +972,7 @@ function drawGraph(ctx, graph, labels = true) {
     }
     // If hovering over an edge on add bend mode, show a bend (to add)
     if (hoveredEdge && currentMode === "addBend")
-        shapeBend(ctx, mouse.x, mouse.y, bendRadius);
+        shapeBend(ctx, mouse.x, mouse.y, bendChars.size, bendChars.color);
     // draw selection rectangle
     if (isSelecting) {
         ctx.strokeStyle = "rgba(15, 15, 62, 0.86)";

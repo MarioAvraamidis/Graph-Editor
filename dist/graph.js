@@ -227,6 +227,12 @@ export class Edge extends LineSegment {
         this._dashed = dashed;
         this._thickness = thickness;
     }
+    assignBendCharacteristics(color, size) {
+        this._bends.forEach(b => {
+            b.color = color;
+            b.size = size;
+        });
+    }
     // check if the entire edge is in a rectangle
     isIn(x, y, width, height) {
         if (!this.points[0].isIn(x, y, width, height) || !this.points[1].isIn(x, y, width, height))

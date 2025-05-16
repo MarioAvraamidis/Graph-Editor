@@ -279,6 +279,14 @@ export class Edge extends LineSegment
         this._color = color; this._dashed = dashed; this._thickness = thickness;
     }
 
+    assignBendCharacteristics(color: string, size: number)
+    {
+        this._bends.forEach(b => {
+            b.color = color;
+            b.size = size;
+        })
+    }
+
     // check if the entire edge is in a rectangle
     isIn(x: number, y: number, width: number, height: number)
     {
