@@ -15,6 +15,8 @@ let draggingPoints: Point[] = [];
 let hasDragged = false;     // will be used to distinguish vertex selection from vertex drag
 // bends
 let bendRadius: number = 5; // radius of bends
+// crossings
+let crosRadius: number = 5; // radius of crossings
 // mode
 let currentMode: "select" | "addBend" = "select";   // | "createEdge"
 // hovered objects
@@ -75,21 +77,54 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
         throw new Error("Could not get canvas rendering context");
     }
 
-    // Helper to display the graph
-    function renderGraph() {
-        const output = document.getElementById("output");
-        if (output) {
-            const vertexList = graph.vertices.map(v => v.id).join(", ");
-            const edgeList = graph.edges.map(e => `(${e.points[0].id}-${e.points[1].id})`).join(", ");
-        
-            output.textContent = `Crossings: ${graph.crossings.length} (Thrackle: ${graph.thrackleNumber()}) \nCurve Complexity: ${graph.curve_complexity}`;
-            // output.textContent = `Vertices: ${vertexList}\nEdges: ${edgeList}`;
-        }
-        // draw the graph
-        if(ctx)
-            drawGraph(ctx, graph);
-        updatePaletteState();
+let crossings_colors = { self: "purple", neighbor: "red", multiple: "orange", legal: "green" };
+
+function renderGraph() {
+    const output = document.getElementById("output");
+    if (output) {
+        // const vertexList = graph.vertices.map(v => v.id).join(", ");
+        // const edgeList = graph.edges.map(e => `(${e.points[0].id}-${e.points[1].id})`).join(", ");
+        const crossings_categories = graph.crossingsCategories();
+
+        const totalCrossingsSpan = document.getElementById("total-crossings");
+        const selfCrossingsSpan = document.getElementById("self-crossings");
+        const neighborCrossingsSpan = document.getElementById("neighbor-crossings");
+        const multipleCrossingsSpan = document.getElementById("multiple-crossings");
+        const legalCrossingsSpan = document.getElementById("legal-crossings");
+        const thrackleNumberSpan = document.getElementById("thrackle-number");
+        const curveComplexitySpan = document.getElementById("curve-complexity");
+
+        if (totalCrossingsSpan) totalCrossingsSpan.textContent = `${graph.crossings.length}`;
+        if (selfCrossingsSpan) selfCrossingsSpan.textContent = `${crossings_categories.self}`;
+        if (neighborCrossingsSpan) neighborCrossingsSpan.textContent = `${crossings_categories.neighbor}`;
+        if (multipleCrossingsSpan) multipleCrossingsSpan.textContent = `${crossings_categories.multiple}`;
+        if (legalCrossingsSpan) legalCrossingsSpan.textContent = `${crossings_categories.legal}`;
+        if (thrackleNumberSpan) thrackleNumberSpan.textContent = `${graph.thrackleNumber()}`;
+        if (curveComplexitySpan) curveComplexitySpan.textContent = `${graph.curve_complexity}`;
+
+        // Apply label colors based on data-color-key
+        const labels = output.querySelectorAll<HTMLLabelElement>('label[data-color-key]');
+        labels.forEach(label => {
+            const colorKey = label.getAttribute('data-color-key');
+            if (colorKey && colorKey in crossings_colors) {
+                label.style.color = crossings_colors[colorKey as keyof typeof crossings_colors];
+            }
+        });
+
+        // Attach event listeners to the checkboxes (do this once, perhaps outside renderGraph if the structure is static)
+
+        const checkboxes = output.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                if(ctx)
+                    drawGraph(ctx, graph);
+            });
+        });
     }
+    if (ctx)
+        drawGraph(ctx, graph);
+    updatePaletteState();
+}
 
     function resizeCanvas() {
         canvas.width = window.innerWidth;
@@ -941,20 +976,13 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, labels: boolean 
     }
 
     // Draw crossings
-    for (const cross of graph.crossings)
-    {
-        ctx.beginPath();
-        ctx.arc(cross.x, cross.y, bendRadius , 0, 2 * Math.PI); // small green circle
-        // different colors for different types of crossings
-        if (cross.selfCrossing)
-            ctx.strokeStyle = "purple";     // purple for self-crossings
-        else if (!cross.legal)
-            ctx.strokeStyle = "red";        // red for illegal crossings
-        else if (cross.more_than_once)
-            ctx.strokeStyle = "orange";     // orange for double crossings
-        else
-            ctx.strokeStyle = "green";      // green for legal crossings
-        ctx.stroke();
+    const output = document.getElementById("output");
+    if (output) {
+        const selfChecked = (output.querySelector('#show-self') as HTMLInputElement)?.checked;
+        const neighborChecked = (output.querySelector('#show-neighbor') as HTMLInputElement)?.checked;
+        const multipleChecked = (output.querySelector('#show-multiple') as HTMLInputElement)?.checked;
+        const legalChecked = (output.querySelector('#show-legal') as HTMLInputElement)?.checked;
+        drawCrossings(ctx,selfChecked,neighborChecked,multipleChecked,legalChecked);
     }
 
     // If hovering over an edge on add bend mode, show a bend (to add)
@@ -975,6 +1003,30 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, labels: boolean 
         ctx.setLineDash([]);
       }
 
+}
+
+function drawCrossings(ctx: CanvasRenderingContext2D, self: boolean,neighbor: boolean, multiple: boolean, legal: boolean)
+{
+    for (const cross of graph.crossings)
+    {
+        // different colors for different types of crossings
+        if (cross.selfCrossing && self)                             // self-crossings
+            drawCrossing(ctx, cross, crossings_colors.self);
+        else if (!cross.legal && !cross.selfCrossing && neighbor)   // neighbor-edge crossings
+            drawCrossing(ctx, cross, crossings_colors.neighbor);
+        else if (cross.legal && cross.more_than_once && multiple)   // multiple crossings
+            drawCrossing(ctx, cross, crossings_colors.multiple);
+        else if (cross.legal && !cross.more_than_once && legal)     // legal crossings
+            drawCrossing(ctx, cross, crossings_colors.legal);
+    }
+}
+
+function drawCrossing(ctx: CanvasRenderingContext2D, cros: Point, color: string)
+{
+    ctx.beginPath();
+    ctx.arc(cros.x, cros.y, crosRadius, 0 , 2*Math.PI);
+    ctx.strokeStyle = color;
+    ctx.stroke();
 }
 
 // function for drawing a vertex

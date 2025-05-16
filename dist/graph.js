@@ -717,6 +717,24 @@ export class Graph {
                     this._crossings[j].more_than_once = true;
                 }
     }
+    // split the crossings into categories
+    crossingsCategories() {
+        let self_crossings = 0;
+        let neighbor_edge_crossings = 0;
+        let multiple_crossings = 0;
+        let legal_crossings = 0;
+        for (const cros of this._crossings) {
+            if (cros.selfCrossing) // self crossing
+                ++self_crossings;
+            else if (!cros.legal) // neighbor edge crossing
+                ++neighbor_edge_crossings;
+            else if (!cros.more_than_once) // multiple crossing
+                ++multiple_crossings;
+            else // legal crossing
+                ++legal_crossings;
+        }
+        return { self: self_crossings, neighbor: neighbor_edge_crossings, multiple: multiple_crossings, legal: legal_crossings };
+    }
     // find all the crossings of a given edge with the other edges
     findAllCrossingsFromEdge(e) {
         let edgeCrossings = [];
