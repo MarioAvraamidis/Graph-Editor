@@ -211,6 +211,33 @@ function resizeCanvas() {
     }
 });
 (_j = document.getElementById("undo-button")) === null || _j === void 0 ? void 0 : _j.addEventListener("click", () => {
+    undo();
+});
+// Redo button
+(_k = document.getElementById("redo-button")) === null || _k === void 0 ? void 0 : _k.addEventListener("click", () => {
+    redo();
+});
+document.addEventListener('keydown', (e) => {
+    // undo
+    if (e.ctrlKey && e.key === 'z') {
+        e.preventDefault(); // prevent the browser's default undo behavior
+        undo();
+    }
+    // redo
+    else if (e.ctrlKey && e.key === 'y' || e.shiftKey && e.ctrlKey && e.key === 'z') {
+        e.preventDefault();
+        redo();
+    }
+    else if (e.key === 'Delete') {
+        e.preventDefault();
+        deleteSelectedVertices();
+        deleteSelectedBends();
+        deleteSelectedEdges();
+        checkHovered();
+        renderGraph();
+    }
+});
+function undo() {
     if (historyStack.length > 0) {
         setNothingSelected();
         const current = graph.clone();
@@ -219,9 +246,8 @@ function resizeCanvas() {
         graph = prev;
         renderGraph();
     }
-});
-// Redo button
-(_k = document.getElementById("redo-button")) === null || _k === void 0 ? void 0 : _k.addEventListener("click", () => {
+}
+function redo() {
     if (redoStack.length > 0) {
         const current = graph.clone();
         historyStack.push(current);
@@ -231,7 +257,7 @@ function resizeCanvas() {
         graph = next;
         renderGraph();
     }
-});
+}
 // Place vertices in a circle
 (_l = document.getElementById("circle-placement")) === null || _l === void 0 ? void 0 : _l.addEventListener("click", () => {
     saveState();
@@ -362,8 +388,19 @@ edgeThickness.addEventListener("input", () => {
 });
 // delete vertex button
 deleteVertexBtn.addEventListener("click", () => {
+    deleteSelectedVertices();
+});
+// delete bend button
+deleteBendBtn.addEventListener("click", () => {
+    deleteSelectedBends();
+});
+// delete edge button
+deleteEdgeBtn.addEventListener("click", () => {
+    deleteSelectedEdges();
+});
+// deletion of selected vertices (and removal of their corresponding edges and bends from selected objects)
+function deleteSelectedVertices() {
     saveState();
-    const deletedVertices = [];
     selectedVertices.forEach(v => graph.deleteVertex(v));
     // remove the corresponding edges from selectedEdges
     selectedEdges = selectedEdges.filter(e => e.points[0] instanceof Vertex && !selectedVertices.includes(e.points[0]) && e.points[1] instanceof Vertex && !selectedVertices.includes(e.points[1]));
@@ -372,21 +409,21 @@ deleteVertexBtn.addEventListener("click", () => {
     // update selectedVertices
     selectedVertices.length = 0;
     renderGraph();
-});
-// delete bend button
-deleteBendBtn.addEventListener("click", () => {
+}
+// deletion of selected bends
+function deleteSelectedBends() {
     saveState();
     selectedBends.forEach(b => graph.removeBend(b));
     selectedBends.length = 0;
     renderGraph();
-});
-// delete edge button
-deleteEdgeBtn.addEventListener("click", () => {
+}
+// deletion of selected edges
+function deleteSelectedEdges() {
     saveState();
     selectedEdges.forEach(e => graph.deleteEdgee(e));
     selectedEdges.length = 0;
     renderGraph();
-});
+}
 // dashed edge button
 document.getElementById("toggle-dashed").addEventListener("click", () => {
     if (selectedEdges.length > 0) {
@@ -767,22 +804,23 @@ canvas.addEventListener("click", (e) => {
 
     });*/
 function updatePaletteState() {
-    const vertexPalette = document.getElementById("vertex-palette");
-    const edgePalette = document.getElementById("edge-palette");
-    const bendPalette = document.getElementById("bend-palette");
+    /*const vertexPalette = document.getElementById("vertex-palette")!;
+    const edgePalette = document.getElementById("edge-palette")!;
+    const bendPalette = document.getElementById("bend-palette")!;
+    const vertexShape = document.getElementById("vertex-shape")!;*/
     const vertexColorPicker = document.getElementById("vertex-color");
-    const vertexShape = document.getElementById("vertex-shape");
     const edgeColorPicker = document.getElementById("edge-color");
     const bendColorPicker = document.getElementById("bend-color");
     const vertexSelected = selectedVertices.length > 0;
     const edgeSelected = selectedEdges.length > 0;
     const bendSelected = selectedBends.length > 0;
-    vertexColorPicker.disabled = !vertexSelected;
-    edgeColorPicker.disabled = !edgeSelected;
-    bendColorPicker.disabled = !bendSelected;
-    vertexPalette.classList.toggle("disabled", !vertexSelected);
-    bendPalette.classList.toggle("disabled", !bendSelected);
-    edgePalette.classList.toggle("disabled", !edgeSelected);
+    // disable color pickers
+    // vertexColorPicker.disabled = !vertexSelected;
+    // edgeColorPicker.disabled = !edgeSelected;
+    // bendColorPicker.disabled = !bendSelected;
+    // vertexPalette.classList.toggle("disabled", !vertexSelected);
+    // bendPalette.classList.toggle("disabled", !bendSelected);
+    // edgePalette.classList.toggle("disabled", !edgeSelected);
     if (vertexSelected) {
         const v = selectedVertices[selectedVertices.length - 1]; // use last selected
         vertexColorPicker.value = v.color;
@@ -796,8 +834,8 @@ function updatePaletteState() {
                 btn.classList.add("active");
             }
         });
-        updateRenameControls(selectedVertices.length === 1);
     }
+    updateRenameControls(selectedVertices.length === 1);
     if (bendSelected) {
         const b = selectedBends[selectedBends.length - 1]; // use last selected
         bendColorPicker.value = b.color;
@@ -832,6 +870,7 @@ function drawGraph(ctx, graph, labels = true) {
             drawVertex(ctx, vertex, labels);
     });
     // show information for the hovering objects
+    // checkHovered();
     showHoveredInfo();
     // Draw a temporary edge from starting vertex to mouse position and a rubbish bin to discard the new edge if necessary
     if (creatingEdge && startingVertex) {

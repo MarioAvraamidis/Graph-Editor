@@ -220,6 +220,40 @@ function renderGraph() {
     });
 
     document.getElementById("undo-button")?.addEventListener("click", () => {
+        undo();
+    });
+
+    // Redo button
+    document.getElementById("redo-button")?.addEventListener("click", () => {
+        redo();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        // undo
+        if (e.ctrlKey && e.key==='z')
+        {
+            e.preventDefault(); // prevent the browser's default undo behavior
+            undo();
+        }
+        // redo
+        else if (e.ctrlKey && e.key==='y' || e.shiftKey && e.ctrlKey && e.key==='z')
+        {
+            e.preventDefault();
+            redo();
+        }
+        else if(e.key==='Delete')
+        {
+            e.preventDefault();
+            deleteSelectedVertices();
+            deleteSelectedBends();
+            deleteSelectedEdges();
+            checkHovered();
+            renderGraph();
+        }
+    });
+
+    function undo()
+    {
         if (historyStack.length > 0) {
             setNothingSelected();
             const current = graph.clone();
@@ -228,10 +262,10 @@ function renderGraph() {
             graph = prev;
             renderGraph();
         }
-    });
+    }
 
-    // Redo button
-    document.getElementById("redo-button")?.addEventListener("click", () => {
+    function redo()
+    {
         if (redoStack.length > 0) {
             const current = graph.clone();
             historyStack.push(current);
@@ -241,7 +275,7 @@ function renderGraph() {
             graph = next;
             renderGraph();
         }
-    });
+    }
 
     // Place vertices in a circle
     document.getElementById("circle-placement")?.addEventListener("click", () => {
@@ -394,8 +428,23 @@ function renderGraph() {
 
     // delete vertex button
     deleteVertexBtn.addEventListener("click", () => {
+        deleteSelectedVertices();
+    });
+
+    // delete bend button
+    deleteBendBtn.addEventListener("click", () => {
+        deleteSelectedBends();
+    });
+
+    // delete edge button
+    deleteEdgeBtn.addEventListener("click", () => {
+        deleteSelectedEdges();
+    });
+
+    // deletion of selected vertices (and removal of their corresponding edges and bends from selected objects)
+    function deleteSelectedVertices()
+    {
         saveState();
-        const deletedVertices: Vertex[] = [];
         selectedVertices.forEach(v => graph.deleteVertex(v));
         // remove the corresponding edges from selectedEdges
         selectedEdges = selectedEdges.filter(e => e.points[0] instanceof Vertex && !selectedVertices.includes(e.points[0]) && e.points[1] instanceof Vertex && !selectedVertices.includes(e.points[1]));
@@ -404,23 +453,25 @@ function renderGraph() {
         // update selectedVertices
         selectedVertices.length = 0;
         renderGraph();
-    });
+    }
 
-    // delete bend button
-    deleteBendBtn.addEventListener("click", () => {
+    // deletion of selected bends
+    function deleteSelectedBends()
+    {
         saveState();
         selectedBends.forEach(b => graph.removeBend(b));
         selectedBends.length = 0;
         renderGraph();
-    });
+    }
 
-    // delete edge button
-    deleteEdgeBtn.addEventListener("click", () => {
+    // deletion of selected edges
+    function deleteSelectedEdges()
+    {
         saveState();
         selectedEdges.forEach(e => graph.deleteEdgee(e));
         selectedEdges.length = 0;
         renderGraph();
-    });
+    }
 
     // dashed edge button
     document.getElementById("toggle-dashed")!.addEventListener("click", () => {
@@ -873,25 +924,26 @@ canvas.addEventListener("click", (e) => {
 
 function updatePaletteState() {
 
-    const vertexPalette = document.getElementById("vertex-palette")!;
+    /*const vertexPalette = document.getElementById("vertex-palette")!;
     const edgePalette = document.getElementById("edge-palette")!;
     const bendPalette = document.getElementById("bend-palette")!;
+    const vertexShape = document.getElementById("vertex-shape")!;*/
     const vertexColorPicker = document.getElementById("vertex-color") as HTMLInputElement;
-    const vertexShape = document.getElementById("vertex-shape")!;
     const edgeColorPicker = document.getElementById("edge-color") as HTMLInputElement;
     const bendColorPicker = document.getElementById("bend-color") as HTMLInputElement;
     
     const vertexSelected = selectedVertices.length > 0;
-    const edgeSelected = selectedEdges.length >0 ;
+    const edgeSelected = selectedEdges.length > 0;
     const bendSelected = selectedBends.length > 0;
     
-    vertexColorPicker.disabled = !vertexSelected;
-    edgeColorPicker.disabled = !edgeSelected;
-    bendColorPicker.disabled = !bendSelected;
+    // disable color pickers
+    // vertexColorPicker.disabled = !vertexSelected;
+    // edgeColorPicker.disabled = !edgeSelected;
+    // bendColorPicker.disabled = !bendSelected;
     
-    vertexPalette.classList.toggle("disabled", !vertexSelected);
-    bendPalette.classList.toggle("disabled", !bendSelected);
-    edgePalette.classList.toggle("disabled", !edgeSelected);
+    // vertexPalette.classList.toggle("disabled", !vertexSelected);
+    // bendPalette.classList.toggle("disabled", !bendSelected);
+    // edgePalette.classList.toggle("disabled", !edgeSelected);
 
     if (vertexSelected) {
         const v = selectedVertices[selectedVertices.length - 1]; // use last selected
@@ -907,9 +959,8 @@ function updatePaletteState() {
             btn.classList.add("active");
             }
         });
-
-        updateRenameControls(selectedVertices.length === 1);
-      }
+    }
+    updateRenameControls(selectedVertices.length === 1);
 
     if (bendSelected) {
         const b = selectedBends[selectedBends.length - 1]; // use last selected
@@ -918,11 +969,11 @@ function updatePaletteState() {
         bendSize.value = b.size.toString();
     }
     
-      if (edgeSelected) {
+    if (edgeSelected) {
         const e = selectedEdges[selectedEdges.length-1]
         edgeColorPicker.value = e.color;
         edgeThickness.value = e.thickness.toString();
-      }
+    }
 }
 
 function updateRenameControls(enabled: boolean) 
@@ -932,7 +983,7 @@ function updateRenameControls(enabled: boolean)
   
     input.disabled = !enabled;
     button.disabled = !enabled;
-  }  
+}  
       
 
 // draw the graph
@@ -955,6 +1006,7 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, labels: boolean 
     });
     
     // show information for the hovering objects
+    // checkHovered();
     showHoveredInfo();
 
     // Draw a temporary edge from starting vertex to mouse position and a rubbish bin to discard the new edge if necessary

@@ -728,7 +728,7 @@ export class Graph {
                 ++self_crossings;
             else if (!cros.legal) // neighbor edge crossing
                 ++neighbor_edge_crossings;
-            else if (!cros.more_than_once) // multiple crossing
+            else if (cros.more_than_once) // multiple crossing
                 ++multiple_crossings;
             else // legal crossing
                 ++legal_crossings;
