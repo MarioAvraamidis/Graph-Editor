@@ -1013,6 +1013,16 @@ function drawGraph(ctx, graph, labels = true) {
         ctx.setLineDash([]);
     }
 }
+function crossingColor(cross) {
+    if (cross.selfCrossing) // self-crossings
+        return crossings_colors.self;
+    else if (!cross.legal) // neighbor-edge crossings
+        return crossings_colors.neighbor;
+    else if (cross.more_than_once) // multiple crossings
+        return crossings_colors.multiple;
+    else // legal crossings
+        return crossings_colors.legal;
+}
 function drawCrossings(ctx, self, neighbor, multiple, legal) {
     for (const cross of graph.crossings) {
         // different colors for different types of crossings
@@ -1086,10 +1096,10 @@ function showHoveredInfo() {
     else
         hideVertexInfo();
     // show crossing info of hoveredCrossing
-    if (hoveredCrossing)
+    /*if (hoveredCrossing)
         showCrossingInfo(hoveredCrossing);
     else
-        hideCrossingInfo();
+        hideCrossingInfo();*/
     // show edge info of hoveredVertex
     if (hoveredEdge)
         showEdgeInfo(hoveredEdge);
@@ -1229,9 +1239,11 @@ function drawEdge(ctx, edge) {
         if (hoveredEdge === edge)
             ctx.lineWidth = edge.thickness + 2;
         // highlight if the edge is one of the 2 edges of a hovering crossing
-        if (hoveredCrossingEdges.includes(edge)) {
+        if (hoveredCrossing && hoveredCrossingEdges.includes(edge)) {
             ctx.lineWidth = edge.thickness + 2;
-            ctx.strokeStyle = "#2fee3c";
+            // highlight the edge with the color of the crossing
+            ctx.strokeStyle = crossingColor(hoveredCrossing);
+            // ctx.strokeStyle = "#2fee3c";
         }
         ctx.stroke();
         // if the edge is selected, highlight it with a dashed colored line
