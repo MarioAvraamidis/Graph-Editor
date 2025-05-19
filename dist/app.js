@@ -944,10 +944,20 @@ function updatePaletteState() {
         const e = selectedEdges[selectedEdges.length - 1];
         edgeColorPicker.value = e.color;
         edgeThickness.value = e.thickness.toString();
+        // update toggle-dashed button
+        if (e.dashed)
+            toggle_dashed_btn === null || toggle_dashed_btn === void 0 ? void 0 : toggle_dashed_btn.classList.add("active");
+        else
+            toggle_dashed_btn === null || toggle_dashed_btn === void 0 ? void 0 : toggle_dashed_btn.classList.remove("active");
     }
     else {
         edgeColorPicker.value = edgeChars.color;
         edgeThickness.value = edgeChars.thickness.toString();
+        // update toggle-dashed button
+        if (edgeChars.dashed)
+            toggle_dashed_btn === null || toggle_dashed_btn === void 0 ? void 0 : toggle_dashed_btn.classList.add("active");
+        else
+            toggle_dashed_btn === null || toggle_dashed_btn === void 0 ? void 0 : toggle_dashed_btn.classList.remove("active");
     }
 }
 function updateRenameControls(enabled) {
