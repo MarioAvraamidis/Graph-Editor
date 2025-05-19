@@ -1,5 +1,5 @@
 // src/app.ts
-import { Graph, Vertex, Bend, Edge, Point } from "./graph.js";
+import { Graph, Vertex, Bend, Edge, Point, Crossing } from "./graph.js";
 
 // Create a graph instance
 let graph = new Graph();
@@ -25,6 +25,8 @@ let hoveredVertex: Vertex | null = null;
 let hoveredBend: Bend | null = null;
 let hoveredLabelVertex: Vertex | null = null;
 let hoveredPoint: Point | null = null;
+let hoveredCrossing: Crossing | null = null;
+let hoveredCrossingEdges: [Edge | null, Edge | null];
 // selected items
 let selectedPoints: Point[] = [];
 let selectedVertices: Vertex[] = [];
@@ -925,7 +927,7 @@ function checkHovered()
 {
     // detect hovering over vertex
     // first check selected vertices
-    hoveredVertex = graph.getVertexAtPosition(mouse.x, mouse.y, selectedVertices);
+    /*hoveredVertex = graph.getVertexAtPosition(mouse.x, mouse.y, selectedVertices);
     //if (!hoveredVertex)
       //  hoveredVertex = graph.isNearVertex(mouse.x,mouse.y);
     if (hoveredVertex)
@@ -938,10 +940,24 @@ function checkHovered()
         if (hoveredBend)
             hoveredEdge = null;
         else    // detect hovering over edge (if not hoveredBend)
-        hoveredEdge = graph.isNearEdge(mouse.x,mouse.y,3);
+            hoveredEdge = graph.isNearEdge(mouse.x,mouse.y,3);
+    }*/
+
+    setHoveredObjectsNull();
+    hoveredVertex = graph.getVertexAtPosition(mouse.x, mouse.y, selectedVertices);
+    if (!hoveredVertex)
+    {
+        hoveredBend = graph.isNearBend(mouse.x,mouse.y);
+        if (! hoveredBend)
+        {
+            hoveredCrossing = graph.isNearCrossing(mouse.x,mouse.y,crosRadius+2);
+            if (hoveredCrossing)
+                hoveredCrossingEdges = hoveredCrossing.edges;
+            else
+                hoveredEdge = graph.isNearEdge(mouse.x,mouse.y,3);
+        }
     }
 
-    hoveredLabelVertex = null;
     if (!hoveredVertex && !hoveredBend && !hoveredEdge)
     {
         for (const v of graph.vertices)
@@ -951,6 +967,16 @@ function checkHovered()
                 break;
             }
     }
+}
+
+function setHoveredObjectsNull()
+{
+    hoveredVertex = null;
+    hoveredBend = null;
+    hoveredCrossing = null;
+    hoveredEdge = null;
+    hoveredCrossingEdges = [null,null];
+    hoveredLabelVertex = null;
 }
 
 /*
@@ -1165,7 +1191,10 @@ function drawCrossings(ctx: CanvasRenderingContext2D, self: boolean,neighbor: bo
 function drawCrossing(ctx: CanvasRenderingContext2D, cros: Point, color: string)
 {
     ctx.beginPath();
-    ctx.arc(cros.x, cros.y, crosRadius, 0 , 2*Math.PI);
+    let radius = crosRadius;
+    if (cros === hoveredCrossing)
+        radius = radius+1;
+    ctx.arc(cros.x, cros.y, radius, 0 , 2*Math.PI);
     ctx.strokeStyle = color;
     ctx.stroke();
 }
@@ -1224,6 +1253,7 @@ function showHoveredInfo()
     {
         hideVertexInfo();
         hideEdgeInfo();
+        hideCrossingInfo();
         return;
     }
     // show vertex info of hoveredVertex
@@ -1231,6 +1261,11 @@ function showHoveredInfo()
         showVertexInfo(hoveredVertex);
     else
         hideVertexInfo();
+    // show crossing info of hoveredCrossing
+    if (hoveredCrossing)
+        showCrossingInfo(hoveredCrossing);
+    else
+        hideCrossingInfo();
     // show edge info of hoveredVertex
     if (hoveredEdge)
         showEdgeInfo(hoveredEdge);
@@ -1256,6 +1291,35 @@ function showVertexInfo(vertex: Vertex) {
 
 function hideVertexInfo() {
     const infoBox = document.getElementById("vertex-info")!;
+    infoBox.style.display = "none";
+}
+
+// show a box with information about the hovered crossing
+function showCrossingInfo(cross: Crossing) {
+    const infoBox = document.getElementById("crossing-info")!;
+    const rect = canvas.getBoundingClientRect();
+    let infoText: string;
+
+    if (cross.selfCrossing)     // self-crossing
+        infoText = `Self-crossing`;
+    else if (!cross.legal)      // illegal crossing
+        infoText = `Illegal crossing <br>
+                    Edges: ${cross.edges[0]!.id} and ${cross.edges[1]!.id}`;
+    else if (cross.more_than_once)  // multiple crossing
+        infoText = `Multiple crossing <br>
+                    Edges: ${cross.edges[0]!.id} and ${cross.edges[1]!.id}`;
+    else    // legal crossing
+        infoText = `Legal crossing <br>
+                    Edges: ${cross.edges[0]!.id} and ${cross.edges[1]!.id}`;
+
+    infoBox.innerHTML = infoText;
+    infoBox.style.left = `${cross.x + 30 }px`;
+    infoBox.style.top = `${cross.y + 50}px`;
+    infoBox.style.display = "block";
+}
+
+function hideCrossingInfo() {
+    const infoBox = document.getElementById("crossing-info")!;
     infoBox.style.display = "none";
 }
 
@@ -1359,11 +1423,18 @@ function drawEdge(ctx: CanvasRenderingContext2D, edge: Edge)
             ctx.lineTo(bends[i].x,bends[i].y);
         ctx.lineTo(v2.x, v2.y);
         ctx.strokeStyle = edge.color;
+        // increase thickness if edge === hoveredEdge
         if (hoveredEdge === edge)
             ctx.lineWidth = edge.thickness+2;
+        // highlight if the edge is one of the 2 edges of a hovering crossing
+        if (hoveredCrossingEdges.includes(edge))
+        {
+            ctx.lineWidth = edge.thickness+2;
+            ctx.strokeStyle = "#2fee3c";
+        }
         ctx.stroke();
         // if the edge is selected, highlight it with a dashed colored line
-        if (selectedEdges.includes(edge))
+        if (selectedEdges.includes(edge))   // can be implemented faster by drawing all the selected edges first and then the others, so there's no need to check all the selectedVertices array for each edge
         {
             ctx.beginPath();
             ctx.moveTo(v1.x, v1.y);

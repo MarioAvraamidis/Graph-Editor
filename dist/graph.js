@@ -884,6 +884,12 @@ export class Graph {
                     return bend;
         return null;
     }
+    isNearCrossing(x, y, rad) {
+        for (const cross of this._crossings)
+            if (Math.hypot(cross.x - x, cross.y - y) < rad)
+                return cross;
+        return null;
+    }
     // this function is used when the user creates a new edge, starting from a (probably temporary) vertex
     // given a vertex and a point(x,y), extend the edge from vertex to (x,y)
     // return the new vertex and the edge created
