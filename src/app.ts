@@ -51,7 +51,7 @@ let draggingLabelVertex: Vertex | null = null;
 // default colors for crossings
 let crossings_colors = { self: "purple", neighbor: "red", multiple: "orange", legal: "green" };
 // palette settings
-let vertexChars = { color: "#000", size: 7, shape: "circle" }  // default settings of class Vertex
+let vertexChars = { color: "#000000", size: 7, shape: "circle" }  // default settings of class Vertex
 let edgeChars = {color: "#898989", thickness: 2, dashed: false} // default of class Edge
 let bendChars = {size: 5, color: "#0000FF"}
 
@@ -119,13 +119,21 @@ function renderGraph() {
 
         // Attach event listeners to the checkboxes (do this once, perhaps outside renderGraph if the structure is static)
 
-        const checkboxes = output.querySelectorAll('input[type="checkbox"]');
+        let checkboxes = output.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(checkbox => {
             checkbox.addEventListener('change', () => {
                 if(ctx)
                     drawGraph(ctx, graph);
             });
         });
+        // event-listener for other highlighting crossing edges checkboxes
+        for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
+        {
+            document.getElementById(id)?.addEventListener('change', () => {
+                if (ctx)
+                    drawGraph(ctx, graph);
+            })
+        }
     }
     if (ctx)
         drawGraph(ctx, graph);
@@ -1120,6 +1128,16 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, labels: boolean 
     // Draw edges first
     graph.edges.forEach(edge => { drawEdge(ctx,edge )});
 
+    // Highlight crossing edges of selected edges
+    const highlightCrossEdges = (document.getElementById("highlight-crossing-edges") as HTMLInputElement).checked;
+    if (highlightCrossEdges)
+        highlightCrossingEdges();
+
+    // Highlight non-crossing edges of selected edges
+    const highlightNonCrossEdges = (document.getElementById("highlight-non-crossing-edges") as HTMLInputElement).checked;
+    if (highlightNonCrossEdges)
+        highlightNonCrossingEdges();
+
     // Draw vertices
     graph.vertices.forEach(vertex => 
     {
@@ -1182,6 +1200,49 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, labels: boolean 
 
 }
 
+// highlight the edges that cross any of the selected edges
+function highlightCrossingEdges()
+{
+    for (const cross of graph.crossings)
+    {
+        const e0: Edge = cross.edges[0]!;
+        const e1: Edge = cross.edges[1]!;
+        if (ctx && selectedEdges.includes(e0) && !selectedEdges.includes(e1))
+            drawEdge(ctx,e1,1);
+        else if (ctx && selectedEdges.includes(e1) && !selectedEdges.includes(e0))
+            drawEdge(ctx,e0,1);
+    }
+}
+
+// highlight the edges that do not cross any of the selected edges and have no common endpoint with any of them (i.e. can cross them)
+function highlightNonCrossingEdges()
+{
+    // create a temporary parallel array for selected edges
+    for (const edge of graph.edges)
+    {
+        let valid = true;
+        // first check common endpoints with selected edges
+        for (const e of selectedEdges)
+            if (e===edge || edge.commonEndpoint(e))
+            {
+                valid = false;
+                break;
+            }
+        if (!valid)
+            continue;
+        // if OK with selected vertices, check crossings
+        for (const cross of graph.crossings)
+            if (cross.edges[0]===edge && selectedEdges.includes(cross.edges[1]!) || cross.edges[1]===edge && selectedEdges.includes(cross.edges[0]!))
+            {
+                valid = false;
+                break;
+            }
+        if (ctx && valid)
+            drawEdge(ctx,edge,2);
+    }
+}
+
+// given a crossing, decide what its type is and return the appropriate color as a string
 function crossingColor(cross: Crossing)
 {
     if (cross.selfCrossing)                             // self-crossings
@@ -1429,7 +1490,7 @@ function shapeBend(ctx: CanvasRenderingContext2D, x:number, y: number, rad: numb
     ctx.lineWidth = 2;
 }
 
-function drawEdge(ctx: CanvasRenderingContext2D, edge: Edge)
+function drawEdge(ctx: CanvasRenderingContext2D, edge: Edge, highlight: number = 0)
 {
     const v1 = edge.points[0];
     const v2 = edge.points[1];
@@ -1448,13 +1509,21 @@ function drawEdge(ctx: CanvasRenderingContext2D, edge: Edge)
         // increase thickness if edge === hoveredEdge
         if (hoveredEdge === edge)
             ctx.lineWidth = edge.thickness+2;
-        // highlight if the edge is one of the 2 edges of a hovering crossing
+        // highlight if the edge is one of the edges of a hovering crossing
         if (hoveredCrossing && hoveredCrossingEdges.includes(edge))
         {
+            ctx.lineWidth = edge.thickness+2;                   // increase thickness
+            ctx.strokeStyle = crossingColor(hoveredCrossing);   // highlight the edge with the color of the crossing
+        }
+        else if (highlight === 1)   // highlight crossing edges of selected edges
+        {
             ctx.lineWidth = edge.thickness+2;
-            // highlight the edge with the color of the crossing
-            ctx.strokeStyle = crossingColor(hoveredCrossing);
-            // ctx.strokeStyle = "#2fee3c";
+            ctx.strokeStyle = "#2fee3c";
+        }
+        else if (highlight === 2)   // highlight non-crossing edges of selected edges
+        {
+            ctx.lineWidth = edge.thickness+2;
+            ctx.strokeStyle = "yellow";
         }
         ctx.stroke();
         // if the edge is selected, highlight it with a dashed colored line

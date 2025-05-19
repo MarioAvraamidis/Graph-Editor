@@ -203,4 +203,22 @@ body {
   width: 15px;
   text-align: right;
 }*/
+
+.tickbox-label-pair {
+    display: flex;
+    align-items: center; /* Vertically align items in the center */
+}
+
+.tickbox-label-pair input[type="checkbox"] {
+    margin-right: 5px; /* Add some space between checkbox and label */
+    /* margin-top: 7px;
+    /* flex-shrink: 0; /* Prevent checkbox from shrinking */
+}
+
+.tickbox-label-pair label {
+    flex-grow: 1; /* Allow the label to take up remaining space */
+    white-space: nowrap; /* Still a good idea to prevent wrapping */
+    font-size: 12px;
+}
+
   

@@ -162,6 +162,15 @@ export abstract class LineSegment
 
     // check if a point at (px,py) is near the line segment (at distance < dist)
     isNear(px: number, py: number, dist: number) { return this.distanceFromPoint(px,py) < dist; }
+
+    commonEndpoint(e: LineSegment)
+    {
+        const [v1,v2] = this.points;
+        const [v3,v4] = e.points;
+        if (v1===v3 || v1===v4 || v2===v3 || v2===v4)
+            return true;
+        return false;
+    }
 }
 
 export class Edge extends LineSegment

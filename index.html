@@ -16,12 +16,12 @@
 
 <body>
     <div class="top-bar">
-        <h1>Graph Editor</h1>
-        <div id="mode-buttons" class="mode-container">
-        <button id="mode-select" class="mode-button active">Select</button>
-        <button id="mode-add-bend" class="mode-button">Add Bend</button>
-        <!-- <button id="mode-create-edge" class="mode-button">Create Edge</button> -->
-        </div>
+        <h1>CCrossings</h1>
+        <!-- <div id="mode-buttons" class="mode-container">
+          <button id="mode-select" class="mode-button active">Select</button>
+          <button id="mode-add-bend" class="mode-button">Add Bend</button>
+          <!-- <button id="mode-create-edge" class="mode-button">Create Edge</button>
+        </div> -->
     </div>
     <!-- The canvas for drawing -->
     <!-- <canvas id="graphCanvas" width="1000" height="500" style="border:1px solid #000;"></canvas> -->
@@ -113,6 +113,17 @@
                 <button id="toggle-dashed">- - - - - - - - - -</button>
             
                 <button id="delete-edge-palette">Delete</button>
+
+                <div class="tickbox-label-pair">
+                  <input type="checkbox" id="highlight-crossing-edges" checked >
+                  <label for="highlight-crossing-edges" >Highlight Crossing Edges</label>
+                </div>
+
+                <div class="tickbox-label-pair">
+                  <input type="checkbox" id="highlight-non-crossing-edges" >
+                  <label for="highlight-non-crossing-edges" >Highlight non-Crossing Edges</label>
+                </div>
+
             </div>
         </div>
   
