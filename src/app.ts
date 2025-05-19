@@ -245,7 +245,7 @@ function renderGraph() {
             e.preventDefault();
             redo();
         }
-        else if(e.key==='Delete')
+        else if(e.key==='Delete' || e.key==='Backspace')
         {
             e.preventDefault();
             if (selectedPoints.length > 0 || selectedEdges.length > 0)
@@ -392,8 +392,8 @@ function renderGraph() {
             selectedVertices.forEach(v => v.shape = selectedShape!)
             renderGraph();
         }
-        else    // set shape for new vertices
-            vertexChars.shape = selectedShape!;
+        // update new vertex shape
+        vertexChars.shape = selectedShape!;
     });
       });
 
@@ -518,7 +518,8 @@ function renderGraph() {
     }
 
     // dashed edge button
-    document.getElementById("toggle-dashed")!.addEventListener("click", () => {
+    let toggle_dashed_btn = document.getElementById("toggle-dashed");
+    toggle_dashed_btn!.addEventListener("click", () => {
         if (selectedEdges.length > 0)
         {
             saveState();
@@ -526,6 +527,14 @@ function renderGraph() {
             for (const e of selectedEdges)
                 e.dashed = dashed;
             renderGraph();
+        }
+        else
+        {
+            edgeChars.dashed = !edgeChars.dashed;
+            if(edgeChars.dashed)
+                toggle_dashed_btn?.classList.add("active");
+            else
+                toggle_dashed_btn?.classList.remove("active");
         }
     });
     
@@ -1095,7 +1104,8 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, labels: boolean 
         ctx.moveTo(startingVertex.x, startingVertex.y);
         ctx.lineTo(mouse.x, mouse.y);
         ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
-        ctx.setLineDash([3, 3]); // dashed line
+        if (edgeChars.dashed)
+            ctx.setLineDash([3, 3]); // dashed line
         ctx.stroke();
         ctx.setLineDash([]); // reset
         // draw a bend at the cursor in the create Edge mode

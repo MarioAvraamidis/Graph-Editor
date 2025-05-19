@@ -152,6 +152,11 @@ body {
     font-size: 12px;
   }
 
+  #toggle-dashed.active {
+    background:  lightblue;
+    border-color: blue;
+  }
+
   #vertex-palette .palette-row {
     display: flex;
     align-items: center;
