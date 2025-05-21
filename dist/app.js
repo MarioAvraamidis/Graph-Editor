@@ -46,6 +46,8 @@ let creatingEdge = false; // will be used to check if a new edge is being drawn
 let startingVertex = null; // the vertex from which an edge starts
 let canClick = true; // is activated a click after an edge creation is done
 let edgeCreated = null; // the new edge that is being created during edge creation
+// new Vertex
+let canAddVertex = true;
 // mousedown
 let mousedown = false;
 let clickedX = 0; // mouse x-coordinate at mousedown
@@ -63,6 +65,8 @@ let crossings_colors = { self: "purple", neighbor: "red", multiple: "orange", le
 let vertexChars = { color: "#000000", size: 7, shape: "circle" }; // default settings of class Vertex
 let edgeChars = { color: "#898989", thickness: 2, dashed: false }; // default of class Edge
 let bendChars = { size: 5, color: "#0000FF" };
+// context menu
+let showingContextMenu = false;
 function setMode(mode) {
     var _a;
     currentMode = mode; // update mode
@@ -84,6 +88,8 @@ function setMode(mode) {
 //window.addEventListener("DOMContentLoaded", () => {
 const canvas = document.getElementById("graphCanvas");
 const ctx = canvas.getContext("2d");
+const contextMenu = document.getElementById('contextMenu');
+const edgeMenu = document.getElementById("edgeMenu");
 if (!ctx) {
     throw new Error("Could not get canvas rendering context");
 }
@@ -498,6 +504,15 @@ renderGraph();
 //});
 // detect vertex/bend selection
 canvas.addEventListener("mousedown", (e) => {
+    // hide the menu when clicking anywhere else
+    // Check if the click was outside the context menu
+    if (contextMenu && !contextMenu.contains(e.target) && showingContextMenu) {
+        hideContextMenu();
+        showingContextMenu = false;
+        canAddVertex = false;
+    }
+    else
+        canAddVertex = true;
     checkHovered();
     // check if the clicked point belongs to the selected ones
     // if yes, set dragging points = selected points and store the positions of selected vertices at the time of mousedown
@@ -714,7 +729,7 @@ canvas.addEventListener("click", (e) => {
     // console.log("click passed",selectedPoints.length);
     checkHovered();
     // if nothing hovered or selected, add a new vertex at the clicked position
-    if (!hoveredVertex && !hoveredBend && !hoveredEdge && !selectedPoints.length && !selectedEdges.length && !draggingLabelVertex) {
+    if (!hoveredVertex && !hoveredBend && !hoveredEdge && !selectedPoints.length && !selectedEdges.length && !draggingLabelVertex && canAddVertex) {
         saveState();
         const vertex = new Vertex((graph.maxVertexId() + 1).toString(), mouse.x, mouse.y);
         vertex.size = vertexChars.size;
@@ -759,6 +774,89 @@ canvas.addEventListener("click", (e) => {
     }*/
     // updatePaletteState();
     renderGraph();
+});
+// Add event listener for right-click (contextmenu) on the canvas
+canvas.addEventListener('contextmenu', (event) => {
+    event.preventDefault(); // Prevent the browser's default context menu
+    if (hoveredEdge) // show edge menu
+        showContextMenu(event.clientX, event.clientY, edgeMenu);
+    else // show general menu
+        showContextMenu(event.clientX, event.clientY, contextMenu);
+    showingContextMenu = true;
+});
+// Function to hide the context menu
+function hideContextMenu() {
+    if (contextMenu) {
+        contextMenu.style.display = 'none';
+    }
+    if (edgeMenu) {
+        edgeMenu.style.display = 'none';
+    }
+}
+// Function to show and position the context menu
+function showContextMenu(x, y, menu) {
+    if (menu) {
+        menu.style.display = 'block';
+        // Position the menu
+        // Ensure menu stays within viewport
+        const menuWidth = menu.offsetWidth;
+        const menuHeight = menu.offsetHeight;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        let finalX = x;
+        let finalY = y;
+        if (x + menuWidth > viewportWidth) {
+            finalX = viewportWidth - menuWidth - 5; // 5px padding from edge
+        }
+        if (y + menuHeight > viewportHeight) {
+            finalY = viewportHeight - menuHeight - 5; // 5px padding from edge
+        }
+        menu.style.left = `${finalX}px`;
+        menu.style.top = `${finalY}px`;
+    }
+}
+// Add event listener for clicks on the context menu options
+contextMenu.addEventListener('click', (event) => {
+    const target = event.target;
+    // Ensure a menu item was clicked
+    if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
+        const action = target.getAttribute('data-action');
+        hideContextMenu(); // Hide menu after selection
+        switch (action) {
+            case "clear-canvas":
+                saveState();
+                graph = new Graph();
+                renderGraph();
+                break;
+            // Add more cases for other actions
+            default:
+                console.log(`Action not implemented: ${action}`);
+        }
+    }
+});
+// edge menu options
+edgeMenu.addEventListener('click', (event) => {
+    const target = event.target;
+    // Ensure a menu item was clicked
+    if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
+        const action = target.getAttribute('data-action');
+        hideContextMenu(); // Hide menu after selection
+        switch (action) {
+            case "addBend":
+                saveState();
+                const p1 = hoveredEdge.points[0]; // edgeMenu appears only when an edge is hovered
+                const p2 = hoveredEdge.points[1];
+                if (p1 instanceof Vertex && p2 instanceof Vertex)
+                    graph.addBend(p1, p2, mouse.x, mouse.y);
+                // set it free
+                hoveredEdge = null;
+                renderGraph();
+                break;
+            // Add more cases for other actions
+            default:
+                console.log(`Action not implemented: ${action}`);
+        }
+    }
 });
 // Add the selected object (vertex, bend, edge) to the appropriate array of selected objects
 function select(obj, array, e) {
@@ -1006,11 +1104,17 @@ function drawGraph(ctx, graph, labels = true) {
         ctx.beginPath();
         ctx.moveTo(startingVertex.x, startingVertex.y);
         ctx.lineTo(mouse.x, mouse.y);
-        ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+        // ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+        // apply characteristics of edgeChars
+        ctx.strokeStyle = edgeChars.color;
+        ctx.lineWidth = edgeChars.thickness;
         if (edgeChars.dashed)
             ctx.setLineDash([3, 3]); // dashed line
         ctx.stroke();
-        ctx.setLineDash([]); // reset
+        // reset
+        ctx.setLineDash([]);
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.lineWidth = 2;
         // draw a bend at the cursor in the create Edge mode
         // if (!graph.isNearVertex(mouse.x,mouse.y) && currentMode === "createEdge")
         // shapeBend(ctx,mouse.x,mouse.y,bendRadius);
@@ -1052,6 +1156,8 @@ function highlightCrossingEdges() {
 }
 // highlight the edges that do not cross any of the selected edges and have no common endpoint with any of them (i.e. can cross them)
 function highlightNonCrossingEdges() {
+    if (selectedEdges.length === 0)
+        return;
     // create a temporary parallel array for selected edges
     for (const edge of graph.edges) {
         let valid = true;

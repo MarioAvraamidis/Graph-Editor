@@ -16,12 +16,23 @@
 
 <body>
     <div class="top-bar">
-        <h1>CCrossings</h1>
+      <h1>CCrossings</h1>
         <!-- <div id="mode-buttons" class="mode-container">
           <button id="mode-select" class="mode-button active">Select</button>
           <button id="mode-add-bend" class="mode-button">Add Bend</button>
           <!-- <button id="mode-create-edge" class="mode-button">Create Edge</button>
         </div> -->
+      <div id="buttons">
+        <button id="undo-button">Undo</button>
+        <button id="redo-button">Redo</button>
+        <button id="circle-placement"> Circle</button>
+        <button id="make-clique"> Clique</button>
+        <!-- <button id="clear-edges"> Clear Edges</button> -->
+        <button id="clear-bends"> Clear Bends</button>
+        <button id="export-json-btn">Export JSON</button>
+        <button id="export-image">Export PNG</button>
+        <input type="file" id="import-input" accept=".json">
+      </div>
     </div>
     <!-- The canvas for drawing -->
     <!-- <canvas id="graphCanvas" width="1000" height="500" style="border:1px solid #000;"></canvas> -->
@@ -137,21 +148,10 @@
     <!-- Crossing info box -->
     <div id="crossing-info" style="position: absolute; display: none; background: #fff; border: 1px solid #ccc; padding: 4px; font-size: 12px; border-radius: 4px; pointer-events: none;"></div>
 
-    <div id="buttons">
-        <button id="undo-button">Undo</button>
-        <button id="redo-button">Redo</button>
-        <button id="circle-placement"> Circle</button>
-        <button id="make-clique"> Clique</button>
-        <!-- <button id="clear-edges"> Clear Edges</button> -->
-        <button id="clear-bends"> Clear Bends</button>
-        <button id="export-json-btn">Export JSON</button>
-        <button id="export-image">Export PNG</button>
-        <input type="file" id="import-input" accept=".json">
-    </div>
-
     <!-- <pre id="output"> </pre> 
     <!-- <pre id="output" style="border: 1px solid black; padding: 10px;"></pre> -->
      <div id="output">
+        <h3>Report</h3>
         <div class="label-value-pair">
             <input type="checkbox" id="show-self" data-crossing-type="self" checked style="margin-right: 5px; vertical-align: middle;">
             <label class="ticked-label-part" for="show-self" data-color-key="self" style="vertical-align: middle;">Self crossings :</label>
@@ -184,6 +184,19 @@
             <span class="label-part">Curve Complexity :</span>
             <span class="value-part" id="curve-complexity"></span>
         </div>
+    </div>
+
+    <!-- Context menu -->
+    <div id="contextMenu" class="context-menu">
+      <ul>
+        <li data-action="clear-canvas">Clear Canvas</li>
+      </ul>
+    </div>
+    <!-- Edge menu -->
+     <div id="edgeMenu" class="context-menu">
+      <ul>
+        <li data-action="addBend">Add Bend</li>
+      </ul>
     </div>
 
     <script type="module" src="dist/app.js"></script>

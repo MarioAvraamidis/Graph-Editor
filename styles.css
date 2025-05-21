@@ -221,4 +221,31 @@ body {
     font-size: 12px;
 }
 
-  
+.context-menu {
+    display: none; /* Initially hide the menu */
+    position: absolute; /* Position it relative to the viewport */
+    background-color: #fff; /* White background */
+    border: 1px solid #ccc; /* Light gray border */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    z-index: 1000; /* Ensure it's on top of other elements */
+    padding: 5px 0; /* Vertical padding */
+    border-radius: 4px; /* Slightly rounded corners */
+}
+
+.context-menu ul {
+    list-style: none; /* Remove bullet points */
+    margin: 0;
+    padding: 0;
+}
+
+.context-menu li {
+    padding: 8px 15px; /* Padding for each menu item */
+    cursor: pointer; /* Indicate it's clickable */
+    font-family: sans-serif; /* Readable font */
+    font-size: 14px;
+    color: #333; /* Dark gray text */
+}
+
+.context-menu li:hover {
+    background-color: #f0f0f0; /* Light gray background on hover */
+}  
