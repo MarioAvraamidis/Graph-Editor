@@ -52,6 +52,8 @@ let selectionRect = { x: 0, y: 0, width: 0, height: 0 };
 let draggingLabelVertex: Vertex | null = null;
 // default colors for crossings
 let crossings_colors = { self: "purple", neighbor: "red", multiple: "orange", legal: "green" };
+// default colors for crossing edges
+let crossing_edges_colors = {crossing: "#2fee3c", nonCrossing: "#f0f42a"}
 // palette settings
 let vertexChars = { color: "#000000", size: 7, shape: "circle" }  // default settings of class Vertex
 let edgeChars = {color: "#898989", thickness: 2, dashed: false} // default of class Edge
@@ -114,12 +116,21 @@ function renderGraph() {
         if (thrackleNumberSpan) thrackleNumberSpan.textContent = `${graph.thrackleNumber()}`;
         if (curveComplexitySpan) curveComplexitySpan.textContent = `${graph.curve_complexity}`;
 
-        // Apply label colors based on data-color-key
+        // Apply label colors based on data-color-key for crossings
         const labels = output.querySelectorAll<HTMLLabelElement>('label[data-color-key]');
         labels.forEach(label => {
             const colorKey = label.getAttribute('data-color-key');
             if (colorKey && colorKey in crossings_colors) {
                 label.style.color = crossings_colors[colorKey as keyof typeof crossings_colors];
+            }
+        });
+
+        // Apply label colors based on data-color-key for crossing labels
+        const highlightCrossingEdgeLabels = document.getElementById("edge-palette")!.querySelectorAll<HTMLLabelElement>('label[data-color-key');
+        highlightCrossingEdgeLabels.forEach(label => {
+            const colorKey = label.getAttribute('data-color-key');
+            if (colorKey && colorKey in crossing_edges_colors) {
+                label.style.color = crossing_edges_colors[colorKey as keyof typeof crossing_edges_colors];
             }
         });
 
@@ -339,7 +350,12 @@ function renderGraph() {
         drawGraph(ctx,graph,false);
         exportCanvasAsImage();
         drawGraph(ctx,graph);
-    } )
+    });
+
+    document.getElementById("export-pdf")!.addEventListener("click", () => {
+        exportCanvasAsPdf();
+    });
+
 
     document.getElementById("import-input")!.addEventListener("change", async (e) => {
         const input = e.target as HTMLInputElement;
@@ -1634,16 +1650,19 @@ function drawEdge(ctx: CanvasRenderingContext2D, edge: Edge, highlight: number =
         {
             ctx.lineWidth = edge.thickness+2;                   // increase thickness
             ctx.strokeStyle = crossingColor(hoveredCrossing);   // highlight the edge with the color of the crossing
+            ctx.setLineDash([]);                                // no dashed line
         }
         else if (highlight === 1)   // highlight crossing edges of selected edges
         {
             ctx.lineWidth = edge.thickness+2;
-            ctx.strokeStyle = "#2fee3c";
+            ctx.strokeStyle = crossing_edges_colors.crossing;
+            ctx.setLineDash([]);
         }
         else if (highlight === 2)   // highlight non-crossing edges of selected edges
         {
             ctx.lineWidth = edge.thickness+2;
-            ctx.strokeStyle = "yellow";
+            ctx.strokeStyle = crossing_edges_colors.nonCrossing;
+            ctx.setLineDash([]);
         }
         ctx.stroke();
         // if the edge is selected, highlight it with a dashed colored line
@@ -1772,6 +1791,7 @@ function saveState() {
     redoStack.length = 0; // clear redo stack on new change
 }
 
+// export as JSON
 function exportGraph(graph: Graph) {
     const exportData = {
       vertices: graph.vertices.map(v => ({
@@ -1856,6 +1876,44 @@ function exportGraph(graph: Graph) {
     newGraph.updateCurveComplexity();
 
     return newGraph;
+}
+
+// --- PDF Export Function ---
+function exportCanvasAsPdf() {
+    if (!canvas) {
+        console.error("Canvas element not found!");
+        return;
+    }
+
+    // Get the image data from the canvas
+    const imgData = canvas.toDataURL('image/png'); // Can also use 'image/jpeg'
+
+    // Initialize jsPDF
+    // 'p' for portrait, 'l' for landscape
+    // 'mm' for millimeters (default unit), 'pt' for points, 'in' for inches
+    // [width, height] can specify custom page size
+    const doc = new (window as any).jspdf.jsPDF('l', 'mm', 'a4'); // Use 'window.jspdf' for CDN import
+
+    // Calculate dimensions to fit the image on the PDF page
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // Calculate aspect ratio to fit the image within the page
+    const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
+    const scaledWidth = imgWidth * ratio;
+    const scaledHeight = imgHeight * ratio;
+
+    // Center the image on the page
+    const x = (pageWidth - scaledWidth) / 2;
+    const y = (pageHeight - scaledHeight) / 2;
+
+    // Add the image to the PDF
+    doc.addImage(imgData, 'PNG', x, y, scaledWidth, scaledHeight);
+
+    // Save the PDF
+    doc.save('graph.pdf');
 }
 
 // function for rendering latex content to image (to add the vertex labels as images to the graph picture)

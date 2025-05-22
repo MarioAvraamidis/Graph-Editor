@@ -12,6 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvg@3.0.7/lib/umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>   <!-- pdf export -->
 </head>
 
 <body>
@@ -31,6 +32,7 @@
         <button id="clear-bends"> Clear Bends</button>
         <button id="export-json-btn">Export JSON</button>
         <button id="export-image">Export PNG</button>
+        <button id="export-pdf">Export PDF</button>
         <input type="file" id="import-input" accept=".json">
       </div>
     </div>
@@ -89,23 +91,6 @@
 
               <button id="delete-vertex-palette">Delete</button>
             </div>
-    
-            <!-- Bend Palette -->
-            <div id="bend-palette" class="palette">
-                <h3>Bend</h3>
-
-                <div class="palette-row">
-                    <label for="bend-color">Color:</label>
-                    <input type="color" id="bend-color" />
-                  </div>
-    
-                <div class="palette-row">
-                    <label for="bend-size">Size:</label>
-                    <input type="number" id="bend-size" min="2" max="30" />
-                </div>
-    
-                <button id="delete-bend">Delete </button>
-            </div>
             
             <!-- Edge Palette -->
             <div id="edge-palette" class="palette">
@@ -127,14 +112,31 @@
 
                 <div class="tickbox-label-pair">
                   <input type="checkbox" id="highlight-crossing-edges" checked >
-                  <label for="highlight-crossing-edges" >Highlight Crossing Edges</label>
+                  <label for="highlight-crossing-edges" data-color-key="crossing">Highlight Crossing Edges</label>
                 </div>
 
                 <div class="tickbox-label-pair">
                   <input type="checkbox" id="highlight-non-crossing-edges" >
-                  <label for="highlight-non-crossing-edges" >Highlight non-Crossing Edges</label>
+                  <label for="highlight-non-crossing-edges" data-color-key="nonCrossing">Highlight non-Crossing Edges</label>
                 </div>
 
+            </div>
+
+            <!-- Bend Palette -->
+            <div id="bend-palette" class="palette">
+                <h3>Bend</h3>
+
+                <div class="palette-row">
+                    <label for="bend-color">Color:</label>
+                    <input type="color" id="bend-color" />
+                  </div>
+    
+                <div class="palette-row">
+                    <label for="bend-size">Size:</label>
+                    <input type="number" id="bend-size" min="2" max="30" />
+                </div>
+    
+                <button id="delete-bend">Delete </button>
             </div>
         </div>
   
