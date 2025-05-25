@@ -49,53 +49,62 @@
                 <button id="add-vertex">New Vertex</button> -->
             <!-- Vertex Palette -->
             <div id="vertex-palette" class="palette">
-              <h3>Vertex</h3>
-            
-              <div class="palette-row">
-                <label for="vertex-color">Color:</label>
-                <input type="color" id="vertex-color" />
-              </div>
-            
-              <div class="palette-row">
-                <label for="vertex-size">Size:</label>
-                <input type="number" id="vertex-size" min="3" max="50" />
-              </div>
-            
-              <div class="palette-row">
-                  <label>Shape:</label>
-                  <div id="shape-buttons" class="shape-options"> 
-                      <button class="shape-button" data-shape="circle">
-                        <svg width="20" height="20"><circle cx="10" cy="12" r="7" fill="black" /></svg>
-                      </button>
-                      <button class="shape-button" data-shape="square">
-                        <svg width="20" height="20"><rect x="4" y="6" width="12" height="12" fill="black" /></svg>
-                      </button>
-                      <button class="shape-button" data-shape="triangle">
-                        <svg width="20" height="20">
-                          <polygon points="10,2 18,18 2,18" fill="black" />
-                        </svg>
-                      </button>
-                      <button class="shape-button" data-shape="rhombus">
-                        <svg width="20" height="20">
-                          <polygon points="10,2 2,10 10,18 18,10" fill="black" />
-                        </svg>
-                      </button>
-                    </div>
+              <div class="palette-header">
+                  <h3>Vertex</h3>
+                  <span class="collapse-icon">&#9650;</span>
               </div>
 
+              <div class="palette-content">
+                <div class="palette-row">
+                  <label for="vertex-color">Color:</label>
+                  <input type="color" id="vertex-color" />
+                </div>
               
-              <div class="palette-row" id="renameVertexElement">
-                <input type="text" id="vertexIdInput" placeholder="New ID"/>
-                <button id="rename-vertex">Rename</button>
-              </div>
+                <div class="palette-row">
+                  <label for="vertex-size">Size:</label>
+                  <input type="number" id="vertex-size" min="3" max="50" />
+                </div>
+              
+                <div class="palette-row">
+                    <label>Shape:</label>
+                    <div id="shape-buttons" class="shape-options"> 
+                        <button class="shape-button" data-shape="circle">
+                          <svg width="20" height="20"><circle cx="10" cy="12" r="7" fill="black" /></svg>
+                        </button>
+                        <button class="shape-button" data-shape="square">
+                          <svg width="20" height="20"><rect x="4" y="6" width="12" height="12" fill="black" /></svg>
+                        </button>
+                        <button class="shape-button" data-shape="triangle">
+                          <svg width="20" height="20">
+                            <polygon points="10,2 18,18 2,18" fill="black" />
+                          </svg>
+                        </button>
+                        <button class="shape-button" data-shape="rhombus">
+                          <svg width="20" height="20">
+                            <polygon points="10,2 2,10 10,18 18,10" fill="black" />
+                          </svg>
+                        </button>
+                      </div>
+                </div>
 
-              <button id="delete-vertex-palette">Delete</button>
+                
+                <div class="palette-row" id="renameVertexElement">
+                  <input type="text" id="vertexIdInput" placeholder="New ID"/>
+                  <button id="rename-vertex">Rename</button>
+                </div>
+
+                <button id="delete-vertex-palette">Delete</button>
+              </div>
             </div>
             
             <!-- Edge Palette -->
             <div id="edge-palette" class="palette">
-                <h3>Edge </h3>
+              <div class="palette-header">
+                  <h3>Edge</h3>
+                  <span class="collapse-icon">&#9650;</span>
+              </div>
             
+              <div class="palette-content">
                 <div class="palette-row">
                     <label>Color:</label>
                     <input type="color" id="edge-color" />
@@ -119,24 +128,29 @@
                   <input type="checkbox" id="highlight-non-crossing-edges" >
                   <label for="highlight-non-crossing-edges" data-color-key="nonCrossing">Highlight non-Crossing Edges</label>
                 </div>
-
+              </div>
             </div>
 
             <!-- Bend Palette -->
             <div id="bend-palette" class="palette">
-                <h3>Bend</h3>
+              <div class="palette-header">
+                  <h3>Bend</h3>
+                  <span class="collapse-icon">&#9650;</span>
+              </div>
 
-                <div class="palette-row">
-                    <label for="bend-color">Color:</label>
-                    <input type="color" id="bend-color" />
+              <div class="palette-content">
+                  <div class="palette-row">
+                      <label for="bend-color">Color:</label>
+                      <input type="color" id="bend-color" />
                   </div>
-    
-                <div class="palette-row">
-                    <label for="bend-size">Size:</label>
-                    <input type="number" id="bend-size" min="2" max="30" />
-                </div>
-    
-                <button id="delete-bend">Delete </button>
+
+                  <div class="palette-row">
+                      <label for="bend-size">Size:</label>
+                      <input type="number" id="bend-size" min="2" max="30" />
+                  </div>
+
+                  <button id="delete-bend">Delete </button>
+              </div>
             </div>
         </div>
   

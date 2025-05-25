@@ -125,7 +125,7 @@ function renderGraph() {
             }
         });
 
-        // Apply label colors based on data-color-key for crossing labels
+        // Apply label colors based on data-color-key for crossing edges labels on palette
         const highlightCrossingEdgeLabels = document.getElementById("edge-palette")!.querySelectorAll<HTMLLabelElement>('label[data-color-key');
         highlightCrossingEdgeLabels.forEach(label => {
             const colorKey = label.getAttribute('data-color-key');
@@ -569,6 +569,29 @@ function renderGraph() {
                 toggle_dashed_btn?.classList.remove("active");
         }
     });
+
+    // Collapse palettes
+    const vertexPalette = document.getElementById('vertex-palette');
+    const edgePalette = document.getElementById('edge-palette');
+    const bendPalette = document.getElementById('bend-palette');
+
+    for (const palette of [vertexPalette, edgePalette, bendPalette])
+        if (palette) {
+            const paletteHeader = palette.querySelector('.palette-header') as HTMLElement;
+            const paletteContent = palette.querySelector('.palette-content') as HTMLElement;
+
+            if (paletteHeader && paletteContent) {
+                paletteHeader.addEventListener('click', () => {
+                    // Toggle the 'collapsed' class on the main palette div
+                    palette.classList.toggle('collapsed');
+                });
+            }
+        }
+
+    // Initially collapse the bend-palette
+    if(bendPalette)
+        bendPalette.classList.add('collapsed');
+
     
     // Initial render
     // resizeCanvas();

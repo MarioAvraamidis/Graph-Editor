@@ -123,6 +123,54 @@ body {
     padding: 2px 4px;
     font-size: 12px;
   }
+
+.palette-header {
+    display: flex; /* Allows H3 and icon to be on the same line */
+    justify-content: space-between; /* Pushes H3 to left, icon to right */
+    align-items: center; /* Vertically centers them */
+    cursor: pointer; /* Indicates it's clickable */
+    padding: 5px 0;
+}
+
+.palette-header h3 {
+    margin: 0; /* Remove default margin from h3 */
+    font-size: 1.2em; /* Adjust font size if needed */
+}
+
+.collapse-icon {
+    transition: transform 0.3s ease-in-out; /* Smooth rotation */
+    font-size: 1.2em; /* Adjust icon size */
+}
+
+/* Style for when the palette is collapsed (arrow points right) */
+.palette.collapsed .collapse-icon {
+    transform: rotate(180deg); /* Rotate to point left/up */
+}
+
+/* Initially hide the content */
+.palette-content {
+    max-height: 500px; /* A sufficiently large initial height */
+    /* overflow: hidden; /* Hide content that exceeds max-height */
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out; /* Smooth transition */
+    opacity: 1; /* Initially visible */
+}
+
+/* When the palette is collapsed, set content height to 0 and make it invisible */
+.palette.collapsed .palette-content {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* Optional: Add some padding/margin to palette-row for better spacing */
+.palette-row {
+    margin-bottom: 8px;
+}
+
+.palette-row:last-of-type {
+    margin-bottom: 0;
+}
   
   .shape-options {
     display: flex;
