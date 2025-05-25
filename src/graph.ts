@@ -74,10 +74,14 @@ export class Vertex extends Point
     clone()
     {
         let newVertex = new Vertex(this.id, this.x, this.y, this._temporary);
-        newVertex.shape = this._shape;
-        newVertex.color = this.color;
-        newVertex.size = this.size;
+        newVertex.cloneCharacteristics(this);
         return newVertex;
+    }
+    cloneCharacteristics(v: Vertex)
+    {
+        this.shape = v.shape;
+        this.color = v.color;
+        this.size = v.size;
     }
 }
 
@@ -231,11 +235,11 @@ export class Edge extends LineSegment
     // remove the last bend of the edge
     removeLastBend() {this._bends.pop()}
     // add an array of bends (used for cloning and connecting edges)
-    addBends(bends: Bend[])
+    addBends(bends: Bend[], offsetX: number = 0, offsetY: number = 0)
     {
         for (let i=0;i<bends.length;i++)
         {
-            let new_bend = new Bend(this,bends[i].x,bends[i].y);
+            let new_bend = new Bend(this,bends[i].x+offsetX,bends[i].y+offsetY);
             new_bend.cloneCharacteristics(bends[i]);
             this._bends.push(new_bend);
         }
@@ -275,9 +279,9 @@ export class Edge extends LineSegment
     removeBends() { this._bends = []; }
 
     // clone characteristics from a given edge e
-    cloneCharacteristics(e: Edge)
+    cloneCharacteristics(e: Edge, offsetX: number = 0, offsetY: number = 0)
     {
-        this.addBends(e.bends);
+        this.addBends(e.bends,offsetX,offsetY);
         this._color = e.color;
         this._dashed = e.dashed;
         this._thickness = e.thickness;
@@ -473,6 +477,14 @@ export class Graph {
             this._vertices.push(vertex);
         else
             console.log("WARNING: Vertex with this name ("+vertex.id+") already exist")
+    }
+
+    // add a new vertex to the graph at the specified position with the id of the max numerical ids and return the vertex
+    addNewVertex(x: number, y: number)
+    {
+        let newVertex = new Vertex((this.maxVertexId()+1).toString(),x,y);
+        this.addVertex(newVertex);
+        return newVertex;
     }
 
     // check if there exists a vertex in the graph with the given id

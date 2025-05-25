@@ -60,6 +60,11 @@ let edgeChars = {color: "#898989", thickness: 2, dashed: false} // default of cl
 let bendChars = {size: 5, color: "#0000FF"}
 // context menu
 let showingContextMenu: boolean = false;
+// copy selected items
+let rightClickPos: {x: number, y: number};
+let copySelectedClickedPos: {x: number, y: number};
+let copiedSelectedVertices: Vertex[] = [];
+let copiedSelectedEdges: Edge[] = [];
 
 function setMode(mode: typeof currentMode) {
     currentMode = mode;     // update mode
@@ -88,6 +93,7 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
     const ctx = canvas.getContext("2d");
     const contextMenu = document.getElementById('contextMenu') as HTMLDivElement;
     const edgeMenu = document.getElementById("edgeMenu") as HTMLDivElement;
+    const copyMenu = document.getElementById("copyMenu") as HTMLDivElement;
 
     if (!ctx) {
         throw new Error("Could not get canvas rendering context");
@@ -868,11 +874,10 @@ canvas.addEventListener("click", (e) => {
     if (!hoveredVertex && !hoveredBend && !hoveredEdge && !selectedPoints.length && !selectedEdges.length && !draggingLabelVertex && canAddVertex)
         {
             saveState();
-            const vertex = new Vertex((graph.maxVertexId()+1).toString(),mouse.x,mouse.y);
+            const vertex = graph.addNewVertex(mouse.x,mouse.y);
             vertex.size = vertexChars.size;
             vertex.shape = vertexChars.shape;
             vertex.color = vertexChars.color;
-            graph.addVertex(vertex);
             // hoveredVertex = vertex;
         }
 
@@ -922,6 +927,9 @@ canvas.addEventListener("click", (e) => {
 // Add event listener for right-click (contextmenu) on the canvas
 canvas.addEventListener('contextmenu', (event) => {
     event.preventDefault(); // Prevent the browser's default context menu
+    rightClickPos = {x: mouse.x, y: mouse.y};
+    if (hoveredVertex && selectedVertices.includes(hoveredVertex) || hoveredEdge && selectedEdges.includes(hoveredEdge))
+        showContextMenu(event.clientX, event.clientY, copyMenu);
     if (hoveredEdge)    // show edge menu
         showContextMenu(event.clientX, event.clientY, edgeMenu);
     else    // show general menu
@@ -936,6 +944,9 @@ function hideContextMenu() {
     }
     if (edgeMenu) {
         edgeMenu.style.display = 'none';
+    }
+    if (copyMenu) {
+        copyMenu.style.display = 'none';
     }
 }
 
@@ -981,6 +992,14 @@ contextMenu.addEventListener('click', (event) => {
                 renderGraph();
                 break;
             // Add more cases for other actions
+            case "paste":
+                if (copiedSelectedVertices.length > 0)
+                {
+                    saveState();
+                    pasteSelected(rightClickPos.x-copySelectedClickedPos.x, rightClickPos.y - copySelectedClickedPos.y);
+                    renderGraph();
+                }
+                break;
             default:
                 console.log(`Action not implemented: ${action}`);
         }
@@ -1006,6 +1025,32 @@ edgeMenu.addEventListener('click', (event) => {
                 // set it free
                 hoveredEdge = null;
                 renderGraph();
+                break;
+            // Add more cases for other actions
+            default:
+                console.log(`Action not implemented: ${action}`);
+        }
+    }
+});
+
+// edge menu options
+copyMenu.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+
+    // Ensure a menu item was clicked
+    if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
+        const action = target.getAttribute('data-action');
+        hideContextMenu(); // Hide menu after selection
+
+        switch (action) {
+            case "copySelected":
+                if(checkCopySelected())
+                {
+                    copySelectedClickedPos = {x: rightClickPos.x, y: rightClickPos.y};
+                    copySelected();
+                }
+                else
+                    console.log("Select both the vertices of the selected edges");
                 break;
             // Add more cases for other actions
             default:
@@ -1041,6 +1086,7 @@ function setNothingSelected()
     selectedVertices.length = 0;
     selectedBends.length = 0;
     selectedEdges.length = 0;
+    selectedPointsUpdate();
 }
 
 // check that no one of the main acts is in process
@@ -1138,39 +1184,61 @@ function setHoveredObjectsNull()
     hoveredLabelVertex = null;
 }
 
-/*
-canvas.addEventListener("click", (e) => {
-
-    // if (draggingVertex) return;
-
-    // console.log("click");
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const clickedVertex = graph.vertices.find(v => {
-        const dx = v.x - x;
-        const dy = v.y - y;
-        return Math.sqrt(dx * dx + dy * dy) < vertexRadius;
-    });
-
-    if (!clickedVertex) {
-        // Cancel selection
-        selectedVertex = null;
-        drawGraph(ctx, graph, false);
-        return;
+// Check if the vertices of the selectedEdges are selected. If not, return false
+function checkCopySelected()
+{
+    for (const e of selectedEdges)
+    {
+        const v1 = e.points[0];
+        const v2 = e.points[1];
+        if (v1 instanceof Vertex && !selectedVertices.includes(v1) || v2 instanceof Vertex && !selectedVertices.includes(v2))
+            return false;   // fail
     }
+    return true;
+}
 
-    if (!selectedVertex) {
-        selectedVertex = clickedVertex;
-        drawGraph(ctx, graph, false);
-    } else if (selectedVertex !== clickedVertex) {
-        graph.addEdge(selectedVertex, clickedVertex);
-        selectedVertex = null;
-        renderGraph();
+// store the selected items
+function copySelected()
+{
+    copiedSelectedVertices.length = 0;
+    copiedSelectedEdges.length = 0;
+    for (const v of selectedVertices)
+        copiedSelectedVertices.push(v);
+    for (const e of selectedEdges)
+        copiedSelectedEdges.push(e);
+}
+
+// paste the copied items
+function pasteSelected(offsetX: number = 50, offsetY: number = 50)
+{
+    // create a map for the new and old vertices
+    const map = new Map<Vertex, Vertex>();
+    // set the new vertices and edges as selected
+    setNothingSelected();
+    // copy vertices
+    for (const v of copiedSelectedVertices)
+    {
+        let newVertex = graph.addNewVertex(v.x+offsetX, v.y+offsetY);
+        newVertex.cloneCharacteristics(v);
+        map.set(v,newVertex);
+        selectedVertices.push(newVertex);
     }
-
-    });*/
+    // copy edges
+    // IMPORTANT: Make sure that checkCopySelected is run before pasting the new edges
+    for (const e of copiedSelectedEdges)
+    {
+        const v1 = e.points[0];
+        const v2 = e.points[1];
+        let newEdge: Edge | null = null;
+        if (v1 instanceof Vertex && v2 instanceof Vertex)
+            newEdge = graph.addEdge(map.get(v1)!,map.get(v2)!)!;
+        if (newEdge)
+        {
+            newEdge.cloneCharacteristics(e,offsetX,offsetY);
+            selectedEdges.push(newEdge);
+        }
+    }
+}
 
 function updatePaletteState() {
 
