@@ -74,6 +74,8 @@ let rightClickPos;
 let copySelectedClickedPos;
 let copiedSelectedVertices = [];
 let copiedSelectedEdges = [];
+let menuCopy;
+let pasteOffsetX = 0, pasteOffsetY = 0;
 function setMode(mode) {
     var _a;
     currentMode = mode; // update mode
@@ -265,6 +267,28 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         redo();
     }
+    // copy
+    else if (e.ctrlKey && e.key == 'c') {
+        if (checkCopySelected()) {
+            copySelected();
+            menuCopy = false;
+            pasteOffsetX = 0;
+            pasteOffsetY = 0;
+        }
+        else
+            console.log("Select both the vertices of the selected edges");
+    }
+    // paste
+    else if (e.ctrlKey && e.key == 'v') {
+        if (copiedSelectedVertices.length > 0) {
+            saveState();
+            pasteSelected(pasteOffsetX + 50, pasteOffsetY + 50);
+            pasteOffsetX = pasteOffsetX + 50;
+            pasteOffsetY = pasteOffsetY + 50;
+            renderGraph();
+        }
+    }
+    // delete
     else if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
         if (selectedPoints.length > 0 || selectedEdges.length > 0) {
@@ -541,6 +565,8 @@ renderGraph();
 //});
 // detect vertex/bend selection
 canvas.addEventListener("mousedown", (e) => {
+    // set mouse position
+    mouse = getMousePos(canvas, e);
     // hide the menu when clicking anywhere else
     // Check if the click was outside the context menu
     if (contextMenu && !contextMenu.contains(e.target) && showingContextMenu) {
@@ -660,6 +686,9 @@ canvas.addEventListener("mousemove", e => {
 });
 // detect vertex release
 canvas.addEventListener("mouseup", (e) => {
+    // set mouse position
+    mouse = getMousePos(canvas, e);
+    // check hovering
     checkHovered();
     if (startingVertex && creatingEdge) {
         if (hoveredVertex) // add a straight edge
@@ -874,7 +903,16 @@ contextMenu.addEventListener('click', (event) => {
             case "paste":
                 if (copiedSelectedVertices.length > 0) {
                     saveState();
-                    pasteSelected(rightClickPos.x - copySelectedClickedPos.x, rightClickPos.y - copySelectedClickedPos.y);
+                    if (menuCopy)
+                        pasteSelected(rightClickPos.x - copySelectedClickedPos.x, rightClickPos.y - copySelectedClickedPos.y);
+                    else {
+                        // paste the uppermost selected point at the clicked position
+                        let uppermostPoint = uppermostCopiedSelectedVertex();
+                        if (uppermostPoint)
+                            pasteSelected(rightClickPos.x - uppermostPoint.x, rightClickPos.y - uppermostPoint.y);
+                        else
+                            console.log("uppermostPoint null");
+                    }
                     renderGraph();
                 }
                 break;
@@ -919,6 +957,9 @@ copyMenu.addEventListener('click', (event) => {
                 if (checkCopySelected()) {
                     copySelectedClickedPos = { x: rightClickPos.x, y: rightClickPos.y };
                     copySelected();
+                    menuCopy = true;
+                    pasteOffsetX = 0;
+                    pasteOffsetY = 0;
                 }
                 else
                     console.log("Select both the vertices of the selected edges");
@@ -963,6 +1004,16 @@ function selectedPointsUpdate() {
     for (const b of selectedBends)
         selectedPoints.push(b);
     // console.log("called", selectedPoints.length);
+}
+// find and return the uppermost selected point
+function uppermostCopiedSelectedVertex() {
+    if (copiedSelectedVertices.length === 0)
+        return null;
+    let maxYpoint = copiedSelectedVertices[0];
+    for (let i = 1; i < copiedSelectedVertices.length; i++)
+        if (copiedSelectedVertices[i].y < maxYpoint.y) // positive is down in canvas
+            maxYpoint = copiedSelectedVertices[i];
+    return maxYpoint;
 }
 // not sure if necessary
 function selectEdge(e) {
@@ -1074,6 +1125,8 @@ function pasteSelected(offsetX = 50, offsetY = 50) {
             selectedEdges.push(newEdge);
         }
     }
+    // update selected points
+    selectedPointsUpdate();
 }
 function updatePaletteState() {
     /*const vertexPalette = document.getElementById("vertex-palette")!;
