@@ -534,15 +534,15 @@ export class Graph {
 
     // return the vertex near a specified (x,y) location (at distance < dist from (x,y) )
     // first check the array of vertices given
-    getVertexAtPosition(x: number, y: number, vert: Vertex[] = [])
+    getVertexAtPosition(x: number, y: number, scale: number = 1, vert: Vertex[] = [])
     {
         // check vertices of the array
         for (const v of vert)
-            if (Math.hypot(v.x-x,v.y-y) < v.size+3 && !v.temporary)
+            if (Math.hypot(v.x-x,v.y-y) < (v.size+3)/scale && !v.temporary)
                 return v;
         // check all the vertices
         for (const v of this._vertices)
-            if (Math.hypot(v.x-x,v.y-y) < v.size+3 && !v.temporary)
+            if (Math.hypot(v.x-x,v.y-y) < (v.size+3)/scale && !v.temporary)
                 return v;
         return null;
     }
@@ -579,31 +579,31 @@ export class Graph {
     }
 
     // given a (x,y) location, return the bend at distance < dist near this location
-    getBendAtPosition(x: number, y: number, b: Bend[] = [])
+    getBendAtPosition(x: number, y: number,scale: number = 1, b: Bend[] = [])
     {
         // first check given bends
         for (const bend of b)
-            if (Math.hypot(bend.x-x, bend.y-y) < bend.size+3)
+            if (Math.hypot(bend.x-x, bend.y-y) < (bend.size+3)/scale)
                 return bend;
         // check all the bends of the graph
         for (const e of this._edges)
             for (const bend of e.bends)
-                if (Math.hypot(bend.x-x, bend.y-y) < bend.size + 3)
+                if (Math.hypot(bend.x-x, bend.y-y) < (bend.size + 3)/scale)
                     return bend;
         return null;
     }
 
     // return the point (vertex or bend) at position (x,y)
     // first check the array of given points
-    getPointAtPosition(x: number, y: number, points: Point[] = [])
+    getPointAtPosition(x: number, y: number, scale:number = 1, points: Point[] = [])
     {
         const pv = points.filter(p => p instanceof Vertex);
         const pb = points.filter(p => p instanceof Bend);
-        const v = this.getVertexAtPosition(x,y,pv);
+        const v = this.getVertexAtPosition(x,y,scale,pv);
         if (v)
             return v;
         else
-            return this.getBendAtPosition(x,y,pb);
+            return this.getBendAtPosition(x,y,scale,pb);
     }
 
     // given the id of an edge, return the edge
@@ -1103,11 +1103,11 @@ export class Graph {
     }
 
     // check if a given (x,y) point is near any bends of the graph and return the bend (at distance < dist)
-    isNearBend(x: number, y: number)
+    isNearBend(x: number, y: number, scale: number = 1)
     {
         for (const e of this._edges)
             for (const bend of e.bends)
-                if (Math.hypot(bend.x-x, bend.y-y,)< bend.size+2)
+                if (Math.hypot(bend.x-x, bend.y-y,)< (bend.size+2)/scale)
                     return bend;
         return null;
     }

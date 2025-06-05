@@ -638,7 +638,7 @@ canvas.addEventListener("mousedown", (e) => {
     // check if the clicked point belongs to the selected ones
     // if yes, set dragging points = selected points and store the positions of selected vertices at the time of mousedown
     // hoveredPoint = graph.getPointAtPosition(mouse.x, mouse.y);
-    hoveredPoint = graph.getPointAtPosition(worldCoords.x, worldCoords.y);
+    hoveredPoint = graph.getPointAtPosition(worldCoords.x, worldCoords.y, scale);
     if (hoveredPoint && selectedPoints.includes(hoveredPoint) || hoveredEdge && selectedEdges.includes(hoveredEdge)) {
         saveState();
         draggingPoints = selectedPoints;
@@ -1109,34 +1109,17 @@ function inLimits(x, limit) {
 }
 // detect the hovering object
 function checkHovered() {
-    // detect hovering over vertex
-    // first check selected vertices
-    /*hoveredVertex = graph.getVertexAtPosition(mouse.x, mouse.y, selectedVertices);
-    //if (!hoveredVertex)
-      //  hoveredVertex = graph.isNearVertex(mouse.x,mouse.y);
-    if (hoveredVertex)
-    {
-        hoveredEdge = null;
-        hoveredBend = null;
-    }
-    else{   // detect hovering over bend (if not hoveredVertex)
-        hoveredBend = graph.isNearBend(mouse.x,mouse.y);
-        if (hoveredBend)
-            hoveredEdge = null;
-        else    // detect hovering over edge (if not hoveredBend)
-            hoveredEdge = graph.isNearEdge(mouse.x,mouse.y,3);
-    }*/
     // to go back, replace all worldCoords with mouse
     setHoveredObjectsNull();
-    hoveredVertex = graph.getVertexAtPosition(worldCoords.x, worldCoords.y, selectedVertices);
+    hoveredVertex = graph.getVertexAtPosition(worldCoords.x, worldCoords.y, scale, selectedVertices);
     if (!hoveredVertex) {
-        hoveredBend = graph.isNearBend(worldCoords.x, worldCoords.y);
+        hoveredBend = graph.isNearBend(worldCoords.x, worldCoords.y, scale);
         if (!hoveredBend) {
-            hoveredCrossing = graph.isNearCrossing(worldCoords.x, worldCoords.y, crosRadius + 2);
+            hoveredCrossing = graph.isNearCrossing(worldCoords.x, worldCoords.y, (crosRadius + 2) / scale);
             if (hoveredCrossing)
                 hoveredCrossingEdges = hoveredCrossing.edges;
             else
-                hoveredEdge = graph.isNearEdge(worldCoords.x, worldCoords.y, 3);
+                hoveredEdge = graph.isNearEdge(worldCoords.x, worldCoords.y, 3 / scale);
         }
     }
     if (!hoveredVertex && !hoveredBend && !hoveredEdge) {
@@ -1443,12 +1426,16 @@ function drawVertex(ctx, v, labels = true) {
         ctx.fillStyle = "#000";
         if (hoveredLabelVertex === v)
             ctx.fillStyle = "red";
-        // const fontSize = Math.trunc(14/scale!);
+        // const fontSize = Math.trunc(14/scale);
         // ctx.font = fontSize.toString+"px sans-serif";
-        ctx.font = "14px sans-serif";
+        // ctx.font = "14px sans-serif";
+        const adjustedFontSize = 14 / scale;
+        ctx.font = `${adjustedFontSize}px sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        ctx.fillText(v.id, v.x + v.labelOffsetX, v.y - v.size - v.labelOffsetY); // positive is down in canvas
+        // const labelCords = myCanvasHandler?.worldToCanvas(v.x + v.labelOffsetX,v.y - v.size - v.labelOffsetY);
+        // if (labelCords)
+        ctx.fillText(v.id, v.x + v.labelOffsetX / scale, v.y - (v.size + v.labelOffsetY) / scale); // positive is down in canvas
         ctx.fillStyle = "#000";
     }
     // add an orange circle around a selected vertex
@@ -1562,10 +1549,10 @@ function drawBend(ctx, bend) {
 // add a dashed circle around a selected point
 function showSelectedPoint(ctx, p) {
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size + 3, 0, 2 * Math.PI);
+    ctx.arc(p.x, p.y, (p.size + 3) / scale, 0, 2 * Math.PI);
     ctx.strokeStyle = "orange"; // or "#f39c12"
     // ctx.lineWidth = 3;
-    ctx.setLineDash([5, 3]); // dashed circle
+    ctx.setLineDash([5 / scale, 3 / scale]); // dashed circle
     ctx.stroke();
     // ctx.lineWidth = 2;
     ctx.setLineDash([]); // reset to solid for others
@@ -1622,7 +1609,7 @@ function drawEdge(ctx, edge, highlight = 0) {
         ctx.beginPath();
         ctx.moveTo(v1.x, v1.y);
         if (edge.dashed)
-            ctx.setLineDash([5, 5]); // Dash pattern: [dashLength, gapLength]
+            ctx.setLineDash([5 / scale, 5 / scale]); // Dash pattern: [dashLength, gapLength]
         ctx.lineWidth = edge.thickness / scale;
         const bends = edge.bends;
         // draw the edge passing through bends
@@ -1661,7 +1648,7 @@ function drawEdge(ctx, edge, highlight = 0) {
                 ctx.lineTo(bends[i].x, bends[i].y);
             ctx.lineTo(v2.x, v2.y);
             ctx.strokeStyle = "orange";
-            ctx.setLineDash([5, 3]); // dashed line
+            ctx.setLineDash([5 / scale, 3 / scale]); // dashed line
             ctx.lineWidth = (edge.thickness + 1) / scale;
             ctx.stroke();
         }
