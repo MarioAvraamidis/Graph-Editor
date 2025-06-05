@@ -14,25 +14,102 @@ h1 {
     display: flex;
     /* flex-direction: column; */
     align-items: flex-start;
-  }
-  
-.graphCanvas {
-    border: 1px solid #ccc;
-  }
-  
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
+    overflow-x: hidden;
+    /* overflow-y: hidden; */
 }
-#graph-container {
+  
+/*.graphCanvas {
+    border: 1px solid #ccc;
+  }*/
+
+  #graphCanvas {
+    display: block;
+    width: 100%;  /* Make it take 100% of its parent's width */
+    height: 100%; /* Make it take 100% of its parent's height */
+    /* background-color: #f9f9f9; */
+}
+/* Basic styling for the entire page */
+body {
+    margin: 0;
+    overflow: hidden; /* Prevent body scrollbars */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* height: 100vh; /* Make body take full viewport height */
+    font-family: sans-serif;
+    background-color: #f0f0f0; /* Light grey background for the page */
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Hide horizontal scrollbar if not needed */
+}
+
+/* Container for the canvas, where you define its visual size and border */
+#canvas-container {
+    border: 1px solid #000; /* Black border around the canvas */
+    background-color: white; /* White background for the actual drawing area */
+    /* Define the visual size of your canvas container */
+    /* Example: 80% of viewport width and 70% of viewport height */
+    width: 70vw; 
+    height: 85vh; 
+    
+    /* Or fixed pixel sizes: */
+    /* width: 1200px; */
+    /* height: 500px; */
+
+    position: relative; /* Useful for positioning elements inside if needed later */
+    display: flex; /* Using flex to help center the canvas within this container */
+    justify-content: center;
+    align-items: center;
+}
+
+/*#graph-container {
     width: 100%;
     height: 400px;
     border: 1px solid #000;
     margin-bottom: 20px;
+}*/
+
+#left-column {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  width: 15vw; 
+  height: 85vw;
 }
+
+/* Styling for the control buttons */
+#controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px; /* Space between buttons */
+    flex-direction: column;
+}
+
 #controls button {
-    margin-right: 10px;
+    padding: 5px 1px;
+    font-size: 1em;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #e0e0e0;
+    transition: background-color 0.2s ease;
+    width: 70%;
+    align-self: center;
 }
+
+#controls button:hover {
+    background-color: #d0d0d0;
+}
+
+#controls button:active {
+    background-color: #c0c0c0;
+}
+
+/* #controls button {
+    margin-right: 10px;
+} */
 .mode-container {
     display: flex;
     gap: 10px;
@@ -64,6 +141,8 @@ body {
     display: flex;
     flex-direction: column;
     margin-left: 10px;
+    width: 13vw;
+    height: 85vw;
   }
   
   .palette {
@@ -226,6 +305,11 @@ body {
     white-space: nowrap;
     /*flex-shrink: 0;*/
   }
+
+/* #output {
+    flex-shrink: 0; /* Prevents it from shrinking below its content size */
+    /* You might also use min-height: fit-content; or similar 
+} */
 
 .label-value-pair {
     display: flex; /* Use flexbox for alignment */
