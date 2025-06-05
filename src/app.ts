@@ -73,6 +73,7 @@ let pasteOffsetX: number = 0, pasteOffsetY: number = 0;
 // zoom
 let myCanvasHandler: CanvasHandler | null = null;
 let scale: number = 1;
+const dpr = window.devicePixelRatio || 1;
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
@@ -1728,8 +1729,12 @@ function showVertexInfo(vertex: Vertex) {
     infoBox.innerHTML = infoText;
     // infoBox.style.left = `${rect.left + vertex.x - 100}px`;
     // infoBox.style.top = `${rect.top + vertex.y - 50}px`;
-    infoBox.style.left = `${mouse.x}px`;
-    infoBox.style.top = `${mouse.y-25}px`;
+    const canvasPos = myCanvasHandler?.worldToCanvas(vertex.x,vertex.y);
+    if (canvasPos)
+    {
+        infoBox.style.left = `${rect.left + canvasPos.x + 10}px`;
+        infoBox.style.top = `${rect.top + canvasPos.y + 10}px`;
+    }
     infoBox.style.display = "block";
 }
 
@@ -1759,8 +1764,8 @@ function showCrossingInfo(cross: Crossing) {
     infoBox.innerHTML = infoText;
     // infoBox.style.left = `${cross.x + 30 }px`;
     // infoBox.style.top = `${cross.y + 50}px`;
-    infoBox.style.left = `${mouse.x}px`;
-    infoBox.style.top = `${mouse.y}px`;
+    infoBox.style.left = `${mouse.x + rect.left + 5}px`;
+    infoBox.style.top = `${mouse.y + rect.top + 5}px`;
     infoBox.style.display = "block";
 }
 
@@ -1926,8 +1931,8 @@ function showEdgeInfo(edge: Edge) {
     infoBox.innerHTML = infoText;
     // infoBox.style.left = `${rect.left + mouse.x + 5}px`;
     // infoBox.style.top = `${rect.top + mouse.y + 5}px`;
-    infoBox.style.left = `${mouse.x}px`;
-    infoBox.style.top = `${mouse.y+30}px`;
+    infoBox.style.left = `${rect.left + mouse.x + 10}px`;
+    infoBox.style.top = `${rect.top + mouse.y + 10}px`;
     infoBox.style.display = "block";
 }
 
@@ -2171,7 +2176,6 @@ async function exportCanvasAsImage() {
         const x = vertex.x + vertex.labelOffsetX;
         const y = vertex.y - vertex.size - vertex.labelOffsetY; // adjust position above the vertex
         const canvasPos = myCanvasHandler?.worldToCanvas(x,y);
-        const dpr = window.devicePixelRatio || 1;
         if (canvasPos)
             exportCtx.drawImage(img, canvasPos.x*dpr, canvasPos.y*dpr);
     }

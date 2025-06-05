@@ -35,6 +35,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
     justify-content: center;
     /* height: 100vh; /* Make body take full viewport height */
     font-family: sans-serif;

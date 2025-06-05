@@ -82,6 +82,7 @@ let pasteOffsetX = 0, pasteOffsetY = 0;
 // zoom
 let myCanvasHandler = null;
 let scale = 1;
+const dpr = window.devicePixelRatio || 1;
 document.addEventListener('DOMContentLoaded', () => {
     try {
         // Instantiate CanvasHandler, passing your renderGraph function as the drawing callback
@@ -1493,8 +1494,11 @@ function showVertexInfo(vertex) {
     infoBox.innerHTML = infoText;
     // infoBox.style.left = `${rect.left + vertex.x - 100}px`;
     // infoBox.style.top = `${rect.top + vertex.y - 50}px`;
-    infoBox.style.left = `${mouse.x}px`;
-    infoBox.style.top = `${mouse.y - 25}px`;
+    const canvasPos = myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.worldToCanvas(vertex.x, vertex.y);
+    if (canvasPos) {
+        infoBox.style.left = `${rect.left + canvasPos.x + 10}px`;
+        infoBox.style.top = `${rect.top + canvasPos.y + 10}px`;
+    }
     infoBox.style.display = "block";
 }
 function hideVertexInfo() {
@@ -1520,8 +1524,8 @@ function showCrossingInfo(cross) {
     infoBox.innerHTML = infoText;
     // infoBox.style.left = `${cross.x + 30 }px`;
     // infoBox.style.top = `${cross.y + 50}px`;
-    infoBox.style.left = `${mouse.x}px`;
-    infoBox.style.top = `${mouse.y}px`;
+    infoBox.style.left = `${mouse.x + rect.left + 5}px`;
+    infoBox.style.top = `${mouse.y + rect.top + 5}px`;
     infoBox.style.display = "block";
 }
 function hideCrossingInfo() {
@@ -1668,8 +1672,8 @@ function showEdgeInfo(edge) {
     infoBox.innerHTML = infoText;
     // infoBox.style.left = `${rect.left + mouse.x + 5}px`;
     // infoBox.style.top = `${rect.top + mouse.y + 5}px`;
-    infoBox.style.left = `${mouse.x}px`;
-    infoBox.style.top = `${mouse.y + 30}px`;
+    infoBox.style.left = `${rect.left + mouse.x + 10}px`;
+    infoBox.style.top = `${rect.top + mouse.y + 10}px`;
     infoBox.style.display = "block";
 }
 function hideEdgeInfo() {
@@ -1876,7 +1880,6 @@ function exportCanvasAsImage() {
             const x = vertex.x + vertex.labelOffsetX;
             const y = vertex.y - vertex.size - vertex.labelOffsetY; // adjust position above the vertex
             const canvasPos = myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.worldToCanvas(x, y);
-            const dpr = window.devicePixelRatio || 1;
             if (canvasPos)
                 exportCtx.drawImage(img, canvasPos.x * dpr, canvasPos.y * dpr);
         }
