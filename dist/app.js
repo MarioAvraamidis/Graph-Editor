@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
 // src/app.ts
 import { Graph, Vertex, Bend } from "./graph.js";
 import { CanvasHandler } from './canvasHandler.js';
@@ -119,6 +119,8 @@ function setMode(mode) {
 (_a = document.getElementById("mode-select")) === null || _a === void 0 ? void 0 : _a.addEventListener("click", () => setMode("select"));
 (_b = document.getElementById("mode-add-bend")) === null || _b === void 0 ? void 0 : _b.addEventListener("click", () => setMode("addBend"));
 // document.getElementById("mode-create-edge")?.addEventListener("click", () => setMode("createEdge"));
+// set up listener for fix view
+(_c = document.getElementById('fix-view')) === null || _c === void 0 ? void 0 : _c.addEventListener('click', () => fixView());
 //window.addEventListener("DOMContentLoaded", () => {
 const canvas = document.getElementById("graphCanvas");
 const ctx = canvas.getContext("2d");
@@ -190,7 +192,7 @@ checkboxes === null || checkboxes === void 0 ? void 0 : checkboxes.forEach(check
 });
 // event-listener for other highlighting crossing edges checkboxes
 for (const id of ["highlight-crossing-edges", "highlight-non-crossing-edges"]) {
-    (_c = document.getElementById(id)) === null || _c === void 0 ? void 0 : _c.addEventListener('change', () => {
+    (_d = document.getElementById(id)) === null || _d === void 0 ? void 0 : _d.addEventListener('change', () => {
         if (ctx)
             // drawGraph(ctx, graph, true);
             myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
@@ -201,7 +203,7 @@ function resizeCanvas() {
     canvas.height = window.innerHeight;
 }
 // Add Vertex
-(_d = document.getElementById("add-vertex")) === null || _d === void 0 ? void 0 : _d.addEventListener("click", () => {
+(_e = document.getElementById("add-vertex")) === null || _e === void 0 ? void 0 : _e.addEventListener("click", () => {
     const input = document.getElementById("vertexIdInput").value.trim();
     saveState();
     if (input) {
@@ -223,7 +225,7 @@ function resizeCanvas() {
     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
 });
 // Delete Vertex
-(_e = document.getElementById("delete-vertex")) === null || _e === void 0 ? void 0 : _e.addEventListener("click", () => {
+(_f = document.getElementById("delete-vertex")) === null || _f === void 0 ? void 0 : _f.addEventListener("click", () => {
     const input = document.getElementById("vertexIdInput").value.trim();
     if (input) {
         saveState();
@@ -233,7 +235,7 @@ function resizeCanvas() {
     }
 });
 // Add Edge
-(_f = document.getElementById("add-edge")) === null || _f === void 0 ? void 0 : _f.addEventListener("click", () => {
+(_g = document.getElementById("add-edge")) === null || _g === void 0 ? void 0 : _g.addEventListener("click", () => {
     const from = document.getElementById("edgeFromInput").value.trim();
     const to = document.getElementById("edgeToInput").value.trim();
     if (from && to) {
@@ -244,7 +246,7 @@ function resizeCanvas() {
     }
 });
 // Delete Edge
-(_g = document.getElementById("delete-edge")) === null || _g === void 0 ? void 0 : _g.addEventListener("click", () => {
+(_h = document.getElementById("delete-edge")) === null || _h === void 0 ? void 0 : _h.addEventListener("click", () => {
     const from = document.getElementById("edgeFromInput").value.trim();
     const to = document.getElementById("edgeToInput").value.trim();
     if (from && to) {
@@ -255,7 +257,7 @@ function resizeCanvas() {
     }
 });
 // Add bend to an edge
-(_h = document.getElementById("add-bend")) === null || _h === void 0 ? void 0 : _h.addEventListener("click", () => {
+(_j = document.getElementById("add-bend")) === null || _j === void 0 ? void 0 : _j.addEventListener("click", () => {
     const from = document.getElementById("edgeFromInput").value.trim();
     const to = document.getElementById("edgeToInput").value.trim();
     if (from && to) {
@@ -270,7 +272,7 @@ function resizeCanvas() {
     }
 });
 // Remove a bend from an edge
-(_j = document.getElementById("remove-bend")) === null || _j === void 0 ? void 0 : _j.addEventListener("click", () => {
+(_k = document.getElementById("remove-bend")) === null || _k === void 0 ? void 0 : _k.addEventListener("click", () => {
     const from = document.getElementById("edgeFromInput").value.trim();
     const to = document.getElementById("edgeToInput").value.trim();
     if (from && to) {
@@ -284,11 +286,11 @@ function resizeCanvas() {
         }
     }
 });
-(_k = document.getElementById("undo-button")) === null || _k === void 0 ? void 0 : _k.addEventListener("click", () => {
+(_l = document.getElementById("undo-button")) === null || _l === void 0 ? void 0 : _l.addEventListener("click", () => {
     undo();
 });
 // Redo button
-(_l = document.getElementById("redo-button")) === null || _l === void 0 ? void 0 : _l.addEventListener("click", () => {
+(_m = document.getElementById("redo-button")) === null || _m === void 0 ? void 0 : _m.addEventListener("click", () => {
     redo();
 });
 document.addEventListener('keydown', (e) => {
@@ -364,28 +366,28 @@ function redo() {
     }
 }
 // Place vertices in a circle
-(_m = document.getElementById("circle-placement")) === null || _m === void 0 ? void 0 : _m.addEventListener("click", () => {
+(_o = document.getElementById("circle-placement")) === null || _o === void 0 ? void 0 : _o.addEventListener("click", () => {
     saveState();
     graph.makeCircle(0, 0, Math.min(ctx.canvas.height, ctx.canvas.width) / 3, selectedVertices);
     // renderGraph();
     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
 });
 // make the graph (or the group of selected vertices) clique
-(_o = document.getElementById("make-clique")) === null || _o === void 0 ? void 0 : _o.addEventListener("click", () => {
+(_p = document.getElementById("make-clique")) === null || _p === void 0 ? void 0 : _p.addEventListener("click", () => {
     saveState();
     graph.addAllEdges(selectedVertices);
     // renderGraph();
     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
 });
 // make the graph straight line
-(_p = document.getElementById("clear-bends")) === null || _p === void 0 ? void 0 : _p.addEventListener("click", () => {
+(_q = document.getElementById("clear-bends")) === null || _q === void 0 ? void 0 : _q.addEventListener("click", () => {
     saveState();
     graph.removeBends();
     // renderGraph();
     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
 });
 // remove all the edges
-(_q = document.getElementById("clear-edges")) === null || _q === void 0 ? void 0 : _q.addEventListener("click", () => {
+(_r = document.getElementById("clear-edges")) === null || _r === void 0 ? void 0 : _r.addEventListener("click", () => {
     saveState();
     graph.removeEdges();
     // renderGraph();
@@ -481,7 +483,7 @@ vertexSize.addEventListener("input", () => {
         vertexChars.size = size;
 });
 // Vertex rename
-(_r = document.getElementById("rename-vertex")) === null || _r === void 0 ? void 0 : _r.addEventListener("click", () => {
+(_s = document.getElementById("rename-vertex")) === null || _s === void 0 ? void 0 : _s.addEventListener("click", () => {
     const input = document.getElementById("vertexIdInput").value.trim();
     if (input && selectedVertices.length === 1) {
         saveState();
@@ -1722,6 +1724,57 @@ function drawRubbishBin(ctx, x, y) {
 function saveState() {
     historyStack.push(graph.clone());
     redoStack.length = 0; // clear redo stack on new change
+}
+function fixView() {
+    // check if there are selected points
+    let points = [];
+    if (selectedPoints.length > 0)
+        points = selectedPoints;
+    else {
+        points = points.concat(graph.vertices);
+        points = points.concat(graph.getBends());
+    }
+    myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.fixView(findMaxY(points), findMinY(points), findMinX(points), findMaxX(points));
+}
+// find the max x-coordinate of the given points
+function findMaxX(points) {
+    if (points.length === 0)
+        return;
+    let maxX = points[0].x;
+    for (let i = 1; i < points.length; i++)
+        if (points[i].x > maxX)
+            maxX = points[i].x;
+    return maxX;
+}
+// find the min x-coordinate of the given points
+function findMinX(points) {
+    if (points.length === 0)
+        return null;
+    let minX = points[0].x;
+    for (let i = 1; i < points.length; i++)
+        if (points[i].x < minX)
+            minX = points[i].x;
+    return minX;
+}
+// find the max y-coordinate of the given points
+function findMaxY(points) {
+    if (points.length === 0)
+        return null;
+    let maxY = points[0].y;
+    for (let i = 1; i < points.length; i++)
+        if (points[i].y > maxY)
+            maxY = points[i].y;
+    return maxY;
+}
+// find the min y-coordinate of the given points
+function findMinY(points) {
+    if (points.length === 0)
+        return null;
+    let minY = points[0].y;
+    for (let i = 1; i < points.length; i++)
+        if (points[i].y < minY)
+            minY = points[i].y;
+    return minY;
 }
 // export as JSON
 function exportGraph(graph) {

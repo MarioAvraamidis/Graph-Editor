@@ -1215,6 +1215,14 @@ export class Graph {
         this.updateCrossings();
     }
 
+    getBends()
+    {
+        let bends: Bend[] = [];
+        for (const e of this._edges)
+            bends = bends.concat(e.bends)
+        return bends;
+    }
+
     // find which points of the graph are within a rectangle
     pointsInRect(x: number, y: number, width: number, height: number)
     {

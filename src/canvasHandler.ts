@@ -216,12 +216,67 @@ export class CanvasHandler {
         this.drawContent();
     }
 
+    public fixView(top: number, bottom: number, left: number, right: number, paddingFactor: number = 0.9): void {
+        const worldWidth = right - left;
+        const worldHeight = top - bottom;
+
+        const canvasWidth = this.canvas.clientWidth;  // CSS pixels
+        const canvasHeight = this.canvas.clientHeight; // CSS pixels
+
+        // Calculate world center regardless, as it's used in both cases
+        const worldCenterX = left + (worldWidth / 2);
+        const worldCenterY = bottom + (worldHeight / 2); // Assuming Y increases upwards in world coords
+
+        const canvasCenterX = canvasWidth / 2;
+        const canvasCenterY = canvasHeight / 2;
+
+        // --- Handle invalid (NaN/Infinity) inputs first ---
+        if (!isFinite(worldWidth) || !isFinite(worldHeight) || !isFinite(worldCenterX) || !isFinite(worldCenterY)) {
+            console.warn("fixView: Invalid (non-finite) world dimensions. Resetting view.");
+            this.resetView();
+            return;
+        }
+
+        // --- Handle Degenerate Cases (line or point) ---
+        if (worldWidth === 0 || worldHeight === 0) {
+            // console.log("fixView: Degenerate world dimensions (line or point). Setting scale to 1 and centering.");
+            this.scale = 1.0; // As requested, set scale to 1 for degenerate cases
+
+            // Center the degenerate axis/point on the canvas
+            this.translateX = canvasCenterX - (worldCenterX * this.scale);
+            this.translateY = canvasCenterY - (worldCenterY * this.scale);
+
+            this.drawContent();
+            return; // Exit after handling degenerate case
+        }
+
+        // --- Handle Valid (Non-Degenerate) World Rectangle ---
+        // Calculate the scale needed to fit the content with padding
+        const scaleX = (canvasWidth * paddingFactor) / worldWidth;
+        const scaleY = (canvasHeight * paddingFactor) / worldHeight;
+
+        // Choose the smaller scale to ensure the entire content fits
+        let newScale = Math.min(scaleX, scaleY);
+
+        // Clamp the new scale within the defined min/max limits
+        newScale = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, newScale));
+
+        this.scale = newScale;
+
+        // Calculate the new translation (translateX, translateY) to center the world box
+        this.translateX = canvasCenterX - (worldCenterX * this.scale);
+        this.translateY = canvasCenterY - (worldCenterY * this.scale);
+
+        this.drawContent(); // Redraw the canvas with the new view
+    }
+
     private addEventListeners(): void {
         this.canvas.addEventListener('wheel', this.handleMouseWheel.bind(this));
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
         document.getElementById('zoomInButton')?.addEventListener('click', () => this.zoom(this.ZOOM_FACTOR));
         document.getElementById('zoomOutButton')?.addEventListener('click', () => this.zoom(1 / this.ZOOM_FACTOR));
         document.getElementById('resetViewButton')?.addEventListener('click', () => this.resetView());
+        // document.getElementById('fix-view')?.addEventListener('click', () => this.fixView());
     }
 
     private handleMouseWheel(event: WheelEvent): void {

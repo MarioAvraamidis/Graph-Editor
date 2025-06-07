@@ -988,6 +988,12 @@ export class Graph {
             e.removeBends();
         this.updateCrossings();
     }
+    getBends() {
+        let bends = [];
+        for (const e of this._edges)
+            bends = bends.concat(e.bends);
+        return bends;
+    }
     // find which points of the graph are within a rectangle
     pointsInRect(x, y, width, height) {
         const pointsIn = [];

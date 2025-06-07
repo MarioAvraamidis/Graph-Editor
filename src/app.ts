@@ -117,6 +117,9 @@ document.getElementById("mode-select")?.addEventListener("click", () => setMode(
 document.getElementById("mode-add-bend")?.addEventListener("click", () => setMode("addBend"));
 // document.getElementById("mode-create-edge")?.addEventListener("click", () => setMode("createEdge"));
 
+// set up listener for fix view
+document.getElementById('fix-view')?.addEventListener('click', () => fixView());
+
 //window.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
@@ -1992,6 +1995,68 @@ function drawRubbishBin(ctx: CanvasRenderingContext2D, x: number, y: number) {
 function saveState() {
     historyStack.push(graph.clone());
     redoStack.length = 0; // clear redo stack on new change
+}
+
+function fixView()
+{
+    // check if there are selected points
+    let points: Point[] = [];
+    if (selectedPoints.length > 0)
+        points = selectedPoints;
+    else
+    {
+        points = points.concat(graph.vertices);
+        points = points.concat(graph.getBends());
+    }
+    myCanvasHandler?.fixView(findMaxY(points)!,findMinY(points)!,findMinX(points)!,findMaxX(points)!);
+}
+
+// find the max x-coordinate of the given points
+function findMaxX(points: Point[])
+{
+    if (points.length === 0)
+        return;
+    let maxX = points[0].x;
+    for (let i=1;i<points.length;i++)
+        if (points[i].x > maxX)
+            maxX = points[i].x;
+    return maxX;
+}
+
+// find the min x-coordinate of the given points
+function findMinX(points: Point[])
+{
+    if (points.length === 0)
+        return null;
+    let minX = points[0].x;
+    for (let i=1;i<points.length;i++)
+        if (points[i].x < minX)
+            minX = points[i].x;
+    return minX;
+}
+
+// find the max y-coordinate of the given points
+function findMaxY(points: Point[])
+{
+    if (points.length === 0)
+        return null;
+    let maxY = points[0].y;
+    for (let i=1;i<points.length;i++)
+        if (points[i].y > maxY)
+            maxY = points[i].y;
+    return maxY;
+}
+
+// find the min y-coordinate of the given points
+function findMinY(points: Point[])
+{
+    if (points.length === 0)
+        return null;
+    let minY = points[0].y;
+    for (let i=1;i<points.length;i++)
+        if (points[i].y < minY)
+            minY = points[i].y;
+    return minY;
 }
 
 // export as JSON
