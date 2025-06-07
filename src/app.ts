@@ -25,7 +25,7 @@ let currentMode: "select" | "addBend" = "select";   // | "createEdge"
 let hoveredEdge: Edge | null = null;
 let hoveredVertex: Vertex | null = null;
 let hoveredBend: Bend | null = null;
-let hoveredLabelVertex: Vertex | null = null;
+let hoveredLabelPoint: Point | null = null;
 let hoveredPoint: Point | null = null;
 let hoveredCrossing: Crossing | null = null;
 let hoveredCrossingEdges: [Edge | null, Edge | null];
@@ -52,7 +52,7 @@ let isSelecting = false;
 let selectionStart = { x: 0, y: 0 };
 let selectionRect = { x: 0, y: 0, width: 0, height: 0 };
 // moving labels
-let draggingLabelVertex: Vertex | null = null;
+let draggingLabelPoint: Point | null = null;
 // default colors for crossings
 let crossings_colors = { self: "purple", neighbor: "red", multiple: "orange", legal: "green" };
 // default colors for crossing edges
@@ -125,7 +125,9 @@ document.getElementById('fix-view')?.addEventListener('click', () => fixView());
     const ctx = canvas.getContext("2d");
     const contextMenu = document.getElementById('contextMenu') as HTMLDivElement;
     const edgeMenu = document.getElementById("edgeMenu") as HTMLDivElement;
-    const copyMenu = document.getElementById("copyMenu") as HTMLDivElement;
+    const selectedMenu = document.getElementById("selectedMenu") as HTMLDivElement;
+    const crossingMenu = document.getElementById("crossingMenu") as HTMLDivElement;
+    const labelMenu = document.getElementById("labelMenu") as HTMLDivElement;
 
     if (!ctx) {
         throw new Error("Could not get canvas rendering context");
@@ -749,7 +751,7 @@ canvas.addEventListener("mousedown", (e) => {
 
     // label move
     if (!creatingEdge)
-        draggingLabelVertex = hoveredLabelVertex;  
+        draggingLabelPoint = hoveredLabelPoint;  
 
     hasDragged = false;
     mousedown = true;
@@ -804,16 +806,16 @@ canvas.addEventListener("mousemove", e => {
     }
 
     // label move
-    if (draggingLabelVertex && hasDragged)
+    if (draggingLabelPoint && hasDragged)
     {
         // draggingLabelVertex.labelOffsetX = inLimits(mouse.x - draggingLabelVertex.x,40);
         // draggingLabelVertex.labelOffsetY = inLimits(- mouse.y + draggingLabelVertex.y,40);
-        draggingLabelVertex.labelOffsetX = inLimits(worldCoords.x - draggingLabelVertex.x,40)*scale;
-        draggingLabelVertex.labelOffsetY = inLimits(- worldCoords.y + draggingLabelVertex.y,40)*scale;
+        draggingLabelPoint.labelOffsetX = inLimits(worldCoords.x - draggingLabelPoint.x,40/scale)*scale;
+        draggingLabelPoint.labelOffsetY = inLimits(- worldCoords.y + draggingLabelPoint.y,40/scale)*scale;
     }
 
     // create a rectangle showing selected space
-    if (selectedPoints.length === 0 && !creatingEdge && !e.ctrlKey && !draggingLabelVertex && mousedown && hasDragged)
+    if (selectedPoints.length === 0 && !creatingEdge && !e.ctrlKey && !draggingLabelPoint && mousedown && hasDragged)
     {
         isSelecting = true;
         // console.log("creatingEdge=",creatingEdge);
@@ -936,7 +938,7 @@ canvas.addEventListener("mouseup", (e) => {
       //  saveState();
 
     isSelecting = false;
-    draggingLabelVertex = null;
+    draggingLabelPoint = null;
     draggingPoints = [];
     // hasDragged = false;
     mousedown = false;
@@ -973,7 +975,7 @@ canvas.addEventListener("click", (e: MouseEvent) => {
     checkHovered();
 
     // if nothing hovered or selected, add a new vertex at the clicked position
-    if (!hoveredVertex && !hoveredBend && !hoveredEdge && !selectedPoints.length && !selectedEdges.length && !draggingLabelVertex && canAddVertex)
+    if (!hoveredVertex && !hoveredBend && !hoveredEdge && !selectedPoints.length && !selectedEdges.length && !draggingLabelPoint && canAddVertex)
         {
             saveState();
             // const vertex = graph.addNewVertex(mouse.x,mouse.y);
@@ -1035,10 +1037,14 @@ canvas.addEventListener('contextmenu', (event) => {
     event.preventDefault(); // Prevent the browser's default context menu
     // rightClickPos = {x: mouse.x, y: mouse.y};
     rightClickPos = {x: worldCoords.x, y: worldCoords.y};
-    if (hoveredVertex && selectedVertices.includes(hoveredVertex) || hoveredEdge && selectedEdges.includes(hoveredEdge))
-        showContextMenu(event.clientX, event.clientY, copyMenu);
+    if (hoveredVertex && selectedVertices.includes(hoveredVertex) || hoveredEdge && selectedEdges.includes(hoveredEdge) || hoveredBend && selectedBends.includes(hoveredBend))
+        showContextMenu(event.clientX, event.clientY, selectedMenu);
     if (hoveredEdge)    // show edge menu
         showContextMenu(event.clientX, event.clientY, edgeMenu);
+    if (hoveredCrossing)    // show crossing menu
+        showContextMenu(event.clientX, event.clientY, crossingMenu);
+    if (hoveredLabelPoint)
+        showContextMenu(event.clientX, event.clientY, labelMenu);
     else    // show general menu
         showContextMenu(event.clientX, event.clientY, contextMenu);
     showingContextMenu = true;
@@ -1046,15 +1052,22 @@ canvas.addEventListener('contextmenu', (event) => {
 
 // Function to hide the context menu
 function hideContextMenu() {
+    /*const menus: HTMLDivElement[] = [contextMenu,edgeMenu,selectedMenu,crossingMenu,labelMenu];
+    for (const menu in menus)
+            menu.style.display = 'none';*/
     if (contextMenu) {
         contextMenu.style.display = 'none';
     }
     if (edgeMenu) {
         edgeMenu.style.display = 'none';
     }
-    if (copyMenu) {
-        copyMenu.style.display = 'none';
+    if (selectedMenu) {
+        selectedMenu.style.display = 'none';
     }
+    if (crossingMenu)
+        crossingMenu.style.display = 'none';
+    if (labelMenu)
+        labelMenu.style.display = 'none';
 }
 
 // Function to show and position the context menu
@@ -1154,8 +1167,8 @@ edgeMenu.addEventListener('click', (event) => {
     }
 });
 
-// edge menu options
-copyMenu.addEventListener('click', (event) => {
+// selected menu options
+selectedMenu.addEventListener('click', (event) => {
     const target = event.target as HTMLElement;
 
     // Ensure a menu item was clicked
@@ -1175,6 +1188,76 @@ copyMenu.addEventListener('click', (event) => {
                 }
                 else
                     console.log("Select both the vertices of the selected edges");
+                break;
+            case "showLabels":
+                for (const point of selectedPoints)
+                    point.showLabel = true;
+                myCanvasHandler?.redraw();
+                break;
+            case "hideLabels":
+                for (const point of selectedPoints)
+                    point.showLabel = false;
+                myCanvasHandler?.redraw();
+                break;
+            // Add more cases for other actions
+            default:
+                console.log(`Action not implemented: ${action}`);
+        }
+    }
+});
+
+// crossing menu options
+crossingMenu.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+
+    // Ensure a menu item was clicked
+    if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
+        const action = target.getAttribute('data-action');
+        hideContextMenu(); // Hide menu after selection
+
+        switch (action) {
+            case "showLabel":
+                if (hoveredCrossing)
+                {
+                    hoveredCrossing.showLabel = true;
+                    myCanvasHandler?.redraw();
+                }
+                break;
+            case "hideLabel":
+                if (hoveredCrossing)
+                {
+                    hoveredCrossing.showLabel = false;
+                    myCanvasHandler?.redraw();
+                }
+                break;
+            // Add more cases for other actions
+            default:
+                console.log(`Action not implemented: ${action}`);
+        }
+    }
+});
+
+// label menu options
+labelMenu.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+
+    // Ensure a menu item was clicked
+    if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
+        const action = target.getAttribute('data-action');
+        hideContextMenu(); // Hide menu after selection
+
+        switch (action) {
+            case "editLabel":
+                if (hoveredLabelPoint)
+                {
+                    // FIX: Display a warning message. No console.log
+                    if (hoveredLabelPoint instanceof Vertex)
+                        console.log("Vertex labels show only ID. You can change the vertex's ID from Vertex palette");
+                    else
+                    {
+
+                    }
+                }
                 break;
             // Add more cases for other actions
             default:
@@ -1214,7 +1297,7 @@ function setNothingSelected()
 }
 
 // check that no one of the main acts is in process
-function nothingInProcess() { return !creatingEdge && !draggingLabelVertex && !hasDragged && !isSelecting; }
+function nothingInProcess() { return !creatingEdge && !draggingLabelPoint && !hasDragged && !isSelecting; }
 
 // selected Points = selected Vertices & selected Bends
 function selectedPointsUpdate()
@@ -1283,14 +1366,35 @@ function checkHovered()
         }
     }
 
+    // find hoveredLabelPoint
     if (!hoveredVertex && !hoveredBend && !hoveredEdge)
     {
+        // check vertices first
         for (const v of graph.vertices)
             if (isNearLabel(v,worldCoords.x,worldCoords.y))
             {
-                hoveredLabelVertex = v;
+                hoveredLabelPoint = v;
                 break;
             }
+        // check crossings
+        if (!hoveredLabelPoint)
+            for (const cros of graph.crossings)
+                if (isNearLabel(cros,worldCoords.x,worldCoords.y))
+                {
+                    hoveredLabelPoint = cros;
+                    break;
+                }
+        // check bends
+        if (!hoveredLabelPoint)
+        {
+            const bends = graph.getBends();
+            for (const bend of bends)
+                if (isNearLabel(bend,worldCoords.x,worldCoords.y))
+                {
+                    hoveredLabelPoint = bend;
+                    break;
+                }
+        }
     }
 }
 
@@ -1301,7 +1405,7 @@ function setHoveredObjectsNull()
     hoveredCrossing = null;
     hoveredEdge = null;
     hoveredCrossingEdges = [null,null];
-    hoveredLabelVertex = null;
+    hoveredLabelPoint = null;
 }
 
 // Check if the vertices of the selectedEdges are selected. If not, return false
@@ -1637,6 +1741,8 @@ function drawCrossing(ctx: CanvasRenderingContext2D, cros: Point, color: string)
     ctx.arc(cros.x, cros.y, radius/scale!, 0 , 2*Math.PI);
     ctx.strokeStyle = color;
     ctx.stroke();
+    // label
+    showPointLabel(ctx,cros);
 }
 
 // function for drawing a vertex
@@ -1649,25 +1755,28 @@ function drawVertex(ctx: CanvasRenderingContext2D, v: Vertex, labels: boolean = 
 
     // Draw label
     if (labels)
-    {
-        ctx.fillStyle = "#000";
-        if (hoveredLabelVertex === v)
-            ctx.fillStyle = "red";
-        // const fontSize = Math.trunc(14/scale);
-        // ctx.font = fontSize.toString+"px sans-serif";
-        // ctx.font = "14px sans-serif";
-        const adjustedFontSize = 14 / scale;
-        ctx.font = `${adjustedFontSize}px sans-serif`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "top";
-        // we want the difference between the vertex and the label to remain the same regardless of the zoom scale, so we devide offsets by scale
-            ctx.fillText(v.id, v.x + v.labelOffsetX/scale , v.y - (v.size + v.labelOffsetY)/scale);   // positive is down in canvas
-        ctx.fillStyle = "#000";
-    }
+        showPointLabel(ctx,v);
 
     // add an orange circle around a selected vertex
     if (selectedVertices.includes(v)) 
         drawShape(ctx, v.x, v.y, v.shape, v.size+2, "#FFA500", false);  // scaling in drawShape function
+}
+
+// display the label of the given point
+function showPointLabel(ctx: CanvasRenderingContext2D, p: Point)
+{
+    if (!p.showLabel)
+        return;
+    ctx.fillStyle = p.labelColor;
+    if (hoveredLabelPoint === p)
+        ctx.fillStyle = "red";
+    const adjustedFontSize = p.labelFont / scale;
+    ctx.font = `${adjustedFontSize}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    // we want the difference between the vertex and the label to remain the same regardless of the zoom scale, so we devide offsets by scale
+        ctx.fillText(p.labelContext, p.x + p.labelOffsetX/scale , p.y - (p.size + p.labelOffsetY)/scale);   // positive is down in canvas
+    ctx.fillStyle = "#000";
 }
 
 declare var MathJax: any;
@@ -1796,6 +1905,8 @@ function drawBend(ctx: CanvasRenderingContext2D, bend: Bend)
     // add a dashed circle around a selected bend
     if (selectedBends.includes(bend)) 
         showSelectedPoint(ctx, bend);
+    // label
+    showPointLabel(ctx,bend);
 }
 
 // add a dashed circle around a selected point
@@ -1944,11 +2055,13 @@ function hideEdgeInfo() {
 }
 
 // check that mouse is near a label (in world coordinates)
-function isNearLabel(vertex: Vertex, x: number, y: number): boolean {
-    const labelX = vertex.x + vertex.labelOffsetX/scale;
-    const labelY = vertex.y - (vertex.size + vertex.labelOffsetY)/scale;    // check that label is positioned at these coordinates at drawVertex function
-    const width = 20/scale;
-    const height = 20/scale;
+function isNearLabel(point: Point, x: number, y: number): boolean {
+    if (!point.showLabel)
+        return false;   // return false if the point's label is not displayed
+    const labelX = point.x + point.labelOffsetX/scale;
+    const labelY = point.y - (point.size + point.labelOffsetY)/scale;    // check that label is positioned at these coordinates at drawVertex function
+    const width = point.labelContext.length*point.labelFont/scale;  
+    const height = 1.3*point.labelFont/scale;
     return x >= labelX - width/2 && x <= labelX + width/2 &&
            y >= labelY && y <= labelY + height;
 }

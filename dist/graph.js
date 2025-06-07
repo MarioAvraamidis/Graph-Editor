@@ -2,9 +2,16 @@ export class Point {
     constructor(id, x_pos, y_pos) {
         this._x = 10;
         this._y = 10;
+        // desing
         this._size = 5; //  if circle, size = radius, if square, size = side length
         this._color = "#000000";
+        this._showLabel = false;
+        this.labelOffsetX = 0;
+        this.labelOffsetY = 15; // remember that positive is down in canvas
+        this.labelColor = "#000";
+        this.labelFont = 14;
         this._id = id;
+        this._labelContext = id;
         if (x_pos != undefined)
             this._x = x_pos;
         if (y_pos != undefined)
@@ -15,11 +22,15 @@ export class Point {
     get y() { return this._y; }
     get size() { return this._size; }
     get color() { return this._color; }
+    get labelContext() { return this._labelContext; }
+    get showLabel() { return this._showLabel; }
     set id(id) { this._id = id; }
     set x(x_pos) { this._x = x_pos; }
     set y(y_pos) { this._y = y_pos; }
     set size(s) { this._size = s; }
     set color(c) { this._color = c; }
+    set labelContext(label) { this._labelContext = label; }
+    set showLabel(show) { this._showLabel = show; }
     // print details (name and coordinates)
     print() { console.log(this._id, "x:" + this._x, "y:" + this._y); }
     // move the Vertex to a specified location in the plane
@@ -28,18 +39,17 @@ export class Point {
     isIn(x, y, width, height) { return x <= this._x && this._x <= x + width && y <= this._y && this._y <= y + height; }
 }
 export class Vertex extends Point {
+    // private _shape: "circle" | "square" | "triangle" = "circle";
     constructor(id, x_pos, y_pos, temp) {
         super(id, x_pos, y_pos);
         this._temporary = false; // used when drawing a new edge from a vertex
         this._shape = "circle";
-        // private _shape: "circle" | "square" | "triangle" = "circle";
-        this.labelOffsetX = 0;
-        this.labelOffsetY = 15; // remember that positive is down in canvas
         if (temp !== undefined) // used in cloning
             this._temporary = temp;
         this._neighbors = [];
         this.color = "#000000";
         this.size = 7;
+        this.showLabel = true;
     }
     get neighbors() { return this._neighbors; }
     get temporary() { return this._temporary; }

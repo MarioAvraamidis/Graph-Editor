@@ -181,7 +181,7 @@ export class CanvasHandler {
         this.translateY = this.canvas.clientHeight / 2;
         this.drawContent();
     }
-    fixView(top, bottom, left, right, paddingFactor = 0.9) {
+    fixView(top, bottom, left, right, paddingFactor = 0.8) {
         const worldWidth = right - left;
         const worldHeight = top - bottom;
         const canvasWidth = this.canvas.clientWidth; // CSS pixels

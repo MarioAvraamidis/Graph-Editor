@@ -222,7 +222,7 @@ export class CanvasHandler {
         this.drawContent();
     }
 
-    public fixView(top: number, bottom: number, left: number, right: number, paddingFactor: number = 0.9): void {
+    public fixView(top: number, bottom: number, left: number, right: number, paddingFactor: number = 0.8): void {
         const worldWidth = right - left;
         const worldHeight = top - bottom;
 

@@ -3,13 +3,21 @@ export abstract class Point
     private _id: string ;
     private _x: number = 10;
     private _y: number = 10;
-    
+    // desing
     private _size: number = 5;  //  if circle, size = radius, if square, size = side length
     private _color: string = "#000000";
+    // labeling
+    private _labelContext: string;
+    private _showLabel: boolean = false;
+    labelOffsetX: number = 0;
+    labelOffsetY: number = 15;  // remember that positive is down in canvas
+    labelColor: string = "#000";
+    labelFont: number = 14;
 
     constructor(id: string, x_pos?:number, y_pos?:number)
     {
         this._id = id;
+        this._labelContext = id;
         if (x_pos != undefined)
             this._x = x_pos;
         if (y_pos != undefined)
@@ -21,12 +29,16 @@ export abstract class Point
     get y() { return this._y;}
     get size() { return this._size; }
     get color() { return this._color; }
+    get labelContext() { return this._labelContext; }
+    get showLabel() { return this._showLabel; }
 
     set id(id: string) {this._id = id;}
     set x(x_pos) {this._x = x_pos}
     set y(y_pos) {this._y = y_pos}
     set size(s: number) { this._size = s; }
     set color(c: string) {this._color = c; }
+    set labelContext(label: string) { this._labelContext = label; }
+    set showLabel(show: boolean) { this._showLabel = show; }
 
     // print details (name and coordinates)
     print() {console.log(this._id,"x:"+this._x,"y:"+this._y)}
@@ -43,8 +55,6 @@ export class Vertex extends Point
     private _temporary: boolean = false;    // used when drawing a new edge from a vertex
     private _shape: string = "circle";
     // private _shape: "circle" | "square" | "triangle" = "circle";
-    labelOffsetX: number = 0;
-    labelOffsetY: number = 15;  // remember that positive is down in canvas
 
     constructor(id: string, x_pos?:number, y_pos?:number, temp?: boolean)
     {
@@ -54,6 +64,7 @@ export class Vertex extends Point
         this._neighbors = [];
         this.color = "#000000";
         this.size = 7;
+        this.showLabel = true;
     }
 
     get neighbors() { return this._neighbors; }
