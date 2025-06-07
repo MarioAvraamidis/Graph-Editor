@@ -8,6 +8,7 @@ export class CanvasHandler {
     private translateX: number = 0;
     private translateY: number = 0;
     private drawCallback: DrawGraphCallback;
+    private zoomDisplaySpan: HTMLElement | null = null;
 
     private readonly ZOOM_FACTOR: number = 1.1;
     private readonly MIN_SCALE: number = 0.1;
@@ -29,6 +30,9 @@ export class CanvasHandler {
         // --- UPDATED: Dynamic sizing and DPI handling ---
         this.resizeCanvas(); // Call this once initially
         window.addEventListener('resize', this.handleWindowResize.bind(this));
+
+        // Get reference to the zoom display span
+        this.zoomDisplaySpan = document.getElementById('currentZoomSpan');
 
         // Set initial translation to center the graph's (0,0) in the canvas (in CSS pixels)
         // This is based on the *visual* size of the canvas, which is what the user perceives.
@@ -106,6 +110,8 @@ export class CanvasHandler {
 
         // 6. Call the external drawing function with the now transformed context
         this.drawCallback(this.ctx, this.scale);
+
+        this.updateZoomDisplay();
 
         // Optional debug info: World origin (0,0) marker
         /*const crossArmLength = 10; // Length of each arm of the cross in world units at scale 1
@@ -323,4 +329,11 @@ export class CanvasHandler {
     }
 
     public getScale(): number {return this.scale}
+
+    private updateZoomDisplay(): void {
+        if (this.zoomDisplaySpan) {
+            const zoomPercentage = (this.scale * 100).toFixed(0); // No decimal places for simplicity
+            this.zoomDisplaySpan.textContent = `${zoomPercentage}%`;
+        }
+    }
 }
