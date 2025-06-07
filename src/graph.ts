@@ -534,6 +534,7 @@ export class Graph {
 
     // return the vertex near a specified (x,y) location (at distance < dist from (x,y) )
     // first check the array of vertices given
+    // scale is used because the zoom scale might not be 1, but the vertices are shown at a fixed size regardless of the zoom
     getVertexAtPosition(x: number, y: number, scale: number = 1, vert: Vertex[] = [])
     {
         // check vertices of the array

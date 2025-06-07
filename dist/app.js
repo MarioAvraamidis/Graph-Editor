@@ -18,7 +18,7 @@ const historyStack = [];
 const redoStack = [];
 // mouse
 let mouse;
-let worldCoords; // graph coordinates (used when transforming during zoom)
+let worldCoords; // graph coordinates of cursor (used when transforming during zoom)
 let offsetX = 0; // x-offset between click position and mouse's current position
 let offsetY = 0; // y-offset between click position and mouse's current position
 // dragging
@@ -81,7 +81,7 @@ let menuCopy;
 let pasteOffsetX = 0, pasteOffsetY = 0;
 // zoom
 let myCanvasHandler = null;
-let scale = 1;
+let scale = 1; // for all the elements that we want their size to remain the same regardless of the zoom scale, devide the size by scale
 const dpr = window.devicePixelRatio || 1;
 document.addEventListener('DOMContentLoaded', () => {
     try {
@@ -717,8 +717,8 @@ canvas.addEventListener("mousemove", e => {
     if (draggingLabelVertex && hasDragged) {
         // draggingLabelVertex.labelOffsetX = inLimits(mouse.x - draggingLabelVertex.x,40);
         // draggingLabelVertex.labelOffsetY = inLimits(- mouse.y + draggingLabelVertex.y,40);
-        draggingLabelVertex.labelOffsetX = inLimits(worldCoords.x - draggingLabelVertex.x, 40);
-        draggingLabelVertex.labelOffsetY = inLimits(-worldCoords.y + draggingLabelVertex.y, 40);
+        draggingLabelVertex.labelOffsetX = inLimits(worldCoords.x - draggingLabelVertex.x, 40) * scale;
+        draggingLabelVertex.labelOffsetY = inLimits(-worldCoords.y + draggingLabelVertex.y, 40) * scale;
     }
     // create a rectangle showing selected space
     if (selectedPoints.length === 0 && !creatingEdge && !e.ctrlKey && !draggingLabelVertex && mousedown && hasDragged) {
@@ -1341,7 +1341,7 @@ function drawGraph(ctx, graph, localCall = false, labels = true) {
     if (isSelecting) {
         ctx.strokeStyle = "rgba(15, 15, 62, 0.86)";
         ctx.lineWidth = 1 / scale;
-        ctx.setLineDash([6]);
+        ctx.setLineDash([6 / scale]);
         ctx.strokeRect(selectionRect.x, selectionRect.y, selectionRect.width, selectionRect.height);
         ctx.setLineDash([]);
     }
@@ -1434,8 +1434,7 @@ function drawVertex(ctx, v, labels = true) {
         ctx.font = `${adjustedFontSize}px sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        // const labelCords = myCanvasHandler?.worldToCanvas(v.x + v.labelOffsetX,v.y - v.size - v.labelOffsetY);
-        // if (labelCords)
+        // we want the difference between the vertex and the label to remain the same regardless of the zoom scale, so we devide offsets by scale
         ctx.fillText(v.id, v.x + v.labelOffsetX / scale, v.y - (v.size + v.labelOffsetY) / scale); // positive is down in canvas
         ctx.fillStyle = "#000";
     }
@@ -1680,11 +1679,12 @@ function hideEdgeInfo() {
     const infoBox = document.getElementById("edge-info");
     infoBox.style.display = "none";
 }
+// check that mouse is near a label (in world coordinates)
 function isNearLabel(vertex, x, y) {
-    const labelX = vertex.x + vertex.labelOffsetX;
-    const labelY = vertex.y - vertex.size - vertex.labelOffsetY; // check that label is positioned at these coordinates
-    const width = 20;
-    const height = 20;
+    const labelX = vertex.x + vertex.labelOffsetX / scale;
+    const labelY = vertex.y - (vertex.size + vertex.labelOffsetY) / scale; // check that label is positioned at these coordinates at drawVertex function
+    const width = 20 / scale;
+    const height = 20 / scale;
     return x >= labelX - width / 2 && x <= labelX + width / 2 &&
         y >= labelY && y <= labelY + height;
 }

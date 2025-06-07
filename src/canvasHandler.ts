@@ -55,7 +55,7 @@ export class CanvasHandler {
         // to match its visual display dimensions, scaled by devicePixelRatio for sharpness.
         this.canvas.width = this.canvas.clientWidth * dpr;
         this.canvas.height = this.canvas.clientHeight * dpr;
-        console.log("canvas (width,height)=("+this.canvas.width+","+this.canvas.height+")    dpr="+dpr);
+        // console.log("canvas (width,height)=("+this.canvas.width+","+this.canvas.height+")    dpr="+dpr);
     }
 
     /*private applyTransform(): void {
