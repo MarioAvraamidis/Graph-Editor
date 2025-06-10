@@ -123,11 +123,17 @@ document.getElementById('fix-view')?.addEventListener('click', () => fixView());
 //window.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
+    // menus
     const contextMenu = document.getElementById('contextMenu') as HTMLDivElement;
     const edgeMenu = document.getElementById("edgeMenu") as HTMLDivElement;
     const selectedMenu = document.getElementById("selectedMenu") as HTMLDivElement;
-    const crossingMenu = document.getElementById("crossingMenu") as HTMLDivElement;
+    const pointMenu = document.getElementById("pointMenu") as HTMLDivElement;
     const labelMenu = document.getElementById("labelMenu") as HTMLDivElement;
+    // edit label modal
+    const editLabelModal = document.getElementById('editLabelModal') as HTMLElement;
+    const closeButton = editLabelModal.querySelector('.close-button') as HTMLElement;
+    // don't show the modal when refreshing
+    hideEditLabelModal();
 
     if (!ctx) {
         throw new Error("Could not get canvas rendering context");
@@ -360,6 +366,7 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
                 deleteSelectedVertices();
                 deleteSelectedBends();
                 deleteSelectedEdges();
+                selectedPointsUpdate();
                 checkHovered();
                 // renderGraph();
                 myCanvasHandler?.redraw();
@@ -720,7 +727,7 @@ canvas.addEventListener("mousedown", (e) => {
     // check if the clicked point belongs to the selected ones
     // if yes, set dragging points = selected points and store the positions of selected vertices at the time of mousedown
     // hoveredPoint = graph.getPointAtPosition(mouse.x, mouse.y);
-    hoveredPoint = graph.getPointAtPosition(worldCoords.x, worldCoords.y,scale);
+    // hoveredPoint = graph.getPointAtPosition(worldCoords.x, worldCoords.y,scale);
     if (hoveredPoint && selectedPoints.includes(hoveredPoint) || hoveredEdge && selectedEdges.includes(hoveredEdge))
     {
         saveState();
@@ -1037,13 +1044,14 @@ canvas.addEventListener('contextmenu', (event) => {
     event.preventDefault(); // Prevent the browser's default context menu
     // rightClickPos = {x: mouse.x, y: mouse.y};
     rightClickPos = {x: worldCoords.x, y: worldCoords.y};
-    if (hoveredVertex && selectedVertices.includes(hoveredVertex) || hoveredEdge && selectedEdges.includes(hoveredEdge) || hoveredBend && selectedBends.includes(hoveredBend))
+    //if (hoveredVertex && selectedVertices.includes(hoveredVertex) || hoveredEdge && selectedEdges.includes(hoveredEdge) || hoveredBend && selectedBends.includes(hoveredBend))
+    if (hoveredPoint && selectedPoints.includes(hoveredPoint) || hoveredEdge && selectedEdges.includes(hoveredEdge))
         showContextMenu(event.clientX, event.clientY, selectedMenu);
-    if (hoveredEdge)    // show edge menu
+    else if (hoveredEdge)    // show edge menu
         showContextMenu(event.clientX, event.clientY, edgeMenu);
-    if (hoveredCrossing)    // show crossing menu
-        showContextMenu(event.clientX, event.clientY, crossingMenu);
-    if (hoveredLabelPoint)
+    else if (hoveredPoint)    // show point menu
+        showContextMenu(event.clientX, event.clientY, pointMenu);
+    else if (hoveredLabelPoint )
         showContextMenu(event.clientX, event.clientY, labelMenu);
     else    // show general menu
         showContextMenu(event.clientX, event.clientY, contextMenu);
@@ -1052,7 +1060,7 @@ canvas.addEventListener('contextmenu', (event) => {
 
 // Function to hide the context menu
 function hideContextMenu() {
-    /*const menus: HTMLDivElement[] = [contextMenu,edgeMenu,selectedMenu,crossingMenu,labelMenu];
+    /*const menus: HTMLDivElement[] = [contextMenu,edgeMenu,selectedMenu,pointMenu,labelMenu];
     for (const menu in menus)
             menu.style.display = 'none';*/
     if (contextMenu) {
@@ -1064,8 +1072,8 @@ function hideContextMenu() {
     if (selectedMenu) {
         selectedMenu.style.display = 'none';
     }
-    if (crossingMenu)
-        crossingMenu.style.display = 'none';
+    if (pointMenu)
+        pointMenu.style.display = 'none';
     if (labelMenu)
         labelMenu.style.display = 'none';
 }
@@ -1207,7 +1215,7 @@ selectedMenu.addEventListener('click', (event) => {
 });
 
 // crossing menu options
-crossingMenu.addEventListener('click', (event) => {
+pointMenu.addEventListener('click', (event) => {
     const target = event.target as HTMLElement;
 
     // Ensure a menu item was clicked
@@ -1217,16 +1225,16 @@ crossingMenu.addEventListener('click', (event) => {
 
         switch (action) {
             case "showLabel":
-                if (hoveredCrossing)
+                if (hoveredPoint)
                 {
-                    hoveredCrossing.showLabel = true;
+                    hoveredPoint.showLabel = true;
                     myCanvasHandler?.redraw();
                 }
                 break;
             case "hideLabel":
-                if (hoveredCrossing)
+                if (hoveredPoint)
                 {
-                    hoveredCrossing.showLabel = false;
+                    hoveredPoint.showLabel = false;
                     myCanvasHandler?.redraw();
                 }
                 break;
@@ -1250,13 +1258,9 @@ labelMenu.addEventListener('click', (event) => {
             case "editLabel":
                 if (hoveredLabelPoint)
                 {
+                    showEditLabelModal();
                     // FIX: Display a warning message. No console.log
-                    if (hoveredLabelPoint instanceof Vertex)
-                        console.log("Vertex labels show only ID. You can change the vertex's ID from Vertex palette");
-                    else
-                    {
-
-                    }
+                    // if (hoveredLabelPoint instanceof Vertex)
                 }
                 break;
             // Add more cases for other actions
@@ -1265,6 +1269,34 @@ labelMenu.addEventListener('click', (event) => {
         }
     }
 });
+
+// display the edit label modal
+function showEditLabelModal() {
+    if (editLabelModal) {
+        editLabelModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
+    }
+}
+
+//  hide the modal
+function hideEditLabelModal() {
+    if (editLabelModal) {
+        editLabelModal.style.display = 'none';
+    }
+}
+
+// event listener to the close button
+if (closeButton) {
+    closeButton.addEventListener('click', hideEditLabelModal);
+}
+
+// Allow clicking outside the modal content to close it 
+if (editLabelModal) {
+    editLabelModal.addEventListener('click', (event) => {
+        if (event.target === editLabelModal) { // Check if the click was directly on the modal background
+            hideEditLabelModal();
+        }
+    });
+}
   
 
 // Add the selected object (vertex, bend, edge) to the appropriate array of selected objects
@@ -1353,14 +1385,21 @@ function checkHovered()
     // to go back, replace all worldCoords with mouse
     setHoveredObjectsNull();
     hoveredVertex = graph.getVertexAtPosition(worldCoords.x, worldCoords.y, scale, selectedVertices);
-    if (!hoveredVertex)
+    if (hoveredVertex)
+        hoveredPoint = hoveredVertex;
+    else
     {
         hoveredBend = graph.isNearBend(worldCoords.x,worldCoords.y,scale);
-        if (! hoveredBend)
+        if (hoveredBend)
+            hoveredPoint = hoveredBend;
+        else
         {
             hoveredCrossing = graph.isNearCrossing(worldCoords.x,worldCoords.y,(crosRadius+2)/scale);
             if (hoveredCrossing)
+            {
+                hoveredPoint = hoveredCrossing;
                 hoveredCrossingEdges = hoveredCrossing.edges;
+            }
             else
                 hoveredEdge = graph.isNearEdge(worldCoords.x,worldCoords.y,3/scale);
         }
@@ -1403,6 +1442,7 @@ function setHoveredObjectsNull()
     hoveredVertex = null;
     hoveredBend = null;
     hoveredCrossing = null;
+    hoveredPoint = null;
     hoveredEdge = null;
     hoveredCrossingEdges = [null,null];
     hoveredLabelPoint = null;

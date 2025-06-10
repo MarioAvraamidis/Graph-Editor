@@ -386,3 +386,49 @@ body {
 .context-menu li:hover {
     background-color: #f0f0f0; /* Light gray background on hover */
 }  
+
+/* Styles for the Modal */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top (higher than most content) */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    /* Use flexbox to center the modal-content */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be a fixed width like 300px, or percentage */
+    max-width: 500px; /* Max width for larger screens */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border-radius: 8px;
+    position: relative; /* Needed for positioning the close button */
+}
+
+.close-button {
+    color: #aaa;
+    float: right; /* Positions it to the top-right */
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute; /* Absolute position relative to modal-content */
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
