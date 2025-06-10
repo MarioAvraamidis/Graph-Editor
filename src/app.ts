@@ -611,6 +611,7 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
     deleteVertexBtn.addEventListener("click", () => {
         saveState();
         deleteSelectedVertices();
+        selectedPointsUpdate();
         // renderGraph();
         myCanvasHandler?.redraw();
     });
@@ -619,6 +620,7 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
     deleteBendBtn.addEventListener("click", () => {
         saveState();
         deleteSelectedBends();
+        selectedPointsUpdate();
         // renderGraph();
         myCanvasHandler?.redraw();
     });
@@ -627,6 +629,7 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
     deleteEdgeBtn.addEventListener("click", () => {
         saveState();
         deleteSelectedEdges();
+        selectedPointsUpdate();
         // renderGraph();
         myCanvasHandler?.redraw();
     });

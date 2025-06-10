@@ -460,12 +460,13 @@ export class Graph {
             return null;
         }
         vertex.id = newId;
+        vertex.labelContent = newId;
         this._edges.forEach(e => {
             if (e.points[0] === vertex || e.points[1] === vertex) {
                 // update edge id
                 e.id = e.setId(e.points[0], e.points[1]);
                 // update bend ids
-                e.bends.forEach(b => b.id = b.setId());
+                e.bends.forEach(b => { b.id = b.setId(); b.labelContent = b.id; });
             }
         });
         // update crossings (so crossings ids are updated)

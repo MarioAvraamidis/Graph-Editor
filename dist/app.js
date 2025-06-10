@@ -555,6 +555,7 @@ edgeThickness.addEventListener("input", () => {
 deleteVertexBtn.addEventListener("click", () => {
     saveState();
     deleteSelectedVertices();
+    selectedPointsUpdate();
     // renderGraph();
     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
 });
@@ -562,6 +563,7 @@ deleteVertexBtn.addEventListener("click", () => {
 deleteBendBtn.addEventListener("click", () => {
     saveState();
     deleteSelectedBends();
+    selectedPointsUpdate();
     // renderGraph();
     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
 });
@@ -569,6 +571,7 @@ deleteBendBtn.addEventListener("click", () => {
 deleteEdgeBtn.addEventListener("click", () => {
     saveState();
     deleteSelectedEdges();
+    selectedPointsUpdate();
     // renderGraph();
     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
 });
