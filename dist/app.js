@@ -133,6 +133,9 @@ const labelMenu = document.getElementById("labelMenu");
 // edit label modal
 const editLabelModal = document.getElementById('editLabelModal');
 const closeButton = editLabelModal.querySelector('.close-button');
+const labelContentInput = document.getElementById('labelContentInput');
+const labelFontSizeInput = document.getElementById('labelFontSizeInput');
+const saveLabelButton = document.getElementById('saveLabelButton');
 // don't show the modal when refreshing
 hideEditLabelModal();
 if (!ctx) {
@@ -1118,16 +1121,48 @@ labelMenu.addEventListener('click', (event) => {
                     // if (hoveredLabelPoint instanceof Vertex)
                 }
                 break;
+            case "hideLabel":
+                if (hoveredLabelPoint) {
+                    hoveredLabelPoint.showLabel = false;
+                    myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+                }
             // Add more cases for other actions
             default:
                 console.log(`Action not implemented: ${action}`);
         }
     }
 });
+saveLabelButton === null || saveLabelButton === void 0 ? void 0 : saveLabelButton.addEventListener('click', () => {
+    if (labelContentInput && labelFontSizeInput && hoveredLabelPoint) {
+        saveState();
+        hoveredLabelPoint.labelContent = labelContentInput.value;
+        hoveredLabelPoint.labelFont = parseInt(labelFontSizeInput.value);
+        // checkHovered();
+        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+    }
+    hideEditLabelModal();
+});
+// activate click to save button when typing enter
+for (const input of [labelContentInput, labelFontSizeInput])
+    input === null || input === void 0 ? void 0 : input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveLabelButton === null || saveLabelButton === void 0 ? void 0 : saveLabelButton.click(); // trigger save buttton
+        }
+    });
 // display the edit label modal
 function showEditLabelModal() {
-    if (editLabelModal) {
+    if (editLabelModal && hoveredLabelPoint) {
+        labelContentInput.value = hoveredLabelPoint.labelContent;
+        labelFontSizeInput.value = hoveredLabelPoint.labelFont.toString();
+        // if the hovered label point is a vertex, don't allow rename
+        labelContentInput.disabled = hoveredLabelPoint instanceof Vertex;
         editLabelModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
+        // If the input is not disabled, focus and select its text
+        if (!labelContentInput.disabled) {
+            labelContentInput.focus();
+            labelContentInput.select();
+        }
     }
 }
 //  hide the modal
@@ -1572,7 +1607,7 @@ function showPointLabel(ctx, p) {
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
     // we want the difference between the vertex and the label to remain the same regardless of the zoom scale, so we devide offsets by scale
-    ctx.fillText(p.labelContext, p.x + p.labelOffsetX / scale, p.y - (p.size + p.labelOffsetY) / scale); // positive is down in canvas
+    ctx.fillText(p.labelContent, p.x + p.labelOffsetX / scale, p.y - (p.size + p.labelOffsetY) / scale); // positive is down in canvas
     ctx.fillStyle = "#000";
 }
 function renderLatexLabel(vertex) {
@@ -1820,7 +1855,7 @@ function isNearLabel(point, x, y) {
         return false; // return false if the point's label is not displayed
     const labelX = point.x + point.labelOffsetX / scale;
     const labelY = point.y - (point.size + point.labelOffsetY) / scale; // check that label is positioned at these coordinates at drawVertex function
-    const width = point.labelContext.length * point.labelFont / scale;
+    const width = point.labelContent.length * point.labelFont / scale;
     const height = 1.3 * point.labelFont / scale;
     return x >= labelX - width / 2 && x <= labelX + width / 2 &&
         y >= labelY && y <= labelY + height;

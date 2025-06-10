@@ -432,3 +432,71 @@ body {
     text-decoration: none;
     cursor: pointer;
 }
+
+.modal-content label {
+    display: block; /* Make labels take their own line */
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.modal-content input[type="text"] {
+    width: calc(100% - 20px); /* Adjust width to account for padding */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box; /* Include padding in width */
+}
+
+.modal-content input[type="text"]:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.modal-content input[type="text"]:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+    color: #6c757d;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px; /* Space between buttons */
+    margin-top: 15px;
+}
+
+.modal-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+#saveLabelButton {
+    background-color: #28a745; /* Green for Save */
+    color: white;
+}
+
+#saveLabelButton:hover {
+    background-color: #218838;
+}
+
+#saveLabelButton:disabled {
+    background-color: #90ee90; /* Lighter green when disabled */
+    cursor: not-allowed;
+}
+
+#cancelLabelButton { /* Assuming you'll have a cancel button */
+    background-color: #6c757d; /* Gray for Cancel */
+    color: white;
+}
+
+#cancelLabelButton:hover {
+    background-color: #5a6268;
+}

@@ -7,7 +7,7 @@ export abstract class Point
     private _size: number = 5;  //  if circle, size = radius, if square, size = side length
     private _color: string = "#000000";
     // labeling
-    private _labelContext: string;
+    private _labelContent: string;
     private _showLabel: boolean = false;
     labelOffsetX: number = 0;
     labelOffsetY: number = 15;  // remember that positive is down in canvas
@@ -17,7 +17,7 @@ export abstract class Point
     constructor(id: string, x_pos?:number, y_pos?:number)
     {
         this._id = id;
-        this._labelContext = id;
+        this._labelContent = id;
         if (x_pos != undefined)
             this._x = x_pos;
         if (y_pos != undefined)
@@ -29,7 +29,7 @@ export abstract class Point
     get y() { return this._y;}
     get size() { return this._size; }
     get color() { return this._color; }
-    get labelContext() { return this._labelContext; }
+    get labelContent() { return this._labelContent; }
     get showLabel() { return this._showLabel; }
 
     set id(id: string) {this._id = id;}
@@ -37,7 +37,7 @@ export abstract class Point
     set y(y_pos) {this._y = y_pos}
     set size(s: number) { this._size = s; }
     set color(c: string) {this._color = c; }
-    set labelContext(label: string) { this._labelContext = label; }
+    set labelContent(label: string) { this._labelContent = label; }
     set showLabel(show: boolean) { this._showLabel = show; }
 
     // print details (name and coordinates)

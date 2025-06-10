@@ -11,7 +11,7 @@ export class Point {
         this.labelColor = "#000";
         this.labelFont = 14;
         this._id = id;
-        this._labelContext = id;
+        this._labelContent = id;
         if (x_pos != undefined)
             this._x = x_pos;
         if (y_pos != undefined)
@@ -22,14 +22,14 @@ export class Point {
     get y() { return this._y; }
     get size() { return this._size; }
     get color() { return this._color; }
-    get labelContext() { return this._labelContext; }
+    get labelContent() { return this._labelContent; }
     get showLabel() { return this._showLabel; }
     set id(id) { this._id = id; }
     set x(x_pos) { this._x = x_pos; }
     set y(y_pos) { this._y = y_pos; }
     set size(s) { this._size = s; }
     set color(c) { this._color = c; }
-    set labelContext(label) { this._labelContext = label; }
+    set labelContent(label) { this._labelContent = label; }
     set showLabel(show) { this._showLabel = show; }
     // print details (name and coordinates)
     print() { console.log(this._id, "x:" + this._x, "y:" + this._y); }

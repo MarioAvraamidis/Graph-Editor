@@ -247,15 +247,29 @@
      <div id="labelMenu" class="context-menu">
       <ul>
         <li data-action="editLabel"> Edit Label </li>
+        <li data-action="hideLabel"> Hide Label </li>
       </ul>
      </div>
 
     <!-- Edit label modal -->
-     <div id="editLabelModal" class="modal">
+      <div id="editLabelModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
             <h2>Edit Label</h2>
-            <p>This is your popup window!</p>
+
+            <div>
+                <label for="labelNameInput">Point's Label:</label>
+                <input type="text" id="labelContentInput" placeholder="Enter new label name">
+            </div>
+
+            <div>
+                <label for="labelFontSizeInput">Font Size: </label>
+                <input type="number" id="labelFontSizeInput" min="4" max="30" step="2">
+            </div>
+
+            <div class="modal-actions">
+                <button id="saveLabelButton">Save</button>
+                <!-- <button id="cancelLabelButton">Cancel</button> </div> -->
         </div>
       </div>
 
