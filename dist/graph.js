@@ -7,7 +7,7 @@ export class Point {
         this._color = "#000000";
         this._showLabel = false;
         this.labelOffsetX = 0;
-        this.labelOffsetY = 15; // remember that positive is down in canvas
+        this.labelOffsetY = 5; // remember that positive is down in canvas
         this.labelColor = "#000";
         this.labelFont = 14;
         this._id = id;

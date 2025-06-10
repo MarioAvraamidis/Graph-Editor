@@ -74,6 +74,8 @@ let pasteOffsetX: number = 0, pasteOffsetY: number = 0;
 let myCanvasHandler: CanvasHandler | null = null;
 let scale: number = 1;      // for all the elements that we want their size to remain the same regardless of the zoom scale, devide the size by scale
 const dpr = window.devicePixelRatio || 1;
+// settings
+let defaultLabelFontSize = 18;
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
@@ -823,8 +825,9 @@ canvas.addEventListener("mousemove", e => {
     {
         // draggingLabelVertex.labelOffsetX = inLimits(mouse.x - draggingLabelVertex.x,40);
         // draggingLabelVertex.labelOffsetY = inLimits(- mouse.y + draggingLabelVertex.y,40);
-        draggingLabelPoint.labelOffsetX = inLimits(worldCoords.x - draggingLabelPoint.x,40/scale)*scale;
-        draggingLabelPoint.labelOffsetY = inLimits(- worldCoords.y + draggingLabelPoint.y,40/scale)*scale;
+        const limit = Math.max(4*draggingLabelPoint.size,40);
+        draggingLabelPoint.labelOffsetX = inLimits(worldCoords.x - draggingLabelPoint.x,limit/scale)*scale;
+        draggingLabelPoint.labelOffsetY = inLimits(- worldCoords.y + draggingLabelPoint.y,limit/scale)*scale;
     }
 
     // create a rectangle showing selected space
@@ -997,6 +1000,7 @@ canvas.addEventListener("click", (e: MouseEvent) => {
             vertex.size = vertexChars.size;
             vertex.shape = vertexChars.shape;
             vertex.color = vertexChars.color;
+            vertex.labelFont = defaultLabelFontSize;
             // hoveredVertex = vertex;
         }
 
@@ -1862,8 +1866,13 @@ function showPointLabel(ctx: CanvasRenderingContext2D, p: Point)
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
     // we want the difference between the vertex and the label to remain the same regardless of the zoom scale, so we devide offsets by scale
-        ctx.fillText(p.labelContent, p.x + p.labelOffsetX/scale , p.y - (p.size + p.labelOffsetY)/scale);   // positive is down in canvas
+        ctx.fillText(p.labelContent, p.x + p.labelOffsetX/scale , p.y - labelOffsetY(p)/scale);   // positive is down in canvas
     ctx.fillStyle = "#000";
+}
+
+function labelOffsetY(point: Point)
+{
+    return (point.size + point.labelOffsetY + point.labelFont);
 }
 
 declare var MathJax: any;
@@ -1879,7 +1888,7 @@ function renderLatexLabel(vertex: Vertex) {
   
     labelDiv.innerHTML = `\\(v_{${vertex.id}}\\)`; // LaTeX format
     labelDiv.style.left = `${canvas.offsetLeft + vertex.x + vertex.labelOffsetX}px`; // adjust as needed
-    labelDiv.style.top = `${canvas.offsetTop + vertex.y - vertex.size - vertex.labelOffsetY}px`;
+    labelDiv.style.top = `${canvas.offsetTop + vertex.y - labelOffsetY(vertex)}px`;
   
     MathJax.typesetPromise([labelDiv]); // re-render the LaTeX
   }
@@ -2146,7 +2155,7 @@ function isNearLabel(point: Point, x: number, y: number): boolean {
     if (!point.showLabel)
         return false;   // return false if the point's label is not displayed
     const labelX = point.x + point.labelOffsetX/scale;
-    const labelY = point.y - (point.size + point.labelOffsetY)/scale;    // check that label is positioned at these coordinates at drawVertex function
+    const labelY = point.y - labelOffsetY(point)/scale;    // check that label is positioned at these coordinates at drawVertex function
     const width = point.labelContent.length*point.labelFont/scale;  
     const height = 1.3*point.labelFont/scale;
     return x >= labelX - width/2 && x <= labelX + width/2 &&
@@ -2439,7 +2448,7 @@ async function exportCanvasAsImage() {
         const label = "v_"+vertex.id; // or vertex.label if you use one
         const img = await renderLatexToImage(label);
         const x = vertex.x + vertex.labelOffsetX;
-        const y = vertex.y - vertex.size - vertex.labelOffsetY; // adjust position above the vertex
+        const y = vertex.y - labelOffsetY(vertex); // adjust position above the vertex
         const canvasPos = myCanvasHandler?.worldToCanvas(x,y);
         if (canvasPos)
             exportCtx.drawImage(img, canvasPos.x*dpr, canvasPos.y*dpr);
