@@ -142,18 +142,22 @@ const labelFontSizeInput = document.getElementById('labelFontSizeInput');
 const saveLabelButton = document.getElementById('saveLabelButton');
 // settings modal
 const settingsModal = document.getElementById('settingsModal');
+// crossings colors settings
 const settingsCrossingsColorInput = [];
 for (const btn of ['crossings-colors-self', 'crossings-colors-neighbor', 'crossings-colors-multiple', 'crossings-colors-legal'])
     settingsCrossingsColorInput.push(document.getElementById(btn));
+// crossing edges colors settings
 const settingsCrossingEdgesColorInput = [];
 for (const btn of ['crossing-edges-color', 'non-crossing-edges-color'])
     settingsCrossingEdgesColorInput.push(document.getElementById(btn));
-//  = document.getElementById('crossings-colors-self') as HTMLInputElement;
+// default label font size settings
+const settingsLabelDefaultFonstSizeInput = document.getElementById('labelDefaultFontSizeInput');
 const settingsCloseButton = settingsModal.querySelector('.close-button');
 const settingsSaveButton = document.getElementById('settingsSaveButton');
 // don't show the modal when refreshing
-hideEditLabelModal();
-hideSettingsModal();
+//hideEditLabelModal();
+//hideSettingsModal();
+hideAllModals();
 if (!ctx) {
     throw new Error("Could not get canvas rendering context");
 }
@@ -1133,9 +1137,11 @@ labelMenu.addEventListener('click', (event) => {
     if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
         const action = target.getAttribute('data-action');
         hideContextMenu(); // Hide menu after selection
+        //console.log("label-menu");
         switch (action) {
             case "editLabel":
                 if (hoveredLabelPoint) {
+                    // console.log("hoveredLabelPoint found");
                     showEditLabelModal();
                     // FIX: Display a warning message. No console.log
                     // if (hoveredLabelPoint instanceof Vertex)
@@ -1160,7 +1166,8 @@ saveLabelButton === null || saveLabelButton === void 0 ? void 0 : saveLabelButto
         // checkHovered();
         myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
     }
-    hideEditLabelModal();
+    // hideEditLabelModal();
+    hideAllModals();
 });
 // activate click to save button when typing enter
 for (const input of [labelContentInput, labelFontSizeInput])
@@ -1173,6 +1180,7 @@ for (const input of [labelContentInput, labelFontSizeInput])
 // display the edit label modal
 function showEditLabelModal() {
     if (editLabelModal && hoveredLabelPoint) {
+        // console.log("showEditLabelModal");
         labelContentInput.value = hoveredLabelPoint.labelContent;
         labelFontSizeInput.value = hoveredLabelPoint.labelFont.toString();
         // if the hovered label point is a vertex, don't allow rename
@@ -1183,6 +1191,14 @@ function showEditLabelModal() {
             labelContentInput.focus();
             labelContentInput.select();
         }
+    }
+}
+function hideAllModals() {
+    if (editLabelModal) {
+        editLabelModal.style.display = 'none';
+    }
+    if (settingsModal) {
+        settingsModal.style.display = 'none';
     }
 }
 //  hide the modal
@@ -1200,6 +1216,7 @@ function showSettingsModal() {
         settingsCrossingsColorInput[3].value = crossings_colors.legal;
         settingsCrossingEdgesColorInput[0].value = crossing_edges_colors.crossing;
         settingsCrossingEdgesColorInput[1].value = crossing_edges_colors.nonCrossing;
+        settingsLabelDefaultFonstSizeInput.value = defaultLabelFontSize.toString();
         settingsModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
     }
 }
@@ -1211,31 +1228,34 @@ function hideSettingsModal() {
 }
 // event listener to the close button
 if (editLabelCloseButton) {
-    editLabelCloseButton.addEventListener('click', hideEditLabelModal);
+    editLabelCloseButton.addEventListener('click', hideAllModals);
 }
 if (settingsCloseButton) {
-    settingsCloseButton.addEventListener('click', hideSettingsModal);
+    settingsCloseButton.addEventListener('click', hideAllModals /*hideSettingsModal*/);
 }
 // Allow clicking outside the modal content to close it 
 if (editLabelModal) {
     editLabelModal.addEventListener('click', (event) => {
         if (event.target === editLabelModal) { // Check if the click was directly on the modal background
-            hideEditLabelModal();
+            //hideEditLabelModal();
+            hideAllModals();
         }
     });
 }
 settingsSaveButton === null || settingsSaveButton === void 0 ? void 0 : settingsSaveButton.addEventListener('click', () => {
     if (settingsCrossingsColorInput) {
-        saveState();
+        // saveState();
         crossings_colors.self = settingsCrossingsColorInput[0].value;
         crossings_colors.neighbor = settingsCrossingsColorInput[1].value;
         crossings_colors.multiple = settingsCrossingsColorInput[2].value;
         crossings_colors.legal = settingsCrossingsColorInput[3].value;
         crossing_edges_colors.crossing = settingsCrossingEdgesColorInput[0].value;
         crossing_edges_colors.nonCrossing = settingsCrossingEdgesColorInput[1].value;
+        defaultLabelFontSize = parseInt(settingsLabelDefaultFonstSizeInput.value);
         myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
     }
-    hideSettingsModal();
+    //hideSettingsModal();
+    hideAllModals();
 });
 // Allow clicking outside the modal content to close it 
 /*if (settingsModal) {
@@ -1248,7 +1268,7 @@ settingsSaveButton === null || settingsSaveButton === void 0 ? void 0 : settings
 // Add the selected object (vertex, bend, edge) to the appropriate array of selected objects
 function select(obj, array, e) {
     // saveState();
-    if (e.ctrlKey) {
+    if (e.ctrlKey || e.metaKey) {
         const index = array.indexOf(obj);
         if (index > -1) // remove the selected object from selected objects
             array.splice(index, 1);
