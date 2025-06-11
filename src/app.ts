@@ -342,6 +342,13 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
     });
 
     document.addEventListener('keydown', (e) => {
+        // Get the element that triggered the event
+        const targetElement = e.target as HTMLElement;
+
+        // Don't activate shortcuts if something else is selected
+        if (targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA' || targetElement.tagName === 'SELECT')
+            return;
+
         // undo
         if (e.ctrlKey && e.key==='z')
         {
