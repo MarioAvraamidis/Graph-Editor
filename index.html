@@ -33,6 +33,8 @@
       <div id="left-column" >
 
         <div id="controls">
+          
+          <button id="settingsBtn"> Settings</button>
           <div class="info">
               Zoom: <span id="currentZoomSpan">100%</span>
           </div>
@@ -251,6 +253,43 @@
       </ul>
      </div>
 
+    <!-- Settings modal -->
+     <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Settings</h2>
+
+            <div class="crossingColors" >
+                <label for="crossings-colors-self">Self-Crossings Color:</label>
+                <input type="color" id="crossings-colors-self" />
+            </div>
+            <div class="crossingColors" >
+                <label for="crossings-colors-neighbor">Neighbor-Edge-Crossings Color:</label>
+                <input type="color" id="crossings-colors-neighbor" />
+            </div>
+            <div class="crossingColors" >
+                <label for="crossings-colors-multiple">Multiple-Crossings Color:</label>
+                <input type="color" id="crossings-colors-multiple" />
+            </div>
+            <div class="crossingColors" >
+                <label for="crossings-colors-legal">Legal-Crossings Color:</label>
+                <input type="color" id="crossings-colors-legal" />
+            </div>
+            <div class="crossingColors" >
+                <label for="crossing-edges-color">Crossing-Edges Color:</label>
+                <input type="color" id="crossing-edges-color" />
+            </div>
+            <div class="crossingColors" >
+                <label for="non-crossing-edges-color">Non-Crossing-Edges Color:</label>
+                <input type="color" id="non-crossing-edges-color" />
+            </div>
+
+            <div class="modal-actions">
+                <button id="settingsSaveButton">Save</button>
+                <!-- <button id="cancelLabelButton">Cancel</button> </div> -->
+            </div>
+      </div>
+
     <!-- Edit label modal -->
       <div id="editLabelModal" class="modal">
         <div class="modal-content">
@@ -270,7 +309,7 @@
             <div class="modal-actions">
                 <button id="saveLabelButton">Save</button>
                 <!-- <button id="cancelLabelButton">Cancel</button> </div> -->
-        </div>
+            </div>
       </div>
 
     <script type="module" src="dist/app.js"></script>

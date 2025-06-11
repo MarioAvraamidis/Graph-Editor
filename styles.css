@@ -500,3 +500,30 @@ body {
 #cancelLabelButton:hover {
     background-color: #5a6268;
 }
+
+/* In your CSS file */
+
+.crossingColors {
+    display: flex; /* Makes the div a flex container */
+    justify-content: space-between; /* Pushes the first item (label) to the start and the last item (input) to the end */
+    align-items: center; /* Vertically aligns items in the middle */
+    margin-bottom: 15px; /* Adds some space below this section, adjust as needed */
+    /* You might have other styles for this div, keep them */
+}
+
+.crossingColors label {
+    /* If you had 'display: block;' or 'margin-bottom' previously, you might want to adjust them */
+    margin-bottom: 0; /* Ensure no extra space pushes input down */
+    padding-right: 10px; /* Optional: adds a little space between label and input */
+    flex-shrink: 0; /* Prevent the label from shrinking if space is tight */
+}
+
+.crossingColors input[type="color"] {
+    /* You might want to constrain the size of the color input */
+    width: 50px; /* Adjust width as desired */
+    height: 30px; /* Adjust height as desired */
+    padding: 0; /* Color inputs often look better with no internal padding */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}

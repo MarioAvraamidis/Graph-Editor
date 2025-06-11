@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
 // src/app.ts
 import { Graph, Vertex, Bend } from "./graph.js";
 import { CanvasHandler } from './canvasHandler.js';
@@ -63,7 +63,7 @@ let selectionRect = { x: 0, y: 0, width: 0, height: 0 };
 // moving labels
 let draggingLabelPoint = null;
 // default colors for crossings
-let crossings_colors = { self: "purple", neighbor: "red", multiple: "orange", legal: "green" };
+let crossings_colors = { self: "#A020F0" /*purple*/, neighbor: "#FF0000" /*red*/, multiple: "#FFA500" /*orange*/, legal: "#008000" /*green*/ };
 // default colors for crossing edges
 let crossing_edges_colors = { crossing: "#2fee3c", nonCrossing: "#f0f42a" };
 // palette settings
@@ -123,6 +123,8 @@ function setMode(mode) {
 // document.getElementById("mode-create-edge")?.addEventListener("click", () => setMode("createEdge"));
 // set up listener for fix view
 (_c = document.getElementById('fix-view')) === null || _c === void 0 ? void 0 : _c.addEventListener('click', () => fixView());
+// listener for settings button
+(_d = document.getElementById('settingsBtn')) === null || _d === void 0 ? void 0 : _d.addEventListener('click', () => showSettingsModal());
 //window.addEventListener("DOMContentLoaded", () => {
 const canvas = document.getElementById("graphCanvas");
 const ctx = canvas.getContext("2d");
@@ -134,12 +136,24 @@ const pointMenu = document.getElementById("pointMenu");
 const labelMenu = document.getElementById("labelMenu");
 // edit label modal
 const editLabelModal = document.getElementById('editLabelModal');
-const closeButton = editLabelModal.querySelector('.close-button');
+const editLabelCloseButton = editLabelModal.querySelector('.close-button');
 const labelContentInput = document.getElementById('labelContentInput');
 const labelFontSizeInput = document.getElementById('labelFontSizeInput');
 const saveLabelButton = document.getElementById('saveLabelButton');
+// settings modal
+const settingsModal = document.getElementById('settingsModal');
+const settingsCrossingsColorInput = [];
+for (const btn of ['crossings-colors-self', 'crossings-colors-neighbor', 'crossings-colors-multiple', 'crossings-colors-legal'])
+    settingsCrossingsColorInput.push(document.getElementById(btn));
+const settingsCrossingEdgesColorInput = [];
+for (const btn of ['crossing-edges-color', 'non-crossing-edges-color'])
+    settingsCrossingEdgesColorInput.push(document.getElementById(btn));
+//  = document.getElementById('crossings-colors-self') as HTMLInputElement;
+const settingsCloseButton = settingsModal.querySelector('.close-button');
+const settingsSaveButton = document.getElementById('settingsSaveButton');
 // don't show the modal when refreshing
 hideEditLabelModal();
+hideSettingsModal();
 if (!ctx) {
     throw new Error("Could not get canvas rendering context");
 }
@@ -205,7 +219,7 @@ checkboxes === null || checkboxes === void 0 ? void 0 : checkboxes.forEach(check
 });
 // event-listener for other highlighting crossing edges checkboxes
 for (const id of ["highlight-crossing-edges", "highlight-non-crossing-edges"]) {
-    (_d = document.getElementById(id)) === null || _d === void 0 ? void 0 : _d.addEventListener('change', () => {
+    (_e = document.getElementById(id)) === null || _e === void 0 ? void 0 : _e.addEventListener('change', () => {
         if (ctx)
             // drawGraph(ctx, graph, true);
             myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
@@ -216,7 +230,7 @@ function resizeCanvas() {
     canvas.height = window.innerHeight;
 }
 // Add Vertex
-(_e = document.getElementById("add-vertex")) === null || _e === void 0 ? void 0 : _e.addEventListener("click", () => {
+(_f = document.getElementById("add-vertex")) === null || _f === void 0 ? void 0 : _f.addEventListener("click", () => {
     const input = document.getElementById("vertexIdInput").value.trim();
     saveState();
     if (input) {
@@ -238,7 +252,7 @@ function resizeCanvas() {
     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
 });
 // Delete Vertex
-(_f = document.getElementById("delete-vertex")) === null || _f === void 0 ? void 0 : _f.addEventListener("click", () => {
+(_g = document.getElementById("delete-vertex")) === null || _g === void 0 ? void 0 : _g.addEventListener("click", () => {
     const input = document.getElementById("vertexIdInput").value.trim();
     if (input) {
         saveState();
@@ -248,7 +262,7 @@ function resizeCanvas() {
     }
 });
 // Add Edge
-(_g = document.getElementById("add-edge")) === null || _g === void 0 ? void 0 : _g.addEventListener("click", () => {
+(_h = document.getElementById("add-edge")) === null || _h === void 0 ? void 0 : _h.addEventListener("click", () => {
     const from = document.getElementById("edgeFromInput").value.trim();
     const to = document.getElementById("edgeToInput").value.trim();
     if (from && to) {
@@ -259,7 +273,7 @@ function resizeCanvas() {
     }
 });
 // Delete Edge
-(_h = document.getElementById("delete-edge")) === null || _h === void 0 ? void 0 : _h.addEventListener("click", () => {
+(_j = document.getElementById("delete-edge")) === null || _j === void 0 ? void 0 : _j.addEventListener("click", () => {
     const from = document.getElementById("edgeFromInput").value.trim();
     const to = document.getElementById("edgeToInput").value.trim();
     if (from && to) {
@@ -270,7 +284,7 @@ function resizeCanvas() {
     }
 });
 // Add bend to an edge
-(_j = document.getElementById("add-bend")) === null || _j === void 0 ? void 0 : _j.addEventListener("click", () => {
+(_k = document.getElementById("add-bend")) === null || _k === void 0 ? void 0 : _k.addEventListener("click", () => {
     const from = document.getElementById("edgeFromInput").value.trim();
     const to = document.getElementById("edgeToInput").value.trim();
     if (from && to) {
@@ -285,7 +299,7 @@ function resizeCanvas() {
     }
 });
 // Remove a bend from an edge
-(_k = document.getElementById("remove-bend")) === null || _k === void 0 ? void 0 : _k.addEventListener("click", () => {
+(_l = document.getElementById("remove-bend")) === null || _l === void 0 ? void 0 : _l.addEventListener("click", () => {
     const from = document.getElementById("edgeFromInput").value.trim();
     const to = document.getElementById("edgeToInput").value.trim();
     if (from && to) {
@@ -299,11 +313,11 @@ function resizeCanvas() {
         }
     }
 });
-(_l = document.getElementById("undo-button")) === null || _l === void 0 ? void 0 : _l.addEventListener("click", () => {
+(_m = document.getElementById("undo-button")) === null || _m === void 0 ? void 0 : _m.addEventListener("click", () => {
     undo();
 });
 // Redo button
-(_m = document.getElementById("redo-button")) === null || _m === void 0 ? void 0 : _m.addEventListener("click", () => {
+(_o = document.getElementById("redo-button")) === null || _o === void 0 ? void 0 : _o.addEventListener("click", () => {
     redo();
 });
 document.addEventListener('keydown', (e) => {
@@ -380,28 +394,28 @@ function redo() {
     }
 }
 // Place vertices in a circle
-(_o = document.getElementById("circle-placement")) === null || _o === void 0 ? void 0 : _o.addEventListener("click", () => {
+(_p = document.getElementById("circle-placement")) === null || _p === void 0 ? void 0 : _p.addEventListener("click", () => {
     saveState();
     graph.makeCircle(0, 0, Math.min(ctx.canvas.height, ctx.canvas.width) / 3, selectedVertices);
     // renderGraph();
     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
 });
 // make the graph (or the group of selected vertices) clique
-(_p = document.getElementById("make-clique")) === null || _p === void 0 ? void 0 : _p.addEventListener("click", () => {
+(_q = document.getElementById("make-clique")) === null || _q === void 0 ? void 0 : _q.addEventListener("click", () => {
     saveState();
     graph.addAllEdges(selectedVertices);
     // renderGraph();
     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
 });
 // make the graph straight line
-(_q = document.getElementById("clear-bends")) === null || _q === void 0 ? void 0 : _q.addEventListener("click", () => {
+(_r = document.getElementById("clear-bends")) === null || _r === void 0 ? void 0 : _r.addEventListener("click", () => {
     saveState();
     graph.removeBends();
     // renderGraph();
     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
 });
 // remove all the edges
-(_r = document.getElementById("clear-edges")) === null || _r === void 0 ? void 0 : _r.addEventListener("click", () => {
+(_s = document.getElementById("clear-edges")) === null || _s === void 0 ? void 0 : _s.addEventListener("click", () => {
     saveState();
     graph.removeEdges();
     // renderGraph();
@@ -497,7 +511,7 @@ vertexSize.addEventListener("input", () => {
         vertexChars.size = size;
 });
 // Vertex rename
-(_s = document.getElementById("rename-vertex")) === null || _s === void 0 ? void 0 : _s.addEventListener("click", () => {
+(_t = document.getElementById("rename-vertex")) === null || _t === void 0 ? void 0 : _t.addEventListener("click", () => {
     const input = document.getElementById("vertexIdInput").value.trim();
     if (input && selectedVertices.length === 1) {
         saveState();
@@ -734,9 +748,8 @@ canvas.addEventListener("mousemove", e => {
     }
     // label move
     if (draggingLabelPoint && hasDragged) {
-        // draggingLabelVertex.labelOffsetX = inLimits(mouse.x - draggingLabelVertex.x,40);
-        // draggingLabelVertex.labelOffsetY = inLimits(- mouse.y + draggingLabelVertex.y,40);
-        const limit = Math.max(4 * draggingLabelPoint.size, 40);
+        // make sure dragging label is not moved far away from the point
+        const limit = Math.max(2 * draggingLabelPoint.size + draggingLabelPoint.labelFont, 40);
         draggingLabelPoint.labelOffsetX = inLimits(worldCoords.x - draggingLabelPoint.x, limit / scale) * scale;
         draggingLabelPoint.labelOffsetY = inLimits(-worldCoords.y + draggingLabelPoint.y, limit / scale) * scale;
     }
@@ -1178,9 +1191,30 @@ function hideEditLabelModal() {
         editLabelModal.style.display = 'none';
     }
 }
+// display the edit label modal
+function showSettingsModal() {
+    if (settingsModal && settingsCrossingsColorInput) {
+        settingsCrossingsColorInput[0].value = crossings_colors.self;
+        settingsCrossingsColorInput[1].value = crossings_colors.neighbor;
+        settingsCrossingsColorInput[2].value = crossings_colors.multiple;
+        settingsCrossingsColorInput[3].value = crossings_colors.legal;
+        settingsCrossingEdgesColorInput[0].value = crossing_edges_colors.crossing;
+        settingsCrossingEdgesColorInput[1].value = crossing_edges_colors.nonCrossing;
+        settingsModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
+    }
+}
+//  hide the modal
+function hideSettingsModal() {
+    if (settingsModal) {
+        settingsModal.style.display = 'none';
+    }
+}
 // event listener to the close button
-if (closeButton) {
-    closeButton.addEventListener('click', hideEditLabelModal);
+if (editLabelCloseButton) {
+    editLabelCloseButton.addEventListener('click', hideEditLabelModal);
+}
+if (settingsCloseButton) {
+    settingsCloseButton.addEventListener('click', hideSettingsModal);
 }
 // Allow clicking outside the modal content to close it 
 if (editLabelModal) {
@@ -1190,6 +1224,27 @@ if (editLabelModal) {
         }
     });
 }
+settingsSaveButton === null || settingsSaveButton === void 0 ? void 0 : settingsSaveButton.addEventListener('click', () => {
+    if (settingsCrossingsColorInput) {
+        saveState();
+        crossings_colors.self = settingsCrossingsColorInput[0].value;
+        crossings_colors.neighbor = settingsCrossingsColorInput[1].value;
+        crossings_colors.multiple = settingsCrossingsColorInput[2].value;
+        crossings_colors.legal = settingsCrossingsColorInput[3].value;
+        crossing_edges_colors.crossing = settingsCrossingEdgesColorInput[0].value;
+        crossing_edges_colors.nonCrossing = settingsCrossingEdgesColorInput[1].value;
+        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+    }
+    hideSettingsModal();
+});
+// Allow clicking outside the modal content to close it 
+/*if (settingsModal) {
+    settingsModal.addEventListener('click', (event) => {
+        if (event.target === settingsModal) { // Check if the click was directly on the modal background
+            hideSettingsModal();
+        }
+    });
+}*/
 // Add the selected object (vertex, bend, edge) to the appropriate array of selected objects
 function select(obj, array, e) {
     // saveState();

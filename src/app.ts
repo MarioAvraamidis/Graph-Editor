@@ -54,7 +54,7 @@ let selectionRect = { x: 0, y: 0, width: 0, height: 0 };
 // moving labels
 let draggingLabelPoint: Point | null = null;
 // default colors for crossings
-let crossings_colors = { self: "purple", neighbor: "red", multiple: "orange", legal: "green" };
+let crossings_colors = { self: "#A020F0" /*purple*/, neighbor: "#FF0000"/*red*/, multiple: "#FFA500"/*orange*/, legal: "#008000"/*green*/ };
 // default colors for crossing edges
 let crossing_edges_colors = {crossing: "#2fee3c", nonCrossing: "#f0f42a"}
 // palette settings
@@ -121,6 +121,8 @@ document.getElementById("mode-add-bend")?.addEventListener("click", () => setMod
 
 // set up listener for fix view
 document.getElementById('fix-view')?.addEventListener('click', () => fixView());
+// listener for settings button
+document.getElementById('settingsBtn')?.addEventListener('click', () => showSettingsModal());
 
 //window.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
@@ -133,12 +135,25 @@ document.getElementById('fix-view')?.addEventListener('click', () => fixView());
     const labelMenu = document.getElementById("labelMenu") as HTMLDivElement;
     // edit label modal
     const editLabelModal = document.getElementById('editLabelModal') as HTMLElement;
-    const closeButton = editLabelModal.querySelector('.close-button') as HTMLElement;
+    const editLabelCloseButton = editLabelModal.querySelector('.close-button') as HTMLElement;
     const labelContentInput = document.getElementById('labelContentInput') as HTMLInputElement;
     const labelFontSizeInput = document.getElementById('labelFontSizeInput') as HTMLInputElement;
     const saveLabelButton = document.getElementById('saveLabelButton') as HTMLButtonElement;
+    // settings modal
+    const settingsModal = document.getElementById('settingsModal') as HTMLElement;
+    const settingsCrossingsColorInput: HTMLInputElement[] = [];
+    for (const btn of ['crossings-colors-self','crossings-colors-neighbor','crossings-colors-multiple','crossings-colors-legal'])
+        settingsCrossingsColorInput.push(document.getElementById(btn) as HTMLInputElement)
+    const settingsCrossingEdgesColorInput: HTMLInputElement[] = [];
+    for (const btn of ['crossing-edges-color','non-crossing-edges-color'])
+        settingsCrossingEdgesColorInput.push(document.getElementById(btn) as HTMLInputElement);
+    //  = document.getElementById('crossings-colors-self') as HTMLInputElement;
+    const settingsCloseButton = settingsModal.querySelector('.close-button') as HTMLElement;
+    const settingsSaveButton = document.getElementById('settingsSaveButton') as HTMLElement;
+
     // don't show the modal when refreshing
     hideEditLabelModal();
+    hideSettingsModal();
 
     if (!ctx) {
         throw new Error("Could not get canvas rendering context");
@@ -823,9 +838,8 @@ canvas.addEventListener("mousemove", e => {
     // label move
     if (draggingLabelPoint && hasDragged)
     {
-        // draggingLabelVertex.labelOffsetX = inLimits(mouse.x - draggingLabelVertex.x,40);
-        // draggingLabelVertex.labelOffsetY = inLimits(- mouse.y + draggingLabelVertex.y,40);
-        const limit = Math.max(4*draggingLabelPoint.size,40);
+        // make sure dragging label is not moved far away from the point
+        const limit = Math.max(2*draggingLabelPoint.size+draggingLabelPoint.labelFont,40);
         draggingLabelPoint.labelOffsetX = inLimits(worldCoords.x - draggingLabelPoint.x,limit/scale)*scale;
         draggingLabelPoint.labelOffsetY = inLimits(- worldCoords.y + draggingLabelPoint.y,limit/scale)*scale;
     }
@@ -1335,10 +1349,32 @@ function hideEditLabelModal() {
     }
 }
 
-// event listener to the close button
-if (closeButton) {
-    closeButton.addEventListener('click', hideEditLabelModal);
+// display the edit label modal
+function showSettingsModal() {
+    if (settingsModal && settingsCrossingsColorInput) {
+        settingsCrossingsColorInput[0].value = crossings_colors.self;
+        settingsCrossingsColorInput[1].value = crossings_colors.neighbor;
+        settingsCrossingsColorInput[2].value = crossings_colors.multiple;
+        settingsCrossingsColorInput[3].value = crossings_colors.legal;
+        settingsCrossingEdgesColorInput[0].value = crossing_edges_colors.crossing;
+        settingsCrossingEdgesColorInput[1].value = crossing_edges_colors.nonCrossing;
+        settingsModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
+    }
 }
+
+//  hide the modal
+function hideSettingsModal() {
+    if (settingsModal) {
+        settingsModal.style.display = 'none';
+    }
+}
+
+// event listener to the close button
+if (editLabelCloseButton) {
+    editLabelCloseButton.addEventListener('click', hideEditLabelModal);
+}
+
+if (settingsCloseButton) { settingsCloseButton.addEventListener('click', hideSettingsModal); }
 
 // Allow clicking outside the modal content to close it 
 if (editLabelModal) {
@@ -1348,6 +1384,30 @@ if (editLabelModal) {
         }
     });
 }
+
+settingsSaveButton?.addEventListener('click', () => {
+    if (settingsCrossingsColorInput)
+    {
+        // saveState();
+        crossings_colors.self = settingsCrossingsColorInput[0].value;
+        crossings_colors.neighbor = settingsCrossingsColorInput[1].value;
+        crossings_colors.multiple = settingsCrossingsColorInput[2].value;
+        crossings_colors.legal = settingsCrossingsColorInput[3].value;
+        crossing_edges_colors.crossing = settingsCrossingEdgesColorInput[0].value;
+        crossing_edges_colors.nonCrossing = settingsCrossingEdgesColorInput[1].value;
+        myCanvasHandler?.redraw();
+    }
+    hideSettingsModal();
+});
+
+// Allow clicking outside the modal content to close it 
+/*if (settingsModal) {
+    settingsModal.addEventListener('click', (event) => {
+        if (event.target === settingsModal) { // Check if the click was directly on the modal background
+            hideSettingsModal();
+        }
+    });
+}*/
   
 
 // Add the selected object (vertex, bend, edge) to the appropriate array of selected objects
