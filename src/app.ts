@@ -403,6 +403,13 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
                 myCanvasHandler?.redraw();
             }
         }
+        // select all
+        else if ( (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' )
+        {
+            e.preventDefault();
+            selectAll();
+            myCanvasHandler?.redraw();
+        }
     });
 
     // undo utility
@@ -1456,6 +1463,22 @@ function select(obj: Object, array: Object[], e:MouseEvent)
         array.length = 0;   // clear the array in place
         array.push(obj);
     }
+}
+
+// select all the objects
+function selectAll()
+{
+    setNothingSelected();
+    // select all vertices
+    for (const v of graph.vertices)
+        selectedVertices.push(v);
+    // select all bends
+    const bends = graph.getBends();
+    for (const b of bends)
+        selectedBends.push(b);
+    // selecte all edges
+    for (const e of graph.edges)
+        selectedEdges.push(e);
 }
 
 // set no object of the graph selected

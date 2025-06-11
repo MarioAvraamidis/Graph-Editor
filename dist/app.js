@@ -376,6 +376,12 @@ document.addEventListener('keydown', (e) => {
             myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
         }
     }
+    // select all
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        selectAll();
+        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+    }
 });
 // undo utility
 function undo() {
@@ -1286,6 +1292,20 @@ function select(obj, array, e) {
         array.length = 0; // clear the array in place
         array.push(obj);
     }
+}
+// select all the objects
+function selectAll() {
+    setNothingSelected();
+    // select all vertices
+    for (const v of graph.vertices)
+        selectedVertices.push(v);
+    // select all bends
+    const bends = graph.getBends();
+    for (const b of bends)
+        selectedBends.push(b);
+    // selecte all edges
+    for (const e of graph.edges)
+        selectedEdges.push(e);
 }
 // set no object of the graph selected
 function setNothingSelected() {
