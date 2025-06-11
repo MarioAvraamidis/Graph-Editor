@@ -408,6 +408,8 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
         {
             e.preventDefault();
             selectAll();
+            selectedPointsUpdate();
+            // checkHovered();
             myCanvasHandler?.redraw();
         }
     });

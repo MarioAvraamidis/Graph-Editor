@@ -380,6 +380,8 @@ document.addEventListener('keydown', (e) => {
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         selectAll();
+        selectedPointsUpdate();
+        // checkHovered();
         myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
     }
 });
