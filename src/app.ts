@@ -350,19 +350,19 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
             return;
 
         // undo
-        if (e.ctrlKey && e.key==='z')
+        if ((e.ctrlKey || e.metaKey) && e.key==='z')
         {
             e.preventDefault(); // prevent the browser's default undo behavior
             undo();
         }
         // redo
-        else if (e.ctrlKey && e.key==='y' || e.shiftKey && e.ctrlKey && e.key==='z')
+        else if ((e.ctrlKey || e.metaKey) && e.key==='y' || e.shiftKey && (e.ctrlKey || e.metaKey) && e.key==='z')
         {
             e.preventDefault();
             redo();
         }
         // copy
-        else if (e.ctrlKey && e.key=='c')
+        else if ((e.ctrlKey || e.metaKey) && e.key=='c')
         {
             if(checkCopySelected())
             {
@@ -375,7 +375,7 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
                 console.log("Select both the vertices of the selected edges");
         }
         // paste
-        else if (e.ctrlKey && e.key=='v')
+        else if ((e.ctrlKey || e.metaKey) && e.key=='v')
         {
             if (copiedSelectedVertices.length > 0)
             {
@@ -865,7 +865,7 @@ canvas.addEventListener("mousemove", e => {
     }
 
     // create a rectangle showing selected space
-    if (selectedPoints.length === 0 && !creatingEdge && !e.ctrlKey && !draggingLabelPoint && mousedown && hasDragged)
+    if (selectedPoints.length === 0 && !creatingEdge && !e.ctrlKey && !e.metaKey && !draggingLabelPoint && mousedown && hasDragged)
     {
         isSelecting = true;
         // console.log("creatingEdge=",creatingEdge);
