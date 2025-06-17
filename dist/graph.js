@@ -849,15 +849,19 @@ export class Graph {
         return thrackle / 2;
     }
     // make the graph clique (use only non-temporary vertices)
-    addAllEdges(vert = []) {
+    addAllEdges(vert = [], newEdgesColor = '#000000') {
         let nonTempVertices;
         if (vert.length > 0)
             nonTempVertices = vert;
         else
             nonTempVertices = this._vertices.filter(vertex => !vertex.temporary); // array with the non-temporary vertices
+        let edge = null;
         for (const v1 of nonTempVertices)
-            for (const v2 of nonTempVertices)
-                this.addEdge(v1, v2, false);
+            for (const v2 of nonTempVertices) {
+                edge = this.addEdge(v1, v2, false);
+                if (edge)
+                    edge.color = newEdgesColor;
+            }
         this.updateCrossings();
     }
     // place all the non-temporary vertices in a circle with center (x0,y0) and radius r
@@ -1157,7 +1161,7 @@ function test() {
     graph.addVertex(v6);
     // console.log("Vertices added: ",graph.vertices);
     // make clique
-    graph.addAllEdges();
+    // graph.addAllEdges();
     let r = 2.2;
     graph.makeCircle(0, 0, r);
     // print Graph details

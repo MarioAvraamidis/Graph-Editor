@@ -57,6 +57,8 @@ let draggingLabelPoint: Point | null = null;
 let crossings_colors = { self: "#A020F0" /*purple*/, neighbor: "#FF0000"/*red*/, multiple: "#FFA500"/*orange*/, legal: "#008000"/*green*/ };
 // default colors for crossing edges
 let crossing_edges_colors = {crossing: "#2fee3c", nonCrossing: "#f0f42a"}
+// default color for new edges when creating clique
+let cliqueNewEdgesColor: string = '#0000ff'
 // palette settings
 let vertexChars = { color: "#000000", size: 7, shape: "circle" }  // default settings of class Vertex
 let edgeChars = {color: "#898989", thickness: 2, dashed: false} // default of class Edge
@@ -150,6 +152,8 @@ document.getElementById('settingsBtn')?.addEventListener('click', () => showSett
     const settingsCrossingEdgesColorInput: HTMLInputElement[] = [];
     for (const btn of ['crossing-edges-color','non-crossing-edges-color'])
         settingsCrossingEdgesColorInput.push(document.getElementById(btn) as HTMLInputElement);
+    // clique new edges color
+    const settingsCliqueNewEdgesColorInput = document.getElementById('clique-new-edges-color') as HTMLInputElement;
     // default label font size settings
     const settingsLabelDefaultFonstSizeInput = document.getElementById('labelDefaultFontSizeInput') as HTMLInputElement;
     const settingsCloseButton = settingsModal.querySelector('.close-button') as HTMLElement;
@@ -456,7 +460,7 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
     // make the graph (or the group of selected vertices) clique
     document.getElementById("make-clique")?.addEventListener("click", () => {
         saveState();
-        graph.addAllEdges(selectedVertices);
+        graph.addAllEdges(selectedVertices,cliqueNewEdgesColor);
         // renderGraph();
         myCanvasHandler?.redraw();
     })
@@ -1393,6 +1397,7 @@ function showSettingsModal() {
         settingsCrossingsColorInput[3].value = crossings_colors.legal;
         settingsCrossingEdgesColorInput[0].value = crossing_edges_colors.crossing;
         settingsCrossingEdgesColorInput[1].value = crossing_edges_colors.nonCrossing;
+        settingsCliqueNewEdgesColorInput.value = cliqueNewEdgesColor;
         settingsLabelDefaultFonstSizeInput.value = defaultLabelFontSize.toString();
         settingsModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
     }
@@ -1432,6 +1437,7 @@ settingsSaveButton?.addEventListener('click', () => {
         crossings_colors.legal = settingsCrossingsColorInput[3].value;
         crossing_edges_colors.crossing = settingsCrossingEdgesColorInput[0].value;
         crossing_edges_colors.nonCrossing = settingsCrossingEdgesColorInput[1].value;
+        cliqueNewEdgesColor = settingsCliqueNewEdgesColorInput.value;
         defaultLabelFontSize = parseInt(settingsLabelDefaultFonstSizeInput.value);
         myCanvasHandler?.redraw();
     }

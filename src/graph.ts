@@ -1047,7 +1047,7 @@ export class Graph {
     }
 
     // make the graph clique (use only non-temporary vertices)
-    addAllEdges(vert: Vertex[] = [])
+    addAllEdges(vert: Vertex[] = [], newEdgesColor: string = '#000000')
     {
         let nonTempVertices: Vertex[];
         if (vert.length > 0)
@@ -1055,9 +1055,14 @@ export class Graph {
         else
             nonTempVertices = this._vertices.filter(vertex => !vertex.temporary); // array with the non-temporary vertices
 
+        let edge: Edge | null = null;
         for (const v1 of nonTempVertices)
             for (const v2 of nonTempVertices)
-                this.addEdge(v1,v2,false);
+            {
+                edge = this.addEdge(v1,v2,false);
+                if (edge)
+                    edge.color = newEdgesColor;
+            }
         this.updateCrossings();
     }
 
@@ -1414,7 +1419,7 @@ function test()
     // console.log("Vertices added: ",graph.vertices);
 
     // make clique
-    graph.addAllEdges();
+    // graph.addAllEdges();
     let r = 2.2;
     graph.makeCircle(0,0,r);
 
