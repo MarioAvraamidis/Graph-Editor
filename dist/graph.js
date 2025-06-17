@@ -37,6 +37,15 @@ export class Point {
     moveTo(x_pos, y_pos) { this._x = x_pos; this._y = y_pos; }
     // check if the point is in a given rectangle
     isIn(x, y, width, height) { return x <= this._x && this._x <= x + width && y <= this._y && this._y <= y + height; }
+    cloneLabelCharacteristics(p) {
+        // labeling
+        this.labelContent = p.labelContent;
+        this.showLabel = p.showLabel;
+        this.labelOffsetX = p.labelOffsetX;
+        this.labelOffsetY = p.labelOffsetY;
+        this.labelColor = p.labelColor;
+        this.labelFont = p.labelFont;
+    }
 }
 export class Vertex extends Point {
     // private _shape: "circle" | "square" | "triangle" = "circle";
@@ -74,6 +83,8 @@ export class Vertex extends Point {
         this.shape = v.shape;
         this.color = v.color;
         this.size = v.size;
+        // labeling
+        this.cloneLabelCharacteristics(v);
     }
 }
 export class LineSegment {
@@ -201,6 +212,7 @@ export class Edge extends LineSegment {
     // remove the last bend of the edge
     removeLastBend() { this._bends.pop(); }
     // add an array of bends (used for cloning and connecting edges)
+    // offsetX/Y is used when copying the edge to a different position
     addBends(bends, offsetX = 0, offsetY = 0) {
         for (let i = 0; i < bends.length; i++) {
             let new_bend = new Bend(this, bends[i].x + offsetX, bends[i].y + offsetY);
@@ -318,6 +330,7 @@ export class Crossing extends Point {
         let newCrossing = new Crossing(this.subedges[0], this.subedges[1], this.x, this.y);
         newCrossing.legal = this._legal;
         newCrossing.more_than_once = this._more_than_once;
+        newCrossing.cloneLabelCharacteristics(this);
         return newCrossing;
     }
 }
@@ -334,6 +347,7 @@ export class Bend extends Point {
     cloneCharacteristics(b) {
         this.size = b.size;
         this.color = b.color;
+        this.cloneLabelCharacteristics(b);
     }
     assignCharacteristics(size, color) {
         this.size = size;

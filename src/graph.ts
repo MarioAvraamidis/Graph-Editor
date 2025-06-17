@@ -47,6 +47,16 @@ export abstract class Point
     // check if the point is in a given rectangle
     isIn(x: number, y: number, width: number, height: number)
     {return x <= this._x && this._x <= x+width && y <= this._y && this._y <= y+height;}
+    cloneLabelCharacteristics(p: Point)
+    {
+        // labeling
+        this.labelContent = p.labelContent;
+        this.showLabel = p.showLabel;
+        this.labelOffsetX = p.labelOffsetX;
+        this.labelOffsetY = p.labelOffsetY;
+        this.labelColor = p.labelColor;
+        this.labelFont = p.labelFont;
+    }
 }
 
 export class Vertex extends Point
@@ -93,6 +103,8 @@ export class Vertex extends Point
         this.shape = v.shape;
         this.color = v.color;
         this.size = v.size;
+        // labeling
+        this.cloneLabelCharacteristics(v);
     }
 }
 
@@ -246,6 +258,7 @@ export class Edge extends LineSegment
     // remove the last bend of the edge
     removeLastBend() {this._bends.pop()}
     // add an array of bends (used for cloning and connecting edges)
+    // offsetX/Y is used when copying the edge to a different position
     addBends(bends: Bend[], offsetX: number = 0, offsetY: number = 0)
     {
         for (let i=0;i<bends.length;i++)
@@ -396,6 +409,7 @@ export class Crossing extends Point
         let newCrossing = new Crossing(this.subedges[0],this.subedges[1],this.x,this.y);
         newCrossing.legal = this._legal;
         newCrossing.more_than_once = this._more_than_once;
+        newCrossing.cloneLabelCharacteristics(this);
         return newCrossing;
     }
 }
@@ -421,6 +435,7 @@ export class Bend extends Point
     {
         this.size = b.size;
         this.color = b.color;
+        this.cloneLabelCharacteristics(b);
     }
 
     assignCharacteristics(size: number, color: string)

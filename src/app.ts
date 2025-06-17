@@ -1248,14 +1248,22 @@ selectedMenu.addEventListener('click', (event) => {
                     console.log("Select both the vertices of the selected edges");
                 break;
             case "showLabels":
-                for (const point of selectedPoints)
-                    point.showLabel = true;
-                myCanvasHandler?.redraw();
+                if (selectedPoints.length > 0)
+                {
+                    // saveState();
+                    for (const point of selectedPoints)
+                        point.showLabel = true;
+                    myCanvasHandler?.redraw();
+                }
                 break;
             case "hideLabels":
-                for (const point of selectedPoints)
-                    point.showLabel = false;
-                myCanvasHandler?.redraw();
+                if (selectedPoints.length > 0)
+                {
+                    // saveState();
+                    for (const point of selectedPoints)
+                        point.showLabel = false;
+                    myCanvasHandler?.redraw();
+                }
                 break;
             // Add more cases for other actions
             default:
@@ -1277,6 +1285,7 @@ pointMenu.addEventListener('click', (event) => {
             case "showLabel":
                 if (hoveredPoint)
                 {
+                    saveState();
                     hoveredPoint.showLabel = true;
                     myCanvasHandler?.redraw();
                 }
@@ -1284,6 +1293,7 @@ pointMenu.addEventListener('click', (event) => {
             case "hideLabel":
                 if (hoveredPoint)
                 {
+                    saveState();
                     hoveredPoint.showLabel = false;
                     myCanvasHandler?.redraw();
                 }
@@ -1318,6 +1328,7 @@ labelMenu.addEventListener('click', (event) => {
             case "hideLabel":
                 if (hoveredLabelPoint)
                 {
+                    saveState();
                     hoveredLabelPoint.showLabel = false;
                     myCanvasHandler?.redraw();
                 }

@@ -1110,14 +1110,20 @@ selectedMenu.addEventListener('click', (event) => {
                     console.log("Select both the vertices of the selected edges");
                 break;
             case "showLabels":
-                for (const point of selectedPoints)
-                    point.showLabel = true;
-                myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+                if (selectedPoints.length > 0) {
+                    // saveState();
+                    for (const point of selectedPoints)
+                        point.showLabel = true;
+                    myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+                }
                 break;
             case "hideLabels":
-                for (const point of selectedPoints)
-                    point.showLabel = false;
-                myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+                if (selectedPoints.length > 0) {
+                    // saveState();
+                    for (const point of selectedPoints)
+                        point.showLabel = false;
+                    myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+                }
                 break;
             // Add more cases for other actions
             default:
@@ -1135,12 +1141,14 @@ pointMenu.addEventListener('click', (event) => {
         switch (action) {
             case "showLabel":
                 if (hoveredPoint) {
+                    saveState();
                     hoveredPoint.showLabel = true;
                     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
                 }
                 break;
             case "hideLabel":
                 if (hoveredPoint) {
+                    saveState();
                     hoveredPoint.showLabel = false;
                     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
                 }
@@ -1170,6 +1178,7 @@ labelMenu.addEventListener('click', (event) => {
                 break;
             case "hideLabel":
                 if (hoveredLabelPoint) {
+                    saveState();
                     hoveredLabelPoint.showLabel = false;
                     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
                 }
