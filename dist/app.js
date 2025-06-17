@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
 // src/app.ts
-import { Graph, Vertex, Bend } from "./graph.js";
+import { Graph, Vertex, Bend, Edge } from "./graph.js";
 import { CanvasHandler } from './canvasHandler.js';
 // Create a graph instance
 let graph = new Graph();
@@ -1296,13 +1296,27 @@ function select(obj, array, e) {
         if (index > -1) // remove the selected object from selected objects
             array.splice(index, 1);
         else // add the selected object to selected objects
+         {
             array.push(obj);
+            if (obj instanceof Edge)
+                selectVerticesOfSelectedEdge(obj);
+        }
     }
     else // if not control key pushed, remove all the selected objects and then add the selected one
      {
         setNothingSelected();
-        array.length = 0; // clear the array in place
+        // array.length = 0;   // clear the array in place
         array.push(obj);
+        if (obj instanceof Edge)
+            selectVerticesOfSelectedEdge(obj);
+    }
+}
+function selectVerticesOfSelectedEdge(edge) {
+    if (edge.points[0] instanceof Vertex && edge.points[1] instanceof Vertex) {
+        if (!selectedVertices.includes(edge.points[0]))
+            selectedVertices.push(edge.points[0]);
+        if (!selectedVertices.includes(edge.points[1]))
+            selectedVertices.push(edge.points[1]);
     }
 }
 // select all the objects

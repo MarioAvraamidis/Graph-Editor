@@ -1465,13 +1465,31 @@ function select(obj: Object, array: Object[], e:MouseEvent)
         if (index > -1)     // remove the selected object from selected objects
             array.splice(index,1);
         else        // add the selected object to selected objects
+        {
             array.push(obj);
+            if (obj instanceof Edge)
+                selectVerticesOfSelectedEdge(obj);
+        }
     }
     else    // if not control key pushed, remove all the selected objects and then add the selected one
     {
         setNothingSelected();
-        array.length = 0;   // clear the array in place
+        // array.length = 0;   // clear the array in place
         array.push(obj);
+        if (obj instanceof Edge)
+            selectVerticesOfSelectedEdge(obj);
+    }
+}
+
+// add the endpoints of an edge to the selectedVertices array (so that when the user selects an edge, its endpoints are also selected)
+function selectVerticesOfSelectedEdge(edge: Edge)
+{
+    if (edge.points[0] instanceof Vertex && edge.points[1] instanceof Vertex)
+    {
+        if (!selectedVertices.includes(edge.points[0]))
+            selectedVertices.push(edge.points[0]);
+        if (!selectedVertices.includes(edge.points[1]))
+            selectedVertices.push(edge.points[1]);
     }
 }
 
