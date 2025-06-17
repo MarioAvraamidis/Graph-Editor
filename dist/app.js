@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         // Instantiate CanvasHandler, passing your renderGraph function as the drawing callback
         myCanvasHandler = new CanvasHandler('graphCanvas', renderGraph);
+        addDashedEdgeEventListeners();
         // Example: If your graph data changes later (not due to zoom/pan),
         // and you need to force a redraw, you can call it like this:
         // const updateGraphDataButton = document.getElementById('updateGraphDataButton');
@@ -630,24 +631,26 @@ function deleteSelectedEdges() {
     selectedEdges.length = 0;
 }
 // dashed edge button
-let toggle_dashed_btn = document.getElementById("toggle-dashed");
-toggle_dashed_btn.addEventListener("click", () => {
-    if (selectedEdges.length > 0) {
+/*let toggle_dashed_btn = document.getElementById("toggle-dashed");
+toggle_dashed_btn!.addEventListener("click", () => {
+    if (selectedEdges.length > 0)
+    {
         saveState();
         const dashed = !selectedEdges[0].dashed;
         for (const e of selectedEdges)
             e.dashed = dashed;
         // renderGraph();
-        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+        myCanvasHandler?.redraw();
     }
-    else {
+    else
+    {
         edgeChars.dashed = !edgeChars.dashed;
-        if (edgeChars.dashed)
-            toggle_dashed_btn === null || toggle_dashed_btn === void 0 ? void 0 : toggle_dashed_btn.classList.add("active");
+        if(edgeChars.dashed)
+            toggle_dashed_btn?.classList.add("active");
         else
-            toggle_dashed_btn === null || toggle_dashed_btn === void 0 ? void 0 : toggle_dashed_btn.classList.remove("active");
+            toggle_dashed_btn?.classList.remove("active");
     }
-});
+});*/
 // Collapse palettes
 const vertexPalette = document.getElementById('vertex-palette');
 const edgePalette = document.getElementById('edge-palette');
@@ -1461,6 +1464,42 @@ function pasteSelected(offsetX = 50, offsetY = 50) {
     // update selected points
     selectedPointsUpdate();
 }
+function addDashedEdgeEventListeners() {
+    // Get references to the specific buttons and their common parent
+    const toggleContinuousButton = document.getElementById('toggle-continuous');
+    const toggleDashedButton = document.getElementById('toggle-dashed');
+    const edgeStyleButtonsContainer = document.querySelector('.edge-style-buttons'); // Get the wrapper div
+    if (edgeStyleButtonsContainer) {
+        edgeStyleButtonsContainer.addEventListener('click', (event) => {
+            const clickedButton = event.target;
+            // Ensure a button with the 'edge-style-button' class was clicked
+            const actualButton = clickedButton.closest('.edge-style-button');
+            if (actualButton) {
+                // Remove 'active' class from all buttons in the group
+                const allStyleButtons = edgeStyleButtonsContainer.querySelectorAll('.edge-style-button');
+                allStyleButtons.forEach(button => {
+                    button.classList.remove('active');
+                });
+                // Add 'active' class to the clicked button
+                actualButton.classList.add('active');
+                // --- Your logic for handling the selected style ---
+                if (actualButton.id === 'toggle-continuous') {
+                    edgeChars.dashed = false;
+                }
+                else if (actualButton.id === 'toggle-dashed') {
+                    edgeChars.dashed = true;
+                }
+                // update type of selected edges
+                if (selectedEdges.length > 0) {
+                    saveState();
+                    selectedEdges.forEach(e => e.dashed = edgeChars.dashed);
+                }
+                // You might want to trigger a redraw of your canvas here to apply the style immediately
+                myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+            }
+        });
+    }
+}
 function updatePaletteState() {
     /*const vertexPalette = document.getElementById("vertex-palette")!;
     const edgePalette = document.getElementById("edge-palette")!;
@@ -1469,6 +1508,9 @@ function updatePaletteState() {
     const vertexColorPicker = document.getElementById("vertex-color");
     const edgeColorPicker = document.getElementById("edge-color");
     const bendColorPicker = document.getElementById("bend-color");
+    // dashed edge buttons
+    const toggleContinuousButton = document.getElementById('toggle-continuous');
+    const toggleDashedButton = document.getElementById('toggle-dashed');
     const vertexSelected = selectedVertices.length > 0;
     const edgeSelected = selectedEdges.length > 0;
     const bendSelected = selectedBends.length > 0;
@@ -1521,20 +1563,38 @@ function updatePaletteState() {
         const e = selectedEdges[selectedEdges.length - 1];
         edgeColorPicker.value = e.color;
         edgeThickness.value = e.thickness.toString();
+        // update dashed edge buttons
+        if (e.dashed) {
+            toggleContinuousButton === null || toggleContinuousButton === void 0 ? void 0 : toggleContinuousButton.classList.remove("active");
+            toggleDashedButton === null || toggleDashedButton === void 0 ? void 0 : toggleDashedButton.classList.add("active");
+        }
+        else {
+            toggleContinuousButton === null || toggleContinuousButton === void 0 ? void 0 : toggleContinuousButton.classList.add("active");
+            toggleDashedButton === null || toggleDashedButton === void 0 ? void 0 : toggleDashedButton.classList.remove("active");
+        }
         // update toggle-dashed button
-        if (e.dashed)
-            toggle_dashed_btn === null || toggle_dashed_btn === void 0 ? void 0 : toggle_dashed_btn.classList.add("active");
+        /*if (e.dashed)
+            toggle_dashed_btn?.classList.add("active");
         else
-            toggle_dashed_btn === null || toggle_dashed_btn === void 0 ? void 0 : toggle_dashed_btn.classList.remove("active");
+            toggle_dashed_btn?.classList.remove("active");*/
     }
     else {
         edgeColorPicker.value = edgeChars.color;
         edgeThickness.value = edgeChars.thickness.toString();
+        // update dashed edge buttons
+        if (edgeChars.dashed) {
+            toggleContinuousButton === null || toggleContinuousButton === void 0 ? void 0 : toggleContinuousButton.classList.remove("active");
+            toggleDashedButton === null || toggleDashedButton === void 0 ? void 0 : toggleDashedButton.classList.add("active");
+        }
+        else {
+            toggleContinuousButton === null || toggleContinuousButton === void 0 ? void 0 : toggleContinuousButton.classList.add("active");
+            toggleDashedButton === null || toggleDashedButton === void 0 ? void 0 : toggleDashedButton.classList.remove("active");
+        }
         // update toggle-dashed button
-        if (edgeChars.dashed)
-            toggle_dashed_btn === null || toggle_dashed_btn === void 0 ? void 0 : toggle_dashed_btn.classList.add("active");
+        /*if (edgeChars.dashed)
+            toggle_dashed_btn?.classList.add("active");
         else
-            toggle_dashed_btn === null || toggle_dashed_btn === void 0 ? void 0 : toggle_dashed_btn.classList.remove("active");
+            toggle_dashed_btn?.classList.remove("active");*/
     }
 }
 function updateRenameControls(enabled) {
@@ -1582,7 +1642,7 @@ function drawGraph(ctx, graph, localCall = false, labels = true) {
         ctx.strokeStyle = edgeChars.color;
         ctx.lineWidth = edgeChars.thickness / scale;
         if (edgeChars.dashed)
-            ctx.setLineDash([3, 3]); // dashed line
+            ctx.setLineDash([3 / scale, 3 / scale]); // dashed line
         ctx.stroke();
         // reset
         ctx.setLineDash([]);

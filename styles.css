@@ -289,6 +289,75 @@ body {
     border-color: blue;
   }
 
+  /* NEW: Styles for the button group wrapper */
+.edge-style-buttons {
+    display: flex; /* Makes the buttons inside it align horizontally */
+    flex-grow: 1; /* Allows this container to take up remaining space */
+    gap: 8px; /* Adds space between the buttons */
+}
+
+/* NEW: Styles for the individual buttons (continuous and dashed) */
+.edge-style-button {
+    flex-grow: 1; /* Makes buttons grow equally to fill available space */
+    flex-basis: 0; /* Ensures equal distribution even with varying content */
+    height: 28px; /* Fixed height for consistent look */
+    padding: 3px 5px;
+    font-size: 12px; /* Set font size even if content is a span, for consistency */
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease; /* Smooth transition for active state */
+    
+    /* Center the line-preview span inside the button */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Hide any potential default text if button has content */
+}
+
+.edge-style-button:hover {
+    background-color: #e0e0e0;
+}
+
+/* NEW: Active state styling */
+.edge-style-button.active {
+    background-color: lightblue;
+    border-color: blue;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Subtle blue glow */
+}
+
+/* NEW: Styling for the line previews inside the buttons */
+/* Ensure the .line-preview has basic properties */
+.line-preview {
+    width: 80%; /* Adjust width of the line within its button */
+    height: 2px; /* Thickness of the line */
+    display: block; /* Make it a block element */
+    background-color: black; /* Default solid color for continuous */
+    border-radius: 1px; /* Slightly rounded ends for the line */
+}
+
+/* Specific styling for the dashed line */
+.line-dashed {
+    /* Important: Reset background-color to transparent to allow dashes to show */
+    background-color: transparent; 
+
+    /* Create the dashed effect using a linear gradient */
+    /* Black for the dash, transparent for the gap */
+    background-image: linear-gradient(to right, black 50%, transparent 50%);
+    
+    /* Define the size of one complete dash-and-gap segment */
+    /* 6px total width for a segment (3px black + 3px transparent) */
+    /* 2px height for the line thickness (same as line-preview height) */
+    background-size: 6px 2px; 
+    
+    /* Ensure the pattern repeats horizontally across the span */
+    background-repeat: repeat-x; 
+    
+    /* Optional: Remove border-radius if you prefer sharp dash ends */
+    border-radius: 0; 
+}
+
   #vertex-palette .palette-row {
     display: flex;
     align-items: center;

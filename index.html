@@ -165,7 +165,17 @@
                     <input type="number" id="edge-thickness" min="1" max="10" step="1" />
                 </div>
 
-                <button id="toggle-dashed">- - - - - - - - - -</button>
+                <div class="palette-row">
+                    <label>Type:</label>
+                    <div class="edge-style-buttons"> <button id="toggle-continuous" class="edge-style-button active" title="Continuous Line">
+                            <span class="line-preview line-continuous"></span>
+                        </button>
+                        <button id="toggle-dashed" class="edge-style-button" title="Dashed Line">
+                            <span class="line-preview line-dashed"></span>
+                        </button>
+                    </div>
+                </div>
+                
             
                 <button id="delete-edge-palette">Delete</button>
 
