@@ -399,11 +399,7 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
             if (selectedPoints.length > 0 || selectedEdges.length > 0)
             {
                 saveState();
-                deleteSelectedVertices();
-                deleteSelectedBends();
-                deleteSelectedEdges();
-                selectedPointsUpdate();
-                checkHovered();
+                deleteSelectedObjects();
                 // renderGraph();
                 myCanvasHandler?.redraw();
             }
@@ -701,6 +697,15 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
     {
         selectedEdges.forEach(e => graph.deleteEdgee(e));
         selectedEdges.length = 0;
+    }
+
+    function deleteSelectedObjects()
+    {
+        deleteSelectedVertices();
+        deleteSelectedBends();
+        deleteSelectedEdges();
+        selectedPointsUpdate();
+        checkHovered();
     }
 
     // dashed edge button
@@ -1247,8 +1252,13 @@ selectedMenu.addEventListener('click', (event) => {
                 else
                     console.log("Select both the vertices of the selected edges");
                 break;
+            case "deleteSelected":
+                // saveState();
+                deleteSelectedObjects();
+                myCanvasHandler?.redraw();
+                break;
             case "showLabels":
-                if (selectedPoints.length > 0)
+                if (selectedPoints.length > 0)  // no need to check, as selectedMenu is shown only when something is selected
                 {
                     // saveState();
                     for (const point of selectedPoints)
@@ -1259,7 +1269,7 @@ selectedMenu.addEventListener('click', (event) => {
             case "hideLabels":
                 if (selectedPoints.length > 0)
                 {
-                    // saveState();
+                    // saveState(); if not commented, state is saved twice for some reason. If commented, looks to work fine
                     for (const point of selectedPoints)
                         point.showLabel = false;
                     myCanvasHandler?.redraw();
@@ -1478,8 +1488,8 @@ function select(obj: Object, array: Object[], e:MouseEvent)
         else        // add the selected object to selected objects
         {
             array.push(obj);
-            if (obj instanceof Edge)
-                selectPointsOfSelectedEdge(obj);
+            // if (obj instanceof Edge)
+               // selectPointsOfSelectedEdge(obj);
         }
     }
     else    // if not control key pushed, remove all the selected objects and then add the selected one
@@ -1487,8 +1497,8 @@ function select(obj: Object, array: Object[], e:MouseEvent)
         setNothingSelected();
         // array.length = 0;   // clear the array in place
         array.push(obj);
-        if (obj instanceof Edge)
-            selectPointsOfSelectedEdge(obj);
+        // if (obj instanceof Edge)
+           // selectPointsOfSelectedEdge(obj);
     }
 }
 

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
 // src/app.ts
-import { Graph, Vertex, Bend, Edge } from "./graph.js";
+import { Graph, Vertex, Bend } from "./graph.js";
 import { CanvasHandler } from './canvasHandler.js';
 // Create a graph instance
 let graph = new Graph();
@@ -372,11 +372,7 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         if (selectedPoints.length > 0 || selectedEdges.length > 0) {
             saveState();
-            deleteSelectedVertices();
-            deleteSelectedBends();
-            deleteSelectedEdges();
-            selectedPointsUpdate();
-            checkHovered();
+            deleteSelectedObjects();
             // renderGraph();
             myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
         }
@@ -633,6 +629,13 @@ function deleteSelectedBends() {
 function deleteSelectedEdges() {
     selectedEdges.forEach(e => graph.deleteEdgee(e));
     selectedEdges.length = 0;
+}
+function deleteSelectedObjects() {
+    deleteSelectedVertices();
+    deleteSelectedBends();
+    deleteSelectedEdges();
+    selectedPointsUpdate();
+    checkHovered();
 }
 // dashed edge button
 /*let toggle_dashed_btn = document.getElementById("toggle-dashed");
@@ -1109,8 +1112,14 @@ selectedMenu.addEventListener('click', (event) => {
                 else
                     console.log("Select both the vertices of the selected edges");
                 break;
+            case "deleteSelected":
+                // saveState();
+                deleteSelectedObjects();
+                myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+                break;
             case "showLabels":
-                if (selectedPoints.length > 0) {
+                if (selectedPoints.length > 0) // no need to check, as selectedMenu is shown only when something is selected
+                 {
                     // saveState();
                     for (const point of selectedPoints)
                         point.showLabel = true;
@@ -1119,7 +1128,7 @@ selectedMenu.addEventListener('click', (event) => {
                 break;
             case "hideLabels":
                 if (selectedPoints.length > 0) {
-                    // saveState();
+                    // saveState(); if not commented, state is saved twice for some reason. If commented, looks to work fine
                     for (const point of selectedPoints)
                         point.showLabel = false;
                     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
@@ -1307,8 +1316,8 @@ function select(obj, array, e) {
         else // add the selected object to selected objects
          {
             array.push(obj);
-            if (obj instanceof Edge)
-                selectPointsOfSelectedEdge(obj);
+            // if (obj instanceof Edge)
+            // selectPointsOfSelectedEdge(obj);
         }
     }
     else // if not control key pushed, remove all the selected objects and then add the selected one
@@ -1316,8 +1325,8 @@ function select(obj, array, e) {
         setNothingSelected();
         // array.length = 0;   // clear the array in place
         array.push(obj);
-        if (obj instanceof Edge)
-            selectPointsOfSelectedEdge(obj);
+        // if (obj instanceof Edge)
+        // selectPointsOfSelectedEdge(obj);
     }
 }
 // add the endpoints and the bends of an edge to the selected points (so that when the user selects an edge, its endpoints and inner points are also selected)
