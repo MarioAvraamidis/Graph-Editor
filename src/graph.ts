@@ -1220,11 +1220,12 @@ export class Graph {
     }
 
     // remove all the bends from the graph
-    removeBends()
+    removeBends(updateCrossings: boolean = true)
     {
         for (const e of this._edges)
             e.removeBends();
-        this.updateCrossings();
+        if (updateCrossings)
+            this.updateCrossings();
     }
 
     getBends()

@@ -331,17 +331,17 @@ document.addEventListener('keydown', (e) => {
     if (targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA' || targetElement.tagName === 'SELECT')
         return;
     // undo
-    if (e.ctrlKey && e.key === 'z') {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         e.preventDefault(); // prevent the browser's default undo behavior
         undo();
     }
     // redo
-    else if (e.ctrlKey && e.key === 'y' || e.shiftKey && e.ctrlKey && e.key === 'z') {
+    else if ((e.ctrlKey || e.metaKey) && e.key === 'y' || e.shiftKey && (e.ctrlKey || e.metaKey) && e.key === 'z') {
         e.preventDefault();
         redo();
     }
     // copy
-    else if (e.ctrlKey && e.key == 'c') {
+    else if ((e.ctrlKey || e.metaKey) && e.key == 'c') {
         if (checkCopySelected()) {
             copySelected();
             menuCopy = false;
@@ -352,7 +352,7 @@ document.addEventListener('keydown', (e) => {
             console.log("Select both the vertices of the selected edges");
     }
     // paste
-    else if (e.ctrlKey && e.key == 'v') {
+    else if ((e.ctrlKey || e.metaKey) && e.key == 'v') {
         if (copiedSelectedVertices.length > 0) {
             saveState();
             pasteSelected(pasteOffsetX + 50, pasteOffsetY + 50);
@@ -410,9 +410,10 @@ function redo() {
         myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
     }
 }
-// Place vertices in a circle
+// Place vertices in a circle (also remove all the bends)
 (_p = document.getElementById("circle-placement")) === null || _p === void 0 ? void 0 : _p.addEventListener("click", () => {
     saveState();
+    graph.removeBends(false); // don't update crossings here, but below
     graph.makeCircle(0, 0, Math.min(ctx.canvas.height, ctx.canvas.width) / 3, selectedVertices);
     // renderGraph();
     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
@@ -771,7 +772,7 @@ canvas.addEventListener("mousemove", e => {
         draggingLabelPoint.labelOffsetY = inLimits(-worldCoords.y + draggingLabelPoint.y, limit / scale) * scale;
     }
     // create a rectangle showing selected space
-    if (selectedPoints.length === 0 && !creatingEdge && !e.ctrlKey && !draggingLabelPoint && mousedown && hasDragged) {
+    if (selectedPoints.length === 0 && !creatingEdge && !e.ctrlKey && !e.metaKey && !draggingLabelPoint && mousedown && hasDragged) {
         isSelecting = true;
         // console.log("creatingEdge=",creatingEdge);
     }

@@ -994,10 +994,11 @@ export class Graph {
         this.updateCrossings();
     }
     // remove all the bends from the graph
-    removeBends() {
+    removeBends(updateCrossings = true) {
         for (const e of this._edges)
             e.removeBends();
-        this.updateCrossings();
+        if (updateCrossings)
+            this.updateCrossings();
     }
     getBends() {
         let bends = [];

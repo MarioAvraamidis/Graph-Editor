@@ -443,9 +443,10 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
         }
     }
 
-    // Place vertices in a circle
+    // Place vertices in a circle (also remove all the bends)
     document.getElementById("circle-placement")?.addEventListener("click", () => {
         saveState();
+        graph.removeBends(false);   // don't update crossings here, but below
         graph.makeCircle(0,0,Math.min(ctx.canvas.height,ctx.canvas.width)/3,selectedVertices);
         // renderGraph();
         myCanvasHandler?.redraw();
