@@ -1468,7 +1468,7 @@ function select(obj: Object, array: Object[], e:MouseEvent)
         {
             array.push(obj);
             if (obj instanceof Edge)
-                selectVerticesOfSelectedEdge(obj);
+                selectPointsOfSelectedEdge(obj);
         }
     }
     else    // if not control key pushed, remove all the selected objects and then add the selected one
@@ -1477,12 +1477,12 @@ function select(obj: Object, array: Object[], e:MouseEvent)
         // array.length = 0;   // clear the array in place
         array.push(obj);
         if (obj instanceof Edge)
-            selectVerticesOfSelectedEdge(obj);
+            selectPointsOfSelectedEdge(obj);
     }
 }
 
-// add the endpoints of an edge to the selectedVertices array (so that when the user selects an edge, its endpoints are also selected)
-function selectVerticesOfSelectedEdge(edge: Edge)
+// add the endpoints and the bends of an edge to the selected points (so that when the user selects an edge, its endpoints and inner points are also selected)
+function selectPointsOfSelectedEdge(edge: Edge)
 {
     if (edge.points[0] instanceof Vertex && edge.points[1] instanceof Vertex)
     {
@@ -1491,6 +1491,9 @@ function selectVerticesOfSelectedEdge(edge: Edge)
         if (!selectedVertices.includes(edge.points[1]))
             selectedVertices.push(edge.points[1]);
     }
+    for (const bend of edge.bends)
+        if (!selectedBends.includes(bend))
+            selectedBends.push(bend);
 }
 
 // select all the objects
