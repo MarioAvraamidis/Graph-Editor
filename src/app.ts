@@ -873,9 +873,9 @@ canvas.addEventListener("mousemove", e => {
     if (draggingLabelPoint && hasDragged)
     {
         // make sure dragging label is not moved far away from the point
-        const limit = Math.max(2*draggingLabelPoint.size+draggingLabelPoint.labelFont,40);
-        draggingLabelPoint.labelOffsetX = inLimits(worldCoords.x - draggingLabelPoint.x,limit/scale)*scale;
-        draggingLabelPoint.labelOffsetY = inLimits(- worldCoords.y + draggingLabelPoint.y,limit/scale)*scale;
+        const limit = Math.max(2*draggingLabelPoint.size+draggingLabelPoint.label.fontSize,40);
+        draggingLabelPoint.label.offsetX = inLimits(worldCoords.x - draggingLabelPoint.x,limit/scale)*scale;
+        draggingLabelPoint.label.offsetY = inLimits(- worldCoords.y + draggingLabelPoint.y,limit/scale)*scale;
     }
 
     // create a rectangle showing selected space
@@ -1048,7 +1048,7 @@ canvas.addEventListener("click", (e: MouseEvent) => {
             vertex.size = vertexChars.size;
             vertex.shape = vertexChars.shape;
             vertex.color = vertexChars.color;
-            vertex.labelFont = defaultLabelFontSize;
+            vertex.label.fontSize = defaultLabelFontSize;
             // hoveredVertex = vertex;
         }
 
@@ -1226,6 +1226,23 @@ edgeMenu.addEventListener('click', (event) => {
                 // renderGraph();
                 myCanvasHandler?.redraw();
                 break;
+            case "showLabel":
+                if (hoveredEdge)
+                {
+                    saveState();
+                    hoveredEdge.label.showLabel = true;
+                    myCanvasHandler?.redraw();
+                }
+                break;
+            case "hideLabel":
+                if (hoveredEdge)
+                {
+                    saveState();
+                    hoveredEdge.label.showLabel = false;
+                    myCanvasHandler?.redraw();
+                }
+                break;
+                
             // Add more cases for other actions
             default:
                 console.log(`Action not implemented: ${action}`);
@@ -1266,7 +1283,7 @@ selectedMenu.addEventListener('click', (event) => {
                 {
                     // saveState();
                     for (const point of selectedPoints)
-                        point.showLabel = true;
+                        point.label.showLabel = true;
                     myCanvasHandler?.redraw();
                 }
                 break;
@@ -1275,7 +1292,7 @@ selectedMenu.addEventListener('click', (event) => {
                 {
                     // saveState(); if not commented, state is saved twice for some reason. If commented, looks to work fine
                     for (const point of selectedPoints)
-                        point.showLabel = false;
+                        point.label.showLabel = false;
                     myCanvasHandler?.redraw();
                 }
                 break;
@@ -1300,7 +1317,7 @@ pointMenu.addEventListener('click', (event) => {
                 if (hoveredPoint)
                 {
                     saveState();
-                    hoveredPoint.showLabel = true;
+                    hoveredPoint.label.showLabel = true;
                     myCanvasHandler?.redraw();
                 }
                 break;
@@ -1308,7 +1325,7 @@ pointMenu.addEventListener('click', (event) => {
                 if (hoveredPoint)
                 {
                     saveState();
-                    hoveredPoint.showLabel = false;
+                    hoveredPoint.label.showLabel = false;
                     myCanvasHandler?.redraw();
                 }
                 break;
@@ -1343,7 +1360,7 @@ labelMenu.addEventListener('click', (event) => {
                 if (hoveredLabelPoint)
                 {
                     saveState();
-                    hoveredLabelPoint.showLabel = false;
+                    hoveredLabelPoint.label.showLabel = false;
                     myCanvasHandler?.redraw();
                 }
             // Add more cases for other actions
@@ -1357,8 +1374,8 @@ saveLabelButton?.addEventListener('click', () => {
     if (labelContentInput && labelFontSizeInput && hoveredLabelPoint)
     {
         saveState();
-        hoveredLabelPoint.labelContent = labelContentInput.value;
-        hoveredLabelPoint.labelFont = parseInt(labelFontSizeInput.value);
+        hoveredLabelPoint.label.content = labelContentInput.value;
+        hoveredLabelPoint.label.fontSize = parseInt(labelFontSizeInput.value);
         // checkHovered();
         myCanvasHandler?.redraw();
     }
@@ -1382,8 +1399,8 @@ function showEditLabelModal() {
     if (editLabelModal && hoveredLabelPoint) {
         
         // console.log("showEditLabelModal");
-        labelContentInput.value = hoveredLabelPoint.labelContent;
-        labelFontSizeInput.value = hoveredLabelPoint.labelFont.toString();
+        labelContentInput.value = hoveredLabelPoint.label.content;
+        labelFontSizeInput.value = hoveredLabelPoint.label.fontSize.toString();
         // if the hovered label point is a vertex, don't allow rename
         labelContentInput.disabled = hoveredLabelPoint instanceof Vertex;
 
@@ -2092,23 +2109,41 @@ function drawVertex(ctx: CanvasRenderingContext2D, v: Vertex, labels: boolean = 
 // display the label of the given point
 function showPointLabel(ctx: CanvasRenderingContext2D, p: Point)
 {
-    if (!p.showLabel)
+    if (!p.label.showLabel)
         return;
-    ctx.fillStyle = p.labelColor;
+    ctx.fillStyle = p.label.color;
     if (hoveredLabelPoint === p)
         ctx.fillStyle = "red";
-    const adjustedFontSize = p.labelFont / scale;
+    const adjustedFontSize = p.label.fontSize / scale;
     ctx.font = `${adjustedFontSize}px sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
     // we want the difference between the vertex and the label to remain the same regardless of the zoom scale, so we devide offsets by scale
-        ctx.fillText(p.labelContent, p.x + p.labelOffsetX/scale , p.y - labelOffsetY(p)/scale);   // positive is down in canvas
+        ctx.fillText(p.label.content, p.x + p.label.offsetX/scale , p.y - labelOffsetY(p)/scale);   // positive is down in canvas
+    ctx.fillStyle = "#000";
+}
+
+// display the label of the given edge
+function showEdgeLabel(ctx: CanvasRenderingContext2D, e: Edge)
+{
+    if (!e.label.showLabel)
+        return;
+    ctx.fillStyle = e.label.color;
+    //if (hoveredLabelEdge === e)
+        //ctx.fillStyle = "red";
+    const adjustedFontSize = e.label.fontSize / scale;
+    ctx.font = `${adjustedFontSize}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    e.updateLabelPos();
+    // we want the difference between the vertex and the label to remain the same regardless of the zoom scale, so we devide offsets by scale
+        ctx.fillText(e.label.content, e.labelPosX + e.label.offsetX/scale , e.labelPosY - e.label.offsetY/scale);   // positive is down in canvas
     ctx.fillStyle = "#000";
 }
 
 function labelOffsetY(point: Point)
 {
-    return (point.size + point.labelOffsetY + point.labelFont);
+    return (point.size + point.label.offsetY + point.label.fontSize);
 }
 
 declare var MathJax: any;
@@ -2123,7 +2158,7 @@ function renderLatexLabel(vertex: Vertex) {
     }
   
     labelDiv.innerHTML = `\\(v_{${vertex.id}}\\)`; // LaTeX format
-    labelDiv.style.left = `${canvas.offsetLeft + vertex.x + vertex.labelOffsetX}px`; // adjust as needed
+    labelDiv.style.left = `${canvas.offsetLeft + vertex.x + vertex.label.offsetX}px`; // adjust as needed
     labelDiv.style.top = `${canvas.offsetTop + vertex.y - labelOffsetY(vertex)}px`;
   
     MathJax.typesetPromise([labelDiv]); // re-render the LaTeX
@@ -2363,6 +2398,7 @@ function drawEdge(ctx: CanvasRenderingContext2D, edge: Edge, highlight: number =
         // draw bends
         for (const bend of edge.bends)
             drawBend(ctx,bend);
+        showEdgeLabel(ctx,edge);
     }
 }
 
@@ -2388,12 +2424,12 @@ function hideEdgeInfo() {
 
 // check that mouse is near a label (in world coordinates)
 function isNearLabel(point: Point, x: number, y: number): boolean {
-    if (!point.showLabel)
+    if (!point.label.showLabel)
         return false;   // return false if the point's label is not displayed
-    const labelX = point.x + point.labelOffsetX/scale;
+    const labelX = point.x + point.label.offsetX/scale;
     const labelY = point.y - labelOffsetY(point)/scale;    // check that label is positioned at these coordinates at drawVertex function
-    const width = point.labelContent.length*point.labelFont/scale;  
-    const height = 1.3*point.labelFont/scale;
+    const width = point.label.content.length*point.label.fontSize/scale;  
+    const height = 1.3*point.label.fontSize/scale;
     return x >= labelX - width/2 && x <= labelX + width/2 &&
            y >= labelY && y <= labelY + height;
 }
@@ -2514,8 +2550,8 @@ function exportGraph(graph: Graph) {
         color: v.color,
         size: v.size,
         shape: v.shape,
-        labelOffsetX: v.labelOffsetX,
-        labelOffsetY: v.labelOffsetY,
+        // labelOffsetX: v.labelOffsetX,
+        // labelOffsetY: v.labelOffsetY,
       })),
       edges: graph.edges.map(e => ({
         v1: e.points[0].id,
@@ -2552,10 +2588,10 @@ function exportGraph(graph: Graph) {
             vertex.size = v.size;
         if (v.shape)
             vertex.shape = v.shape;
-        if (v.labelOffsetX)
-            vertex.labelOffsetX = v.labelOffsetX;
-        if (v.labelOffsetY)
-            vertex.labelOffsetY = v.labelOffsetY;
+        // if (v.labelOffsetX)
+           // vertex.labelOffsetX = v.labelOffsetX;
+        // if (v.labelOffsetY)
+           // vertex.labelOffsetY = v.labelOffsetY;
         newGraph.vertices.push(vertex);
     }
 
@@ -2683,7 +2719,7 @@ async function exportCanvasAsImage() {
     for (const vertex of graph.vertices) {
         const label = "v_"+vertex.id; // or vertex.label if you use one
         const img = await renderLatexToImage(label);
-        const x = vertex.x + vertex.labelOffsetX;
+        const x = vertex.x + vertex.label.offsetX;
         const y = vertex.y - labelOffsetY(vertex); // adjust position above the vertex
         const canvasPos = myCanvasHandler?.worldToCanvas(x,y);
         if (canvasPos)

@@ -1,5 +1,45 @@
 import { showCustomAlert } from "./alert.js";
 
+class Label
+{
+    private _content: string;
+    private _showLabel: boolean = false;
+    private _offsetX: number = 0;
+    private _offsetY: number = 5;  // remember that positive is down in canvas
+    private _color: string = "#000";
+    private _fontSize: number = 14;
+
+    constructor(objectId: string)
+    {
+        this._content = objectId;
+    }
+
+    get content() { return this._content; }
+    get showLabel() {return this._showLabel; }
+    get offsetX() { return this._offsetX; }
+    get offsetY() { return this._offsetY; }
+    get color() { return this._color; }
+    get fontSize() { return this._fontSize; }
+
+    set content(content: string) { this._content = content; }
+    set showLabel(show: boolean) { this._showLabel = show; }
+    set offsetX(offsetX: number) { this._offsetX = offsetX; }
+    set offsetY(offsetY: number) { this._offsetY = offsetY; }
+    set color(color: string) { this._color = color;}
+    set fontSize(fontSize: number) { this._fontSize = fontSize; }
+
+    cloneCharacteristics(lab: Label)
+    {
+        // labeling
+        // this.labelContent = p.labelContent;
+        this.showLabel = lab.showLabel;
+        this.offsetX = lab.offsetX;
+        this.offsetY = lab.offsetY;
+        this.color = lab.color;
+        this.fontSize = lab.fontSize;
+    }
+}
+
 export abstract class Point
 {
     private _id: string ;
@@ -9,17 +49,19 @@ export abstract class Point
     private _size: number = 5;  //  if circle, size = radius, if square, size = side length
     private _color: string = "#000000";
     // labeling
-    private _labelContent: string;
+    label: Label;
+    /*private _labelContent: string;
     private _showLabel: boolean = false;
     labelOffsetX: number = 0;
     labelOffsetY: number = 5;  // remember that positive is down in canvas
     labelColor: string = "#000";
-    labelFont: number = 14;
+    labelFont: number = 14;*/
 
     constructor(id: string, x_pos?:number, y_pos?:number)
     {
         this._id = id;
-        this._labelContent = id;
+        // this._labelContent = id;
+        this.label = new Label(this.id);
         if (x_pos != undefined)
             this._x = x_pos;
         if (y_pos != undefined)
@@ -31,16 +73,16 @@ export abstract class Point
     get y() { return this._y;}
     get size() { return this._size; }
     get color() { return this._color; }
-    get labelContent() { return this._labelContent; }
-    get showLabel() { return this._showLabel; }
+    // get labelContent() { return this._labelContent; }
+    // get showLabel() { return this._showLabel; }
 
     set id(id: string) {this._id = id;}
     set x(x_pos) {this._x = x_pos}
     set y(y_pos) {this._y = y_pos}
     set size(s: number) { this._size = s; }
     set color(c: string) {this._color = c; }
-    set labelContent(label: string) { this._labelContent = label; }
-    set showLabel(show: boolean) { this._showLabel = show; }
+    // set labelContent(label: string) { this._labelContent = label; }
+    // set showLabel(show: boolean) { this._showLabel = show; }
 
     // print details (name and coordinates)
     print() {console.log(this._id,"x:"+this._x,"y:"+this._y)}
@@ -49,7 +91,7 @@ export abstract class Point
     // check if the point is in a given rectangle
     isIn(x: number, y: number, width: number, height: number)
     {return x <= this._x && this._x <= x+width && y <= this._y && this._y <= y+height;}
-    cloneLabelCharacteristics(p: Point)
+    /* cloneLabelCharacteristics(p: Point)
     {
         // labeling
         // this.labelContent = p.labelContent;
@@ -58,7 +100,7 @@ export abstract class Point
         this.labelOffsetY = p.labelOffsetY;
         this.labelColor = p.labelColor;
         this.labelFont = p.labelFont;
-    }
+    }*/
 }
 
 export class Vertex extends Point
@@ -76,7 +118,7 @@ export class Vertex extends Point
         this._neighbors = [];
         this.color = "#000000";
         this.size = 7;
-        this.showLabel = true;
+        this.label.showLabel = true;
     }
 
     get neighbors() { return this._neighbors; }
@@ -105,8 +147,8 @@ export class Vertex extends Point
         this.shape = v.shape;
         this.color = v.color;
         this.size = v.size;
-        // labeling
-        this.cloneLabelCharacteristics(v);
+        // clone label characteristics
+        this.label.cloneCharacteristics(v.label);
     }
 }
 
@@ -206,21 +248,33 @@ export class Edge extends LineSegment
 {
     // bending points of the edge
     private _bends: Bend[] = [];
+    // design characteristics
     private _color: string = "#898989"; // open gray
     private _dashed: boolean = false;
     private _thickness: number = 2;
+    label: Label;
+    // labeling
+    /*private _label: string;
+    showLabel: boolean = false;
+    labelOffsetX: number = 20;
+    labelOffsetY: number = 20;*/
+    
+    labelPosX: number = 0;
+    labelPosY: number = 0;
 
-    constructor([v1,v2]: [Vertex,Vertex])  { super([v1,v2]); }
+    constructor([v1,v2]: [Vertex,Vertex])  { super([v1,v2]); this.label = new Label(this.id); }
 
     // return an array with the bends of the edge
     get bends() {return this._bends}
     get color() { return this._color }
     get dashed() { return this._dashed}
     get thickness() { return this._thickness; }
+    // get label() { return this._label; }
 
     set color(c: string) { this._color = c; }
     set dashed(t) {this._dashed = t; }
     set thickness(t) {this._thickness = t; }
+    // set label(l) { this._label = l; }
 
     // add a bend at coordinate (x,y) (at the projection of (x,y) on the edge if onEdge is true)
     addBend(x: number, y: number, onEdge: boolean = true)
@@ -336,6 +390,15 @@ export class Edge extends LineSegment
                 return false;
         return true;
     }
+
+    updateLabelPos()
+    {
+        const subEdges = this.subEdges();
+        const index = Math.floor((subEdges.length-1)/2);
+        const midSubEdge = subEdges[index];     // find middle sub-edge
+        this.labelPosX = (midSubEdge.points[0].x+midSubEdge.points[1].x)/2 // +this.labelOffsetX;
+        this.labelPosY = (midSubEdge.points[0].y+midSubEdge.points[1].y)/2 // +this.labelOffsetY;
+    }
 }
 
 export class Subedge extends LineSegment
@@ -411,7 +474,7 @@ export class Crossing extends Point
         let newCrossing = new Crossing(this.subedges[0],this.subedges[1],this.x,this.y);
         newCrossing.legal = this._legal;
         newCrossing.more_than_once = this._more_than_once;
-        newCrossing.cloneLabelCharacteristics(this);
+        newCrossing.label.cloneCharacteristics(this.label);
         return newCrossing;
     }
 }
@@ -437,7 +500,7 @@ export class Bend extends Point
     {
         this.size = b.size;
         this.color = b.color;
-        this.cloneLabelCharacteristics(b);
+        this.label.cloneCharacteristics(b.label);
     }
 
     assignCharacteristics(size: number, color: string)
@@ -591,14 +654,14 @@ export class Graph {
             return null;
         }
         vertex.id = newId;
-        vertex.labelContent = newId;
+        vertex.label.content = newId;
         this._edges.forEach(e => {
             if(e.points[0]===vertex || e.points[1]===vertex)
             {
                 // update edge id
                 e.id = e.setId(e.points[0],e.points[1]);
                 // update bend ids
-                e.bends.forEach(b => {b.id = b.setId(); b.labelContent=b.id; });
+                e.bends.forEach(b => {b.id = b.setId(); b.label.content=b.id; });
             }
         })
         // update crossings (so crossings ids are updated)
