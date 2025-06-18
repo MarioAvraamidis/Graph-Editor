@@ -596,3 +596,76 @@ body {
     border-radius: 4px;
     box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
+
+/* your-styles.css */
+
+/* Custom Alert Container */
+.custom-alert {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place relative to the viewport */
+    top: 20px; /* Distance from the top of the viewport */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Adjust to truly center */
+    z-index: 2000; /* High z-index to ensure it's on top of everything */
+    padding: 15px 20px;
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Soft shadow */
+    font-family: 'Inter', sans-serif; /* Consistent font */
+    color: white;
+    font-size: 14px;
+    opacity: 0; /* Start invisible for fade-in effect */
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Smooth transitions */
+    min-width: 250px;
+    max-width: 90%;
+    text-align: center;
+    box-sizing: border-box; /* Include padding in width */
+}
+
+/* Alert type: Warning (you can add more types like success, info, error) */
+.custom-alert.warning {
+    background-color: #ffc107; /* Orange/Yellow for warning */
+    color: #343a40; /* Dark text for contrast */
+}
+
+/* Alert type: Error */
+.custom-alert.error {
+    background-color: #dc3545; /* Red for error */
+    color: white;
+}
+
+/* Alert type: Success */
+.custom-alert.success {
+    background-color: #28a745; /* Green for success */
+    color: white;
+}
+
+/* When the alert is active (visible) */
+.custom-alert.active {
+    display: block; /* Make it visible */
+    opacity: 1; /* Fade in */
+    transform: translateX(-50%) translateY(0); /* Ensure it's in final position */
+}
+
+.custom-alert-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+/* Close button for the alert */
+.custom-alert-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: inherit; /* Inherit color from parent (.custom-alert) */
+    cursor: pointer;
+    line-height: 1; /* Align 'x' properly */
+    padding: 0 5px;
+    transition: color 0.2s ease;
+}
+
+.custom-alert-close:hover {
+    color: #333; /* Darker color on hover */
+}

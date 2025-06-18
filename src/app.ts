@@ -1,6 +1,7 @@
 // src/app.ts
 import { Graph, Vertex, Bend, Edge, Point, Crossing } from "./graph.js";
 import { CanvasHandler } from './canvasHandler.js'; 
+import { showCustomAlert } from './alert.js';
 
 // Create a graph instance
 let graph = new Graph();
@@ -130,7 +131,7 @@ document.getElementById('settingsBtn')?.addEventListener('click', () => showSett
 //window.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
-    // menus
+    // context menus
     const contextMenu = document.getElementById('contextMenu') as HTMLDivElement;
     const edgeMenu = document.getElementById("edgeMenu") as HTMLDivElement;
     const selectedMenu = document.getElementById("selectedMenu") as HTMLDivElement;
@@ -158,6 +159,7 @@ document.getElementById('settingsBtn')?.addEventListener('click', () => showSett
     const settingsLabelDefaultFonstSizeInput = document.getElementById('labelDefaultFontSizeInput') as HTMLInputElement;
     const settingsCloseButton = settingsModal.querySelector('.close-button') as HTMLElement;
     const settingsSaveButton = document.getElementById('settingsSaveButton') as HTMLElement;
+
 
     // don't show the modal when refreshing
     //hideEditLabelModal();
@@ -377,7 +379,8 @@ for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
                 pasteOffsetY = 0;
             }
             else
-                console.log("Select both the vertices of the selected edges");
+                showCustomAlert("Select both the vertices of the selected edges");
+                // console.log("Select both the vertices of the selected edges");
         }
         // paste
         else if ((e.ctrlKey || e.metaKey) && e.key=='v')
@@ -1188,8 +1191,8 @@ contextMenu.addEventListener('click', (event) => {
                         let uppermostPoint = uppermostCopiedSelectedVertex();
                         if (uppermostPoint)
                             pasteSelected(rightClickPos.x-uppermostPoint.x, rightClickPos.y - uppermostPoint.y);
-                        else
-                            console.log("uppermostPoint null");
+                        // else
+                           // console.log("uppermostPoint null");
                     }
                     // renderGraph();
                     myCanvasHandler?.redraw();
@@ -1250,7 +1253,8 @@ selectedMenu.addEventListener('click', (event) => {
                     pasteOffsetY = 0;
                 }
                 else
-                    console.log("Select both the vertices of the selected edges");
+                    showCustomAlert("Select both the vertices of the selected edges");
+                    // console.log("Select both the vertices of the selected edges");
                 break;
             case "deleteSelected":
                 // saveState();

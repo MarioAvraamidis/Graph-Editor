@@ -11,6 +11,7 @@ var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
 // src/app.ts
 import { Graph, Vertex, Bend } from "./graph.js";
 import { CanvasHandler } from './canvasHandler.js';
+import { showCustomAlert } from './alert.js';
 // Create a graph instance
 let graph = new Graph();
 // history stack and redo stack for undo/redo
@@ -131,7 +132,7 @@ function setMode(mode) {
 //window.addEventListener("DOMContentLoaded", () => {
 const canvas = document.getElementById("graphCanvas");
 const ctx = canvas.getContext("2d");
-// menus
+// context menus
 const contextMenu = document.getElementById('contextMenu');
 const edgeMenu = document.getElementById("edgeMenu");
 const selectedMenu = document.getElementById("selectedMenu");
@@ -354,7 +355,8 @@ document.addEventListener('keydown', (e) => {
             pasteOffsetY = 0;
         }
         else
-            console.log("Select both the vertices of the selected edges");
+            showCustomAlert("Select both the vertices of the selected edges");
+        // console.log("Select both the vertices of the selected edges");
     }
     // paste
     else if ((e.ctrlKey || e.metaKey) && e.key == 'v') {
@@ -1055,8 +1057,8 @@ contextMenu.addEventListener('click', (event) => {
                         let uppermostPoint = uppermostCopiedSelectedVertex();
                         if (uppermostPoint)
                             pasteSelected(rightClickPos.x - uppermostPoint.x, rightClickPos.y - uppermostPoint.y);
-                        else
-                            console.log("uppermostPoint null");
+                        // else
+                        // console.log("uppermostPoint null");
                     }
                     // renderGraph();
                     myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
@@ -1110,7 +1112,8 @@ selectedMenu.addEventListener('click', (event) => {
                     pasteOffsetY = 0;
                 }
                 else
-                    console.log("Select both the vertices of the selected edges");
+                    showCustomAlert("Select both the vertices of the selected edges");
+                // console.log("Select both the vertices of the selected edges");
                 break;
             case "deleteSelected":
                 // saveState();

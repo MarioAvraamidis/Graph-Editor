@@ -1,3 +1,4 @@
+import { showCustomAlert } from "./alert.js";
 export class Point {
     constructor(id, x_pos, y_pos) {
         this._x = 10;
@@ -39,7 +40,7 @@ export class Point {
     isIn(x, y, width, height) { return x <= this._x && this._x <= x + width && y <= this._y && this._y <= y + height; }
     cloneLabelCharacteristics(p) {
         // labeling
-        this.labelContent = p.labelContent;
+        // this.labelContent = p.labelContent;
         this.showLabel = p.showLabel;
         this.labelOffsetX = p.labelOffsetX;
         this.labelOffsetY = p.labelOffsetY;
@@ -405,7 +406,8 @@ export class Graph {
         if (!extractIds(this._vertices).includes(vertex.id))
             this._vertices.push(vertex);
         else
-            console.log("WARNING: Vertex with this name (" + vertex.id + ") already exist");
+            showCustomAlert("WARNING: Vertex with this name (" + vertex.id + ") already exist");
+        // console.log("WARNING: Vertex with this name ("+vertex.id+") already exist")
     }
     // add a new vertex to the graph at the specified position with the id of the max numerical ids and return the vertex
     addNewVertex(x, y) {
@@ -470,7 +472,8 @@ export class Graph {
             return null;
         }
         if (extractIds(this._vertices).includes(newId)) {
-            console.log("Id already in use");
+            // console.log("Id already in use");
+            showCustomAlert("Id already in use");
             return null;
         }
         vertex.id = newId;
@@ -535,8 +538,8 @@ export class Graph {
         //    console.log("WARNING: one or both of the vertices ("+id1+","+id2+") does not exist in the graph")
     }
     // add a new edge between 2 vertices
-    addEdge(v1, v2, updateCrossings = true) {
-        if (this.checkEdgeId(v1, v2)) {
+    addEdge(v1, v2, updateCrossings = true, showWarnings = true) {
+        if (this.checkEdgeId(v1, v2, showWarnings)) {
             let edge = new Edge([v1, v2]);
             this._edges.push(edge);
             // update neighbors
@@ -575,10 +578,12 @@ export class Graph {
             return null;
     }
     // check if an edge can be created between 2 given vertices
-    checkEdgeId(v1, v2) {
+    checkEdgeId(v1, v2, showWarnings = true) {
         // first check that the 2 vertices belong to the graph
         if (!this._vertices.includes(v1) || !this._vertices.includes(v2)) {
-            console.log("WARNING: one or both of the vertices (" + v1.id + "," + v2.id + ") does not exist in the graph");
+            // console.log("WARNING: one or both of the vertices ("+v1.id+","+v2.id+") does not exist in the graph");
+            if (showWarnings)
+                showCustomAlert("WARNING: one or both of the vertices (" + v1.id + "," + v2.id + ") does not exist in the graph");
             return false;
         }
         // if vertices are temporary, check their neighbors
@@ -591,17 +596,23 @@ export class Graph {
         // if the graph is undirected, check reversed edge
         let edge_id2 = v2.id + '-' + v1.id;
         if (v1 === v2 && !this.self_loops) {
-            console.log("WARNING: Self loops are not allowed in this graph");
+            // console.log("WARNING: Self loops are not allowed in this graph");
+            if (showWarnings)
+                showCustomAlert("WARNING: Self loops are not allowed in this graph");
             return false;
         }
         //check that the edge does not already exits
         else if (extractIds(this._edges).includes(edge_id1) && this.simple) {
-            console.log("WARNING: Edge " + edge_id1 + " already exists and the graph is simple");
+            // console.log("WARNING: Edge " + edge_id1 + " already exists and the graph is simple");
+            if (showWarnings)
+                showCustomAlert("WARNING: Edge " + edge_id1 + " already exists and the graph is simple");
             return false;
         }
         // if the graph is undirected, check reversed edge
         else if (!this.directed && extractIds(this._edges).includes(edge_id2)) {
-            console.log("WARNING: Edge " + edge_id2 + " already exists");
+            // console.log("WARNING: Edge " + edge_id2 + " already exists");
+            if (showWarnings)
+                showCustomAlert("WARNING: Edge " + edge_id2 + " already exists");
             return false;
         }
         return true;
@@ -872,7 +883,7 @@ export class Graph {
         let edge = null;
         for (const v1 of nonTempVertices)
             for (const v2 of nonTempVertices) {
-                edge = this.addEdge(v1, v2, false);
+                edge = this.addEdge(v1, v2, false, false); // don't update crossings and don't show warnings
                 if (edge)
                     edge.color = newEdgesColor;
             }
