@@ -412,7 +412,16 @@ function printPointArray(points) {
         point.print();
 }
 export class Graph {
-    constructor() {
+    get vertices() { return this._vertices; }
+    get edges() { return this._edges; }
+    get crossings() { return this._crossings; }
+    get curve_complexity() { return this._curve_complexity; }
+    get effective_crossing_update() { return this._effective_crossing_update; }
+    // will be used in the cloning (Undo/Redo)
+    set vertices(vert) { this._vertices = vert; }
+    set edges(e) { this._edges = e; }
+    set effective_crossing_update(update) { this._effective_crossing_update = update; }
+    constructor(vertices = [], edges = [], updateCrossings = true) {
         this._vertices = [];
         this._edges = [];
         // characteristics of the graph
@@ -426,16 +435,16 @@ export class Graph {
         // decide which method will be used for updating crossings
         this._effective_crossing_update = true;
         this.tempCount = 0; // counting temporary vertices
+        // add the vertices to the graph
+        this.addVertices(vertices);
+        // add the edges
+        for (const e of edges)
+            if (this.checkEdgeId(e.points[0], e.points[1]))
+                this._edges.push(e);
+        if (updateCrossings)
+            this.updateCrossings();
+        this.updateCurveComplexity();
     }
-    get vertices() { return this._vertices; }
-    get edges() { return this._edges; }
-    get crossings() { return this._crossings; }
-    get curve_complexity() { return this._curve_complexity; }
-    get effective_crossing_update() { return this._effective_crossing_update; }
-    // will be used in the cloning (Undo/Redo)
-    set vertices(vert) { this._vertices = vert; }
-    set edges(e) { this._edges = e; }
-    set effective_crossing_update(update) { this._effective_crossing_update = update; }
     // update the curve complexity of the graph
     updateCurveComplexity() {
         let cc = 0;
@@ -455,6 +464,11 @@ export class Graph {
         else
             showCustomAlert("WARNING: Vertex with this name (" + vertex.id + ") already exist");
         // console.log("WARNING: Vertex with this name ("+vertex.id+") already exist")
+    }
+    // add an array of vertices
+    addVertices(vertices) {
+        for (const v of vertices)
+            this.addVertex(v);
     }
     // add a new vertex to the graph at the specified position with the id of the max numerical ids and return the vertex
     addNewVertex(x, y) {
@@ -1154,5 +1168,33 @@ export class Graph {
         cloned.updateCrossings();
         cloned.updateCurveComplexity();
         return cloned;
+    }
+    // merge this graph with the given newGraph and return the new subgraph that represents newGraph and is now part of the big graph
+    merge(newGraph, offset = { x: 0, y: 0 }) {
+        const newSubGraph = new Graph();
+        // create a map for the new vertices (of this graph) and vertices of the newGraph (so that the new edges can be created)
+        const map = new Map();
+        // merge vertices
+        for (const v of newGraph.vertices) {
+            let newVertex = this.addNewVertex(v.x + offset.x, v.y + offset.y);
+            newVertex.cloneCharacteristics(v);
+            map.set(v, newVertex);
+            newSubGraph.addVertex(newVertex); // 
+        }
+        // merge edges
+        for (const e of newGraph.edges) {
+            const v1 = e.points[0];
+            const v2 = e.points[1];
+            let newEdge = null;
+            if (v1 instanceof Vertex && v2 instanceof Vertex)
+                newEdge = this.addEdge(map.get(v1), map.get(v2));
+            if (newEdge) {
+                newEdge.cloneCharacteristics(e, offset.x, offset.y);
+                newSubGraph.addEdgee(newEdge, false);
+            }
+        }
+        this.updateCrossings();
+        this.updateCurveComplexity();
+        return newSubGraph;
     }
 }

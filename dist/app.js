@@ -11,7 +11,6 @@ var _a;
 // src/app.ts
 import { Graph, Vertex, Bend } from "./graph.js";
 import { CanvasHandler } from './canvasHandler.js';
-import { showCustomAlert } from './alert.js';
 import { exportGraph, restoreGraphFromJSON, exportCanvasAsPdf, exportCanvasAsImage } from './exporting.js';
 import { ModalsHandler } from "./modals.js";
 import { StateHandler } from "./stateHandler.js";
@@ -218,15 +217,8 @@ function addKeydownEventListener() {
             myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
         }
         // copy
-        else if ((e.ctrlKey || e.metaKey) && e.key == 'c') {
-            if (copier.checkSelected(selector)) {
-                copier.copySelected(selector);
-                copier.menuCopy = false;
-            }
-            else
-                showCustomAlert("Select both the vertices of the selected edges");
-            // console.log("Select both the vertices of the selected edges");
-        }
+        else if ((e.ctrlKey || e.metaKey) && e.key == 'c')
+            copier.copySelected(selector, false);
         // paste
         else if ((e.ctrlKey || e.metaKey) && e.key == 'v') {
             if (copier.selectedVertices.length > 0) {
@@ -956,14 +948,7 @@ function addMenusEventListeners() {
             hideContextMenu(); // Hide menu after selection
             switch (action) {
                 case "copySelected":
-                    if (copier.checkSelected(selector)) {
-                        copier.selectedClickedPos = { x: copier.rightClickPos.x, y: copier.rightClickPos.y };
-                        copier.copySelected(selector);
-                        copier.menuCopy = true;
-                    }
-                    else
-                        showCustomAlert("Select both the vertices of the selected edges");
-                    // console.log("Select both the vertices of the selected edges");
+                    copier.copySelected(selector, true);
                     break;
                 case "deleteSelected":
                     // stateHandler.saveState();

@@ -553,6 +553,19 @@ export class Graph {
     set edges(e: Edge[]) {this._edges = e}
     set effective_crossing_update(update: boolean) { this._effective_crossing_update = update; }
 
+    constructor(vertices: Vertex[] = [], edges: Edge[] = [], updateCrossings: boolean = true)
+    {
+        // add the vertices to the graph
+        this.addVertices(vertices);
+        // add the edges
+        for (const e of edges)
+            if ( this.checkEdgeId(e.points[0] as Vertex,e.points[1] as Vertex))
+                this._edges.push(e);
+        if (updateCrossings)
+            this.updateCrossings();
+        this.updateCurveComplexity();
+    }
+
     // update the curve complexity of the graph
     updateCurveComplexity()
     {
@@ -575,6 +588,13 @@ export class Graph {
         else
             showCustomAlert("WARNING: Vertex with this name ("+vertex.id+") already exist");
             // console.log("WARNING: Vertex with this name ("+vertex.id+") already exist")
+    }
+
+    // add an array of vertices
+    addVertices(vertices: Vertex[])
+    {
+        for (const v of vertices)
+            this.addVertex(v);
     }
 
     // add a new vertex to the graph at the specified position with the id of the max numerical ids and return the vertex
@@ -1422,5 +1442,37 @@ export class Graph {
         cloned.updateCrossings();
         cloned.updateCurveComplexity();
         return cloned;
+    }
+
+    // merge this graph with the given newGraph and return the new subgraph that represents newGraph and is now part of the big graph
+    merge(newGraph: Graph, offset = {x: 0, y: 0} )
+    {
+        const newSubGraph: Graph = new Graph();
+        // create a map for the new vertices (of this graph) and vertices of the newGraph (so that the new edges can be created)
+        const map = new Map<Vertex, Vertex>();
+        // merge vertices
+        for (const v of newGraph.vertices)
+        {
+            let newVertex = this.addNewVertex(v.x+offset.x, v.y+offset.y);
+            newVertex.cloneCharacteristics(v);
+            map.set(v,newVertex);
+            newSubGraph.addVertex(newVertex);   // 
+        }
+        // merge edges
+        for (const e of newGraph.edges)
+        {
+            const v1 = e.points[0];
+            const v2 = e.points[1];
+            let newEdge: Edge | null = null;
+            if (v1 instanceof Vertex && v2 instanceof Vertex)
+                newEdge = this.addEdge(map.get(v1)!,map.get(v2)!)!;
+            if (newEdge){
+                newEdge.cloneCharacteristics(e,offset.x,offset.y);
+                newSubGraph.addEdgee(newEdge,false);
+            }
+        }
+        this.updateCrossings();
+        this.updateCurveComplexity();
+        return newSubGraph;
     }
 }

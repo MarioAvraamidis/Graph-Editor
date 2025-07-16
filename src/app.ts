@@ -222,16 +222,7 @@ function addKeydownEventListener()
         }
         // copy
         else if ((e.ctrlKey || e.metaKey) && e.key=='c')
-        {
-            if(copier.checkSelected(selector))
-            {
-                copier.copySelected(selector);
-                copier.menuCopy = false;
-            }
-            else
-                showCustomAlert("Select both the vertices of the selected edges");
-                // console.log("Select both the vertices of the selected edges");
-        }
+            copier.copySelected(selector,false);
         // paste
         else if ((e.ctrlKey || e.metaKey) && e.key=='v')
         {
@@ -1073,15 +1064,7 @@ function addMenusEventListeners()
 
             switch (action) {
                 case "copySelected":
-                    if(copier.checkSelected(selector))
-                    {
-                        copier.selectedClickedPos = {x: copier.rightClickPos.x, y: copier.rightClickPos.y};
-                        copier.copySelected(selector);
-                        copier.menuCopy = true;
-                    }
-                    else
-                        showCustomAlert("Select both the vertices of the selected edges");
-                        // console.log("Select both the vertices of the selected edges");
+                    copier.copySelected(selector,true);
                     break;
                 case "deleteSelected":
                     // stateHandler.saveState();
