@@ -105,3 +105,90 @@ export class Selector {
                 this.bends.push(bend);
     }
 }
+export class Copier {
+    constructor() {
+        this.rightClickPos = { x: 0, y: 0 };
+        this.selectedClickedPos = { x: 0, y: 0 };
+        this.selectedVertices = [];
+        this.selectedEdges = [];
+        this.pasteOffset = { x: 0, y: 0 };
+        this.menuCopy = false;
+    }
+    // Check if the vertices of the selector.edges are selected. If not, return false
+    checkSelected(selector) {
+        for (const e of selector.edges) {
+            const v1 = e.points[0];
+            const v2 = e.points[1];
+            if (v1 instanceof Vertex && !selector.vertices.includes(v1) || v2 instanceof Vertex && !selector.vertices.includes(v2))
+                return false; // fail
+        }
+        return true;
+    }
+    // store the selected items
+    copySelected(selector) {
+        this.selectedVertices.length = 0;
+        this.selectedEdges.length = 0;
+        // IMPORTAAAAANTTTT Consider pushing a clone
+        for (const v of selector.vertices)
+            this.selectedVertices.push(v);
+        for (const e of selector.edges)
+            this.selectedEdges.push(e);
+        // set pasteOffset to {0,0}
+        this.pasteOffset = { x: 0, y: 0 };
+    }
+    // find and return the uppermost selected point
+    uppermostCopiedSelectedVertex() {
+        if (this.selectedVertices.length === 0)
+            return null;
+        let maxYpoint = this.selectedVertices[0];
+        for (let i = 1; i < this.selectedVertices.length; i++)
+            if (this.selectedVertices[i].y < maxYpoint.y) // positive is down in canvas
+                maxYpoint = this.selectedVertices[i];
+        return maxYpoint;
+    }
+    // paste the copied items
+    pasteSelected(graph, selector, pasteShortcut) {
+        let offset = { x: 0, y: 0 };
+        if (pasteShortcut) {
+            offset = { x: this.pasteOffset.x + 50, y: this.pasteOffset.y + 50 };
+            this.pasteOffset.x += 50;
+            this.pasteOffset.y += 50;
+        }
+        else {
+            if (this.menuCopy)
+                offset = { x: this.rightClickPos.x - this.selectedClickedPos.x, y: this.rightClickPos.y - this.selectedClickedPos.y };
+            else {
+                // paste the uppermost selected point at the clicked position
+                let uppermostPoint = this.uppermostCopiedSelectedVertex();
+                if (uppermostPoint)
+                    offset = { x: this.rightClickPos.x - uppermostPoint.x, y: this.rightClickPos.y - uppermostPoint.y };
+            }
+        }
+        // create a map for the new and old vertices
+        const map = new Map();
+        // set the new vertices and edges as selected
+        selector.setNothingSelected();
+        // copy vertices
+        for (const v of this.selectedVertices) {
+            let newVertex = graph.addNewVertex(v.x + offset.x, v.y + offset.y);
+            newVertex.cloneCharacteristics(v);
+            map.set(v, newVertex);
+            selector.vertices.push(newVertex);
+        }
+        // copy edges
+        // IMPORTANT: Make sure that checkCopySelected is run before pasting the new edges
+        for (const e of this.selectedEdges) {
+            const v1 = e.points[0];
+            const v2 = e.points[1];
+            let newEdge = null;
+            if (v1 instanceof Vertex && v2 instanceof Vertex)
+                newEdge = graph.addEdge(map.get(v1), map.get(v2));
+            if (newEdge) {
+                newEdge.cloneCharacteristics(e, offset.x, offset.y);
+                selector.edges.push(newEdge);
+            }
+        }
+        // update selected points
+        selector.pointsUpdate();
+    }
+}

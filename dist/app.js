@@ -15,7 +15,7 @@ import { showCustomAlert } from './alert.js';
 import { exportGraph, restoreGraphFromJSON, exportCanvasAsPdf, exportCanvasAsImage } from './exporting.js';
 import { ModalsHandler } from "./modals.js";
 import { StateHandler } from "./stateHandler.js";
-import { Selector } from "./selector.js";
+import { Selector, Copier } from "./selector.js";
 // Create a graph instance
 let graph = new Graph();
 // undo/redo utilities
@@ -53,10 +53,6 @@ let mousedown = false;
 let clickedX = 0; // mouse x-coordinate at mousedown
 let clickedY = 0; // mouse y-coordinate at mousedown
 let positionsAtMouseDown = []; // positions of selected objects (points) at mousedown time
-// creating a rectangle for selected space
-/*let isSelecting = false;
-let selectionStart = { x: 0, y: 0 };
-let selectionRect = { x: 0, y: 0, width: 0, height: 0 };*/
 // moving labels
 let draggingLabelPoint = null;
 // default colors for crossings
@@ -68,12 +64,7 @@ let bendChars = { size: 5, color: "#0000FF" };
 // context menu
 let showingContextMenu = false;
 // copy selected items
-let rightClickPos;
-let copySelectedClickedPos;
-let copiedSelectedVertices = [];
-let copiedSelectedEdges = [];
-let menuCopy;
-let pasteOffsetX = 0, pasteOffsetY = 0;
+let copier;
 // zoom
 let myCanvasHandler = null;
 let scale = 1; // for all the elements that we want their size to remain the same regardless of the zoom scale, devide the size by scale
@@ -96,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stateHandler = new StateHandler(graph);
         modalsHandler = new ModalsHandler(myCanvasHandler, stateHandler);
         selector = new Selector();
+        copier = new Copier();
         canvas = document.getElementById("graphCanvas");
         ctx = canvas.getContext("2d");
         if (!ctx)
@@ -227,11 +219,9 @@ function addKeydownEventListener() {
         }
         // copy
         else if ((e.ctrlKey || e.metaKey) && e.key == 'c') {
-            if (checkCopySelected()) {
-                copySelected();
-                menuCopy = false;
-                pasteOffsetX = 0;
-                pasteOffsetY = 0;
+            if (copier.checkSelected(selector)) {
+                copier.copySelected(selector);
+                copier.menuCopy = false;
             }
             else
                 showCustomAlert("Select both the vertices of the selected edges");
@@ -239,12 +229,9 @@ function addKeydownEventListener() {
         }
         // paste
         else if ((e.ctrlKey || e.metaKey) && e.key == 'v') {
-            if (copiedSelectedVertices.length > 0) {
+            if (copier.selectedVertices.length > 0) {
                 stateHandler.saveState();
-                pasteSelected(pasteOffsetX + 50, pasteOffsetY + 50);
-                pasteOffsetX = pasteOffsetX + 50;
-                pasteOffsetY = pasteOffsetY + 50;
-                // renderGraph();
+                copier.pasteSelected(graph, selector, true);
                 myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
             }
         }
@@ -873,7 +860,7 @@ function addMenusEventListeners() {
     canvas.addEventListener('contextmenu', (event) => {
         event.preventDefault(); // Prevent the browser's default context menu
         // rightClickPos = {x: mouse.x, y: mouse.y};
-        rightClickPos = { x: worldCoords.x, y: worldCoords.y };
+        copier.rightClickPos = { x: worldCoords.x, y: worldCoords.y };
         //if (hoveredVertex && selector.vertices.includes(hoveredVertex) || hoveredEdge && selector.edges.includes(hoveredEdge) || hoveredBend && selector.bends.includes(hoveredBend))
         if (hoveredPoint && selector.points.includes(hoveredPoint) || hoveredEdge && selector.edges.includes(hoveredEdge))
             showContextMenu(event.clientX, event.clientY, selectedMenu);
@@ -903,19 +890,9 @@ function addMenusEventListeners() {
                     break;
                 // Add more cases for other actions
                 case "paste":
-                    if (copiedSelectedVertices.length > 0) {
+                    if (copier.selectedVertices.length > 0) {
                         stateHandler.saveState();
-                        if (menuCopy)
-                            pasteSelected(rightClickPos.x - copySelectedClickedPos.x, rightClickPos.y - copySelectedClickedPos.y);
-                        else {
-                            // paste the uppermost selected point at the clicked position
-                            let uppermostPoint = uppermostCopiedSelectedVertex();
-                            if (uppermostPoint)
-                                pasteSelected(rightClickPos.x - uppermostPoint.x, rightClickPos.y - uppermostPoint.y);
-                            // else
-                            // console.log("uppermostPoint null");
-                        }
-                        // renderGraph();
+                        copier.pasteSelected(graph, selector, false);
                         myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
                     }
                     break;
@@ -979,12 +956,10 @@ function addMenusEventListeners() {
             hideContextMenu(); // Hide menu after selection
             switch (action) {
                 case "copySelected":
-                    if (checkCopySelected()) {
-                        copySelectedClickedPos = { x: rightClickPos.x, y: rightClickPos.y };
-                        copySelected();
-                        menuCopy = true;
-                        pasteOffsetX = 0;
-                        pasteOffsetY = 0;
+                    if (copier.checkSelected(selector)) {
+                        copier.selectedClickedPos = { x: copier.rightClickPos.x, y: copier.rightClickPos.y };
+                        copier.copySelected(selector);
+                        copier.menuCopy = true;
                     }
                     else
                         showCustomAlert("Select both the vertices of the selected edges");
@@ -1087,16 +1062,6 @@ function addMenusEventListeners() {
 }*/
 // check that no one of the main acts is in process
 function nothingInProcess() { return !creatingEdge && !draggingLabelPoint && !hasDragged && !selector.isSelecting; }
-// find and return the uppermost selected point
-function uppermostCopiedSelectedVertex() {
-    if (copiedSelectedVertices.length === 0)
-        return null;
-    let maxYpoint = copiedSelectedVertices[0];
-    for (let i = 1; i < copiedSelectedVertices.length; i++)
-        if (copiedSelectedVertices[i].y < maxYpoint.y) // positive is down in canvas
-            maxYpoint = copiedSelectedVertices[i];
-    return maxYpoint;
-}
 // not sure if necessary
 function selectEdge(e) {
     for (const bend of e.bends)
@@ -1171,54 +1136,6 @@ function setHoveredObjectsNull() {
     hoveredEdge = null;
     hoveredCrossingEdges = [null, null];
     hoveredLabelPoint = null;
-}
-// Check if the vertices of the selector.edges are selected. If not, return false
-function checkCopySelected() {
-    for (const e of selector.edges) {
-        const v1 = e.points[0];
-        const v2 = e.points[1];
-        if (v1 instanceof Vertex && !selector.vertices.includes(v1) || v2 instanceof Vertex && !selector.vertices.includes(v2))
-            return false; // fail
-    }
-    return true;
-}
-// store the selected items
-function copySelected() {
-    copiedSelectedVertices.length = 0;
-    copiedSelectedEdges.length = 0;
-    for (const v of selector.vertices)
-        copiedSelectedVertices.push(v);
-    for (const e of selector.edges)
-        copiedSelectedEdges.push(e);
-}
-// paste the copied items
-function pasteSelected(offsetX = 50, offsetY = 50) {
-    // create a map for the new and old vertices
-    const map = new Map();
-    // set the new vertices and edges as selected
-    selector.setNothingSelected();
-    // copy vertices
-    for (const v of copiedSelectedVertices) {
-        let newVertex = graph.addNewVertex(v.x + offsetX, v.y + offsetY);
-        newVertex.cloneCharacteristics(v);
-        map.set(v, newVertex);
-        selector.vertices.push(newVertex);
-    }
-    // copy edges
-    // IMPORTANT: Make sure that checkCopySelected is run before pasting the new edges
-    for (const e of copiedSelectedEdges) {
-        const v1 = e.points[0];
-        const v2 = e.points[1];
-        let newEdge = null;
-        if (v1 instanceof Vertex && v2 instanceof Vertex)
-            newEdge = graph.addEdge(map.get(v1), map.get(v2));
-        if (newEdge) {
-            newEdge.cloneCharacteristics(e, offsetX, offsetY);
-            selector.edges.push(newEdge);
-        }
-    }
-    // update selected points
-    selector.pointsUpdate();
 }
 function addDashedEdgeEventListeners() {
     // Get references to the specific buttons and their common parent
