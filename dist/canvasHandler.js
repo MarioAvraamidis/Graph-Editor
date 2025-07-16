@@ -29,7 +29,7 @@ export class CanvasHandler {
         this.translateY = this.canvas.clientHeight / 2; // Use clientWidth/Height for CSS pixels
         // --- END UPDATED ---
         this.addEventListeners();
-        this.drawContent();
+        // this.drawContent();
     }
     handleWindowResize() {
         this.resizeCanvas();

@@ -41,7 +41,7 @@ export class CanvasHandler {
         // --- END UPDATED ---
 
         this.addEventListeners();
-        this.drawContent();
+        // this.drawContent();
     }
 
     private handleWindowResize(): void {
