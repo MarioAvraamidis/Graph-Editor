@@ -181,7 +181,22 @@ export class CanvasHandler {
         this.translateY = this.canvas.clientHeight / 2;
         this.drawContent();
     }
-    fixView(top, bottom, left, right, paddingFactor = 0.8) {
+    fixView(graph, selector) {
+        // check if there are selected points
+        let points = [];
+        if (selector.points.length > 0)
+            points = selector.points;
+        else {
+            points = points.concat(graph.vertices);
+            points = points.concat(graph.getBends());
+        }
+        if (points.length === 0) {
+            this.resetView();
+            return;
+        }
+        this.fixViewRect(this.findMaxY(points), this.findMinY(points), this.findMinX(points), this.findMaxX(points));
+    }
+    fixViewRect(top, bottom, left, right, paddingFactor = 0.8) {
         const worldWidth = right - left;
         const worldHeight = top - bottom;
         const canvasWidth = this.canvas.clientWidth; // CSS pixels
@@ -276,5 +291,45 @@ export class CanvasHandler {
             const zoomPercentage = (this.scale * 100).toFixed(0); // No decimal places for simplicity
             this.zoomDisplaySpan.textContent = `${zoomPercentage}%`;
         }
+    }
+    // find the max x-coordinate of the given points
+    findMaxX(points) {
+        if (points.length === 0)
+            return;
+        let maxX = points[0].x;
+        for (let i = 1; i < points.length; i++)
+            if (points[i].x > maxX)
+                maxX = points[i].x;
+        return maxX;
+    }
+    // find the min x-coordinate of the given points
+    findMinX(points) {
+        if (points.length === 0)
+            return null;
+        let minX = points[0].x;
+        for (let i = 1; i < points.length; i++)
+            if (points[i].x < minX)
+                minX = points[i].x;
+        return minX;
+    }
+    // find the max y-coordinate of the given points
+    findMaxY(points) {
+        if (points.length === 0)
+            return null;
+        let maxY = points[0].y;
+        for (let i = 1; i < points.length; i++)
+            if (points[i].y > maxY)
+                maxY = points[i].y;
+        return maxY;
+    }
+    // find the min y-coordinate of the given points
+    findMinY(points) {
+        if (points.length === 0)
+            return null;
+        let minY = points[0].y;
+        for (let i = 1; i < points.length; i++)
+            if (points[i].y < minY)
+                minY = points[i].y;
+        return minY;
     }
 }

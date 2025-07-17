@@ -1,11 +1,11 @@
 // src/app.ts
 import { Graph, Vertex, Bend, Edge, Point, Crossing } from "./graph.js";
 import { CanvasHandler } from './canvasHandler.js'; 
-import { showCustomAlert } from './alert.js';
 import { exportGraph, restoreGraphFromJSON, exportCanvasAsPdf, exportCanvasAsImage} from './exporting.js';
 import { ModalsHandler } from "./modals.js";
 import { StateHandler } from "./stateHandler.js";
 import { Selector, Copier } from "./selector.js";
+import { BtnHandler } from "./buttons.js";
 
 // Create a graph instance
 let graph = new Graph();
@@ -19,8 +19,6 @@ let offsetY = 0;    // y-offset between click position and mouse's current posit
 // dragging
 let draggingPoints: Point[] = [];
 let hasDragged = false;     // will be used to distinguish vertex selection from vertex drag
-// crossings
-let crosRadius: number = 5; // radius of crossings
 // hovered objects
 let hoveredEdge: Edge | null = null;
 let hoveredVertex: Vertex | null = null;
@@ -56,6 +54,8 @@ let bendChars = {size: 5, color: "#0000FF"}
 let showingContextMenu: boolean = false;
 // copy selected items
 let copier: Copier;
+// buttons handler
+let btnHandler: BtnHandler;
 // zoom
 let myCanvasHandler: CanvasHandler | null = null;
 let scale: number = 1;      // for all the elements that we want their size to remain the same regardless of the zoom scale, devide the size by scale
@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modalsHandler = new ModalsHandler(myCanvasHandler,stateHandler);
         selector = new Selector();
         copier = new Copier();
+        btnHandler = new BtnHandler(graph,myCanvasHandler,selector,stateHandler,copier,modalsHandler);
         canvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
         ctx = canvas.getContext("2d");
         if (!ctx)
@@ -87,9 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // don't show the modal when refreshing
         // modalsHandler?.hideAllModals();
         addDashedEdgeEventListeners();
-        addButtonsEventListeners();
-        addCheckBoxesEventListeners();
-        addKeydownEventListener();
         addMenusEventListeners();
         addMouseEventListeners();
         renderGraph();
@@ -166,194 +164,6 @@ function renderGraph() {
         drawGraph(ctx, graph);
     updatePaletteState();
 }
-
-// Attach event listeners to the checkboxes (do this once, perhaps outside renderGraph if the structure is static)
-
-function addCheckBoxesEventListeners()
-{
-    let checkboxes = output?.querySelectorAll('input[type="checkbox"]');
-    checkboxes?.forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
-            myCanvasHandler?.redraw();
-            // if(ctx)
-                // drawGraph(ctx, graph, true);
-        });
-    });
-    // event-listener for other highlighting crossing edges checkboxes
-    for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
-    {
-        document.getElementById(id)?.addEventListener('change', () => {
-            if (ctx)
-                // drawGraph(ctx, graph, true);
-                myCanvasHandler?.redraw();
-        })
-    }
-}
-
-    /*function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-      }*/
-
-function addKeydownEventListener()
-{
-    document.addEventListener('keydown', (e) => {
-        // Get the element that triggered the event
-        const targetElement = e.target as HTMLElement;
-
-        // Don't activate shortcuts if something else is selected
-        if (targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA' || targetElement.tagName === 'SELECT')
-            return;
-
-        // undo
-        if ((e.ctrlKey || e.metaKey) && e.key==='z')
-        {
-            e.preventDefault(); // prevent the browser's default undo behavior
-            selector.setNothingSelected();
-            graph = stateHandler.undo();
-            myCanvasHandler?.redraw();
-        }
-        // redo
-        else if ((e.ctrlKey || e.metaKey) && e.key==='y' || e.shiftKey && (e.ctrlKey || e.metaKey) && e.key==='z')
-        {
-            e.preventDefault();
-            graph = stateHandler.redo();
-            myCanvasHandler?.redraw();
-        }
-        // copy
-        else if ((e.ctrlKey || e.metaKey) && e.key=='c')
-            copier.copySelected(selector,false);
-        // paste
-        else if ((e.ctrlKey || e.metaKey) && e.key=='v')
-        {
-            if (copier.selectedVertices.length > 0)
-            {
-                stateHandler.saveState();
-                copier.pasteSelected(graph,selector,true);
-                myCanvasHandler?.redraw();
-            }
-        }
-        // delete
-        else if(e.key==='Delete' || e.key==='Backspace')
-        {
-            e.preventDefault();
-            if (selector.points.length > 0 || selector.edges.length > 0)
-            {
-                stateHandler.saveState();
-                selector.deleteSelectedObjects(graph);
-                checkHovered();
-                // renderGraph();
-                myCanvasHandler?.redraw();
-            }
-        }
-        // select all
-        else if ( (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' )
-        {
-            e.preventDefault();
-            selector.selectAll(graph);
-            selector.pointsUpdate();
-            // checkHovered();
-            myCanvasHandler?.redraw();
-        }
-    });
-}
-
-function addButtonsEventListeners()
-{
-    // Undo button
-    document.getElementById("undo-button")?.addEventListener("click", () => {
-        selector.setNothingSelected();
-        graph = stateHandler.undo();
-        myCanvasHandler?.redraw();
-    });
-
-    // Redo button
-    document.getElementById("redo-button")?.addEventListener("click", () => {
-        graph = stateHandler.redo();
-        myCanvasHandler?.redraw();
-    });
-
-    // Place vertices in a circle (also remove all the bends)
-    document.getElementById("circle-placement")?.addEventListener("click", () => {
-        stateHandler.saveState();
-        graph.removeBends(false);   // don't update crossings here, but below
-        if (ctx)
-            graph.makeCircle(0,0,Math.min(ctx.canvas.height,ctx.canvas.width)/3,selector.vertices);
-        // renderGraph();
-        myCanvasHandler?.redraw();
-    })
-
-    // make the graph (or the group of selected vertices) clique
-    document.getElementById("make-clique")?.addEventListener("click", () => {
-        stateHandler.saveState();
-        graph.addAllEdges(selector.vertices,modalsHandler.settingsOptions.cliqueNewEdgesColor);
-        // renderGraph();
-        myCanvasHandler?.redraw();
-    })
-
-    // make the graph straight line
-    document.getElementById("clear-bends")?.addEventListener("click", () => {
-        stateHandler.saveState();
-        graph.removeBends();
-        // renderGraph();
-        myCanvasHandler?.redraw();
-    })
-
-    /*
-    // remove all the edges
-    document.getElementById("clear-edges")?.addEventListener("click", () => {
-        stateHandler.saveState();
-        graph.removeEdges();
-        // renderGraph();
-        myCanvasHandler?.redraw();
-    });*/
-
-    // set up listener for fix view
-    document.getElementById('fix-view')?.addEventListener('click', () => fixView());
-
-    // listener for reset view in CanvasHandler.ts
-
-    document.getElementById("export-json-btn")!.addEventListener("click", () => {
-        exportGraph(graph);
-    });
-
-    document.getElementById("export-image")!.addEventListener("click", () => {
-        if(ctx)
-        {
-            drawGraph(ctx,graph,true,false);
-            exportCanvasAsImage();
-            drawGraph(ctx,graph);
-        }
-    });
-
-    document.getElementById("export-pdf")!.addEventListener("click", () => {
-        exportCanvasAsPdf(canvas);
-    });
-
-
-    document.getElementById("import-input")!.addEventListener("change", async (e) => {
-        const input = e.target as HTMLInputElement;
-        if (!input.files || input.files.length === 0) return;
-    
-        const file = input.files[0];
-        const text = await file.text();
-    
-        try {
-            stateHandler.saveState();
-            selector.setNothingSelected();
-            const data = JSON.parse(text);
-            // console.log(data);
-            graph = restoreGraphFromJSON(data);
-            // renderGraph();
-            myCanvasHandler?.redraw();
-            fixView();
-        } catch (err) {
-            alert("Failed to load graph: Invalid format");
-            console.error(err);
-        }
-    });
-}
-    
 
     // Palette for vertices
     const vertexColor = document.getElementById("vertex-color") as HTMLSelectElement
@@ -1216,7 +1026,7 @@ function checkHovered()
             hoveredPoint = hoveredBend;
         else
         {
-            hoveredCrossing = graph.isNearCrossing(worldCoords.x,worldCoords.y,(crosRadius+2)/scale);
+            hoveredCrossing = graph.isNearCrossing(worldCoords.x,worldCoords.y,scale);
             if (hoveredCrossing)
             {
                 hoveredPoint = hoveredCrossing;
@@ -1607,11 +1417,11 @@ function drawCrossings(ctx: CanvasRenderingContext2D, self: boolean, neighbor: b
 function drawCrossing(ctx: CanvasRenderingContext2D, cros: Point, color: string)
 {
     ctx.beginPath();
-    let radius = crosRadius;
+    let radius = cros.size;
     if (cros === hoveredCrossing)
         radius = radius+1;
     ctx.lineWidth = 2/scale;
-    ctx.arc(cros.x, cros.y, radius/scale!, 0 , 2*Math.PI);
+    ctx.arc(cros.x, cros.y, radius/scale, 0 , 2*Math.PI);
     ctx.strokeStyle = color;
     ctx.stroke();
     // label
@@ -1999,66 +1809,4 @@ function drawRubbishBin(ctx: CanvasRenderingContext2D, x: number, y: number) {
     ctx.stroke();
 
     ctx.restore();
-}
-
-function fixView()
-{
-    // check if there are selected points
-    let points: Point[] = [];
-    if (selector.points.length > 0)
-        points = selector.points;
-    else
-    {
-        points = points.concat(graph.vertices);
-        points = points.concat(graph.getBends());
-    }
-    myCanvasHandler?.fixView(findMaxY(points)!,findMinY(points)!,findMinX(points)!,findMaxX(points)!);
-}
-
-// find the max x-coordinate of the given points
-function findMaxX(points: Point[])
-{
-    if (points.length === 0)
-        return;
-    let maxX = points[0].x;
-    for (let i=1;i<points.length;i++)
-        if (points[i].x > maxX)
-            maxX = points[i].x;
-    return maxX;
-}
-
-// find the min x-coordinate of the given points
-function findMinX(points: Point[])
-{
-    if (points.length === 0)
-        return null;
-    let minX = points[0].x;
-    for (let i=1;i<points.length;i++)
-        if (points[i].x < minX)
-            minX = points[i].x;
-    return minX;
-}
-
-// find the max y-coordinate of the given points
-function findMaxY(points: Point[])
-{
-    if (points.length === 0)
-        return null;
-    let maxY = points[0].y;
-    for (let i=1;i<points.length;i++)
-        if (points[i].y > maxY)
-            maxY = points[i].y;
-    return maxY;
-}
-
-// find the min y-coordinate of the given points
-function findMinY(points: Point[])
-{
-    if (points.length === 0)
-        return null;
-    let minY = points[0].y;
-    for (let i=1;i<points.length;i++)
-        if (points[i].y < minY)
-            minY = points[i].y;
-    return minY;
 }

@@ -434,7 +434,8 @@ export class Graph {
         this._curve_complexity = 0;
         // decide which method will be used for updating crossings
         this._effective_crossing_update = true;
-        this.tempCount = 0; // counting temporary vertices
+        // counting temporary vertices
+        this.tempCount = 0;
         // add the vertices to the graph
         this.addVertices(vertices);
         // add the edges
@@ -1006,9 +1007,9 @@ export class Graph {
                     return bend;
         return null;
     }
-    isNearCrossing(x, y, rad) {
+    isNearCrossing(x, y, scale) {
         for (const cross of this._crossings)
-            if (Math.hypot(cross.x - x, cross.y - y) < rad)
+            if (Math.hypot(cross.x - x, cross.y - y) < (cross.size + 2) / scale)
                 return cross;
         return null;
     }
@@ -1196,5 +1197,15 @@ export class Graph {
         this.updateCrossings();
         this.updateCurveComplexity();
         return newSubGraph;
+    }
+    replace(newGraph) {
+        this._vertices = newGraph.vertices;
+        this._edges = newGraph.edges;
+        this.directed = newGraph.directed;
+        this.self_loops = newGraph.self_loops;
+        this.simple = newGraph.simple;
+        this._crossings = newGraph.crossings;
+        this._curve_complexity = newGraph.curve_complexity;
+        this.tempCount = newGraph.tempCount;
     }
 }

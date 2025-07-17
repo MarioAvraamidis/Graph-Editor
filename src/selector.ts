@@ -1,4 +1,4 @@
-import { Graph, Point, Vertex, Edge, Bend} from "./graph.js"
+import { Graph, Point, Vertex, Edge, Bend, Crossing} from "./graph.js"
 import { showCustomAlert } from "./alert.js";
 
 export class Selector
@@ -266,5 +266,104 @@ export class Copier
         selector.vertices = subGraph.vertices;
         selector.edges = subGraph.edges;
         selector.pointsUpdate();
+    }
+}
+
+export class Hover
+{
+    // hovered objects
+    public edge: Edge | null = null;
+    public vertex: Vertex | null = null;
+    public bend: Bend | null = null;
+    public labelPoint: Point | null = null;
+    public point: Point | null = null;
+    public crossing: Crossing | null = null;
+    public crossingEdges: [Edge | null, Edge | null] = [null,null];
+
+    constructor() {this.setAllNull(); }
+
+    public setAllNull()
+    {
+        this.vertex = null;
+        this.bend = null;
+        this.crossing = null;
+        this.point = null;
+        this.edge = null;
+        this.crossingEdges = [null,null];
+        this.labelPoint = null;
+    }
+
+    // detect the hovering object
+    public check(graph: Graph, worldCoords: {x: number, y: number}, scale: number, vertices: Vertex[] )
+    {
+        this.setAllNull();
+        this.vertex = graph.getVertexAtPosition(worldCoords.x, worldCoords.y, scale, vertices);
+        if (this.vertex)
+            this.point = this.vertex;
+        else
+        {
+            this.bend = graph.isNearBend(worldCoords.x,worldCoords.y,scale);
+            if (this.bend)
+                this.point = this.bend;
+            else
+            {
+                this.crossing = graph.isNearCrossing(worldCoords.x,worldCoords.y,scale);
+                if (this.crossing)
+                {
+                    this.point = this.crossing;
+                    this.crossingEdges = this.crossing.edges;
+                }
+                else
+                    this.edge = graph.isNearEdge(worldCoords.x,worldCoords.y,3/scale);
+            }
+        }
+
+        // find hoveredLabelPoint
+        if (!this.vertex && !this.bend && !this.edge)
+        {
+            // check vertices first
+            for (const v of graph.vertices)
+                if (this.isNearLabel(v,worldCoords.x,worldCoords.y,scale))
+                {
+                    this.labelPoint = v;
+                    break;
+                }
+            // check crossings
+            if (!this.labelPoint)
+                for (const cros of graph.crossings)
+                    if (this.isNearLabel(cros,worldCoords.x,worldCoords.y,scale))
+                    {
+                        this.labelPoint = cros;
+                        break;
+                    }
+            // check bends
+            if (!this.labelPoint)
+            {
+                const bends = graph.getBends();
+                for (const bend of bends)
+                    if (this.isNearLabel(bend,worldCoords.x,worldCoords.y,scale))
+                    {
+                        this.labelPoint = bend;
+                        break;
+                    }
+            }
+        }
+    }
+
+    // check that mouse is near a label (in world coordinates)
+    private isNearLabel(point: Point, x: number, y: number, scale: number): boolean {
+        if (!point.label.showLabel)
+            return false;   // return false if the point's label is not displayed
+        const labelX = point.x + point.label.offsetX/scale;
+        const labelY = point.y - this.labelOffsetY(point)/scale;    // check that label is positioned at these coordinates at drawVertex function
+        const width = point.label.content.length*point.label.fontSize/scale;  
+        const height = 1.3*point.label.fontSize/scale;
+        return x >= labelX - width/2 && x <= labelX + width/2 &&
+               y >= labelY && y <= labelY + height;
+    }
+
+    private labelOffsetY(point: Point)
+    {
+        return (point.size + point.label.offsetY + point.label.fontSize);
     }
 }
