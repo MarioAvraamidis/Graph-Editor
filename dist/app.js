@@ -1,4 +1,3 @@
-var _a;
 // src/app.ts
 import { Graph, Vertex, Bend } from "./graph.js";
 import { CanvasHandler } from './canvasHandler.js';
@@ -6,6 +5,7 @@ import { ModalsHandler } from "./modals.js";
 import { StateHandler } from "./stateHandler.js";
 import { Selector, Copier } from "./selector.js";
 import { BtnHandler } from "./buttons.js";
+import { PaletteHandler } from "./paletteHandler.js";
 // Create a graph instance
 let graph = new Graph();
 // undo/redo utilities
@@ -45,10 +45,12 @@ let positionsAtMouseDown = []; // positions of selected objects (points) at mous
 let draggingLabelPoint = null;
 // default colors for crossings
 let modalsHandler;
+// palette handler
+let paletteHandler;
 // palette settings
-let vertexChars = { color: "#000000", size: 7, shape: "circle" }; // default settings of class Vertex
-let edgeChars = { color: "#898989", thickness: 2, dashed: false }; // default of class Edge
-let bendChars = { size: 5, color: "#0000FF" };
+/*let vertexChars = { color: "#000000", size: 7, shape: "circle" }  // default settings of class Vertex
+let edgeChars = {color: "#898989", thickness: 2, dashed: false} // default of class Edge
+let bendChars = {size: 5, color: "#0000FF"}*/
 // context menu
 let showingContextMenu = false;
 // copy selected items
@@ -79,13 +81,14 @@ document.addEventListener('DOMContentLoaded', () => {
         selector = new Selector();
         copier = new Copier();
         btnHandler = new BtnHandler(graph, myCanvasHandler, selector, stateHandler, copier, modalsHandler);
+        paletteHandler = new PaletteHandler(selector, myCanvasHandler, stateHandler, graph);
         canvas = document.getElementById("graphCanvas");
         ctx = canvas.getContext("2d");
         if (!ctx)
             throw new Error("Could not get canvas rendering context");
         // don't show the modal when refreshing
         // modalsHandler?.hideAllModals();
-        addDashedEdgeEventListeners();
+        // addDashedEdgeEventListeners();
         addMenusEventListeners();
         addMouseEventListeners();
         renderGraph();
@@ -159,176 +162,200 @@ function renderGraph() {
     }
     if (ctx)
         drawGraph(ctx, graph);
-    updatePaletteState();
+    paletteHandler.updatePaletteState();
 }
-// Palette for vertices
-const vertexColor = document.getElementById("vertex-color");
-const vertexShapeButtons = document.querySelectorAll(".shape-button");
-const vertexSize = document.getElementById("vertex-size");
-const deleteVertexBtn = document.getElementById("delete-vertex-palette");
-// Palette for bends
-const bendColor = document.getElementById("bend-color");
-// const bendShape = document.getElementById("bend-shape") as HTMLSelectElement;
-const bendSize = document.getElementById("bend-size");
-const deleteBendBtn = document.getElementById("delete-bend");
-// Palette for Edges
-const deleteEdgeBtn = document.getElementById("delete-edge-palette");
-const edgeThickness = document.getElementById("edge-thickness");
-const edgeColor = document.getElementById("edge-color");
-// using palettes
-vertexColor.addEventListener("change", () => {
-    // update selected vertices' color
-    if (selector.vertices.length > 0) {
-        stateHandler.saveState();
-        selector.vertices.forEach(v => v.color = vertexColor.value);
-        // renderGraph();
-        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
-    }
-    // set the color for new vertices
-    else
-        vertexChars.color = vertexColor.value;
-});
-// vertex shape buttons
-vertexShapeButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
+/*
+    // Palette for vertices
+    const vertexColor = document.getElementById("vertex-color") as HTMLSelectElement
+    const vertexShapeButtons = document.querySelectorAll(".shape-button");
+    const vertexSize = document.getElementById("vertex-size") as HTMLInputElement;
+    const deleteVertexBtn = document.getElementById("delete-vertex-palette") as HTMLButtonElement;
+    // Palette for bends
+    const bendColor = document.getElementById("bend-color") as HTMLSelectElement
+    // const bendShape = document.getElementById("bend-shape") as HTMLSelectElement;
+    const bendSize = document.getElementById("bend-size") as HTMLInputElement;
+    const deleteBendBtn = document.getElementById("delete-bend") as HTMLButtonElement;
+    // Palette for Edges
+    const deleteEdgeBtn = document.getElementById("delete-edge-palette") as HTMLButtonElement;
+    const edgeThickness = document.getElementById("edge-thickness") as HTMLInputElement;
+    const edgeColor = document.getElementById("edge-color") as HTMLSelectElement
+
+    // using palettes
+    vertexColor.addEventListener("change", () => {
+        // update selected vertices' color
+        if (selector.vertices.length > 0)
+        {
+            stateHandler.saveState();
+            selector.vertices.forEach(v => v.color = vertexColor.value);
+            // renderGraph();
+            myCanvasHandler?.redraw();
+        }
+        // set the color for new vertices
+        else
+            vertexChars.color = vertexColor.value;
+    });
+
+    // vertex shape buttons
+    vertexShapeButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
         // Remove active class from all buttons
         vertexShapeButtons.forEach(b => b.classList.remove("active"));
+    
         // Add active to the clicked one
         btn.classList.add("active");
+    
         const selectedShape = btn.getAttribute("data-shape");
-        if (selector.vertices.length > 0 && btn.classList) // update shape of selected vertices
-         {
+        
+        if (selector.vertices.length > 0 && btn.classList)   // update shape of selected vertices
+        {
             stateHandler.saveState();
-            selector.vertices.forEach(v => v.shape = selectedShape);
+            selector.vertices.forEach(v => v.shape = selectedShape!)
             // renderGraph();
-            myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+            myCanvasHandler?.redraw();
         }
         // update new vertex shape
-        vertexChars.shape = selectedShape;
+        vertexChars.shape = selectedShape!;
+        });
     });
-});
-// vertex size
-vertexSize.addEventListener("input", () => {
-    const size = parseInt(vertexSize.value);
-    if (selector.vertices.length > 0) {
+
+    // vertex size
+    vertexSize.addEventListener("input", () => {
+        const size = parseInt(vertexSize.value);
+        if (selector.vertices.length > 0)
+        {
+            stateHandler.saveState();
+            selector.vertices.forEach(v => v.size = size);
+            // renderGraph();
+            myCanvasHandler?.redraw();
+        }
+        else
+            vertexChars.size = size;
+    });
+
+    // Vertex rename
+    document.getElementById("rename-vertex")?.addEventListener("click", () => {
+        const input = (document.getElementById("vertexIdInput") as HTMLInputElement).value.trim();
+        if (input && selector.vertices.length===1) {
+            stateHandler.saveState();
+            const selectedVertex = selector.vertices[0];
+            graph.renameVertex(selectedVertex,input);
+            // renderGraph();
+            myCanvasHandler?.redraw();
+        }
+    });
+
+    // bend color
+    bendColor.addEventListener("change", () => {
+        if (selector.bends.length > 0)   // apply change on selected bends
+        {
+            stateHandler.saveState();
+            selector.bends.forEach(b => b.color = bendColor.value);
+            // renderGraph();
+            myCanvasHandler?.redraw();
+        }
+        else    // set color for new bends
+            bendChars.color = bendColor.value;
+    });
+
+    // bend size
+    bendSize.addEventListener("input", () => {
+        const size = parseInt(bendSize.value);
+        if (selector.bends.length > 0)
+        {
+            stateHandler.saveState();
+            selector.bends.forEach(b => b.size = size);
+            // renderGraph();
+            myCanvasHandler?.redraw();
+        }
+        else
+            bendChars.size = size;
+    });
+
+    // edge color
+    edgeColor.addEventListener("change", () => {
+        if (selector.edges.length > 0)
+        {
+            stateHandler.saveState();
+            selector.edges.forEach(e => e.color = edgeColor.value);
+            // renderGraph();
+            myCanvasHandler?.redraw();
+        }
+        else
+            edgeChars.color = edgeColor.value;
+    });
+
+    // edge thickness
+    edgeThickness.addEventListener("input", () => {
+        if (selector.edges.length > 0)
+        {
+            stateHandler.saveState();
+            selector.edges.forEach(e => e.thickness = parseInt(edgeThickness.value))
+            // renderGraph();
+            myCanvasHandler?.redraw();
+        }
+        else
+            edgeChars.thickness = parseInt(edgeThickness.value);
+    });
+
+    // delete vertex button
+    deleteVertexBtn.addEventListener("click", () => {
         stateHandler.saveState();
-        selector.vertices.forEach(v => v.size = size);
-        // renderGraph();
-        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
-    }
-    else
-        vertexChars.size = size;
-});
-// Vertex rename
-(_a = document.getElementById("rename-vertex")) === null || _a === void 0 ? void 0 : _a.addEventListener("click", () => {
-    const input = document.getElementById("vertexIdInput").value.trim();
-    if (input && selector.vertices.length === 1) {
-        stateHandler.saveState();
-        const selectedVertex = selector.vertices[0];
-        graph.renameVertex(selectedVertex, input);
-        // renderGraph();
-        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
-    }
-});
-// bend color
-bendColor.addEventListener("change", () => {
-    if (selector.bends.length > 0) // apply change on selected bends
-     {
-        stateHandler.saveState();
-        selector.bends.forEach(b => b.color = bendColor.value);
-        // renderGraph();
-        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
-    }
-    else // set color for new bends
-        bendChars.color = bendColor.value;
-});
-// bend size
-bendSize.addEventListener("input", () => {
-    const size = parseInt(bendSize.value);
-    if (selector.bends.length > 0) {
-        stateHandler.saveState();
-        selector.bends.forEach(b => b.size = size);
-        // renderGraph();
-        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
-    }
-    else
-        bendChars.size = size;
-});
-// edge color
-edgeColor.addEventListener("change", () => {
-    if (selector.edges.length > 0) {
-        stateHandler.saveState();
-        selector.edges.forEach(e => e.color = edgeColor.value);
-        // renderGraph();
-        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
-    }
-    else
-        edgeChars.color = edgeColor.value;
-});
-// edge thickness
-edgeThickness.addEventListener("input", () => {
-    if (selector.edges.length > 0) {
-        stateHandler.saveState();
-        selector.edges.forEach(e => e.thickness = parseInt(edgeThickness.value));
-        // renderGraph();
-        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
-    }
-    else
-        edgeChars.thickness = parseInt(edgeThickness.value);
-});
-// delete vertex button
-deleteVertexBtn.addEventListener("click", () => {
-    stateHandler.saveState();
-    selector.deleteSelectedVertices(graph);
-    selector.pointsUpdate();
-    // renderGraph();
-    myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
-});
-// delete bend button
-deleteBendBtn.addEventListener("click", () => {
-    stateHandler.saveState();
-    selector.deleteSelectedBends(graph);
-    selector.pointsUpdate();
-    // renderGraph();
-    myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
-});
-// delete edge button
-deleteEdgeBtn.addEventListener("click", () => {
-    stateHandler.saveState();
-    selector.deleteSelectedEdges(graph);
-    selector.pointsUpdate();
-    // renderGraph();
-    myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
-});
-// dashed edge button
-/*let toggle_dashed_btn = document.getElementById("toggle-dashed");
-toggle_dashed_btn!.addEventListener("click", () => {
-    if (selector.edges.length > 0)
-    {
-        stateHandler.saveState();
-        const dashed = !selector.edges[0].dashed;
-        for (const e of selector.edges)
-            e.dashed = dashed;
+        selector.deleteSelectedVertices(graph);
+        selector.pointsUpdate();
         // renderGraph();
         myCanvasHandler?.redraw();
-    }
-    else
-    {
-        edgeChars.dashed = !edgeChars.dashed;
-        if(edgeChars.dashed)
-            toggle_dashed_btn?.classList.add("active");
+    });
+
+    // delete bend button
+    deleteBendBtn.addEventListener("click", () => {
+        stateHandler.saveState();
+        selector.deleteSelectedBends(graph);
+        selector.pointsUpdate();
+        // renderGraph();
+        myCanvasHandler?.redraw();
+    });
+
+    // delete edge button
+    deleteEdgeBtn.addEventListener("click", () => {
+        stateHandler.saveState();
+        selector.deleteSelectedEdges(graph);
+        selector.pointsUpdate();
+        // renderGraph();
+        myCanvasHandler?.redraw();
+    });
+
+    // dashed edge button
+    /*let toggle_dashed_btn = document.getElementById("toggle-dashed");
+    toggle_dashed_btn!.addEventListener("click", () => {
+        if (selector.edges.length > 0)
+        {
+            stateHandler.saveState();
+            const dashed = !selector.edges[0].dashed;
+            for (const e of selector.edges)
+                e.dashed = dashed;
+            // renderGraph();
+            myCanvasHandler?.redraw();
+        }
         else
-            toggle_dashed_btn?.classList.remove("active");
-    }
-});*/
+        {
+            edgeChars.dashed = !edgeChars.dashed;
+            if(edgeChars.dashed)
+                toggle_dashed_btn?.classList.add("active");
+            else
+                toggle_dashed_btn?.classList.remove("active");
+        }
+    });*/
+/*
 // Collapse palettes
 const vertexPalette = document.getElementById('vertex-palette');
 const edgePalette = document.getElementById('edge-palette');
 const bendPalette = document.getElementById('bend-palette');
+
 for (const palette of [vertexPalette, edgePalette, bendPalette])
     if (palette) {
-        const paletteHeader = palette.querySelector('.palette-header');
-        const paletteContent = palette.querySelector('.palette-content');
+        const paletteHeader = palette.querySelector('.palette-header') as HTMLElement;
+        const paletteContent = palette.querySelector('.palette-content') as HTMLElement;
+
         if (paletteHeader && paletteContent) {
             paletteHeader.addEventListener('click', () => {
                 // Toggle the 'collapsed' class on the main palette div
@@ -336,9 +363,10 @@ for (const palette of [vertexPalette, edgePalette, bendPalette])
             });
         }
     }
+
 // Initially collapse the bend-palette
-if (bendPalette)
-    bendPalette.classList.add('collapsed');
+if(bendPalette)
+    bendPalette.classList.add('collapsed');*/
 // Initial render
 // renderGraph();
 //if (myCanvasHandler !== null)
@@ -484,9 +512,9 @@ function addMouseEventListeners() {
                     startingVertex = null;
                     creatingEdge = false;
                     // set characteristics for the new edge
-                    edge.assignCharacteristics(edgeChars.color, edgeChars.dashed, edgeChars.thickness);
+                    edge.assignCharacteristics(paletteHandler.edgeChars.color, paletteHandler.edgeChars.dashed, paletteHandler.edgeChars.thickness);
                     edge.label.fontSize = modalsHandler.settingsOptions.defaultLabelFontSize; // edge's label font size
-                    edge.assignBendCharacteristics(bendChars.color, bendChars.size);
+                    edge.assignBendCharacteristics(paletteHandler.bendChars.color, paletteHandler.bendChars.size);
                     // hasDragged = true;  // to not select the hoveredVertex
                     // edgeCreated = edge;
                 }
@@ -512,9 +540,9 @@ function addMouseEventListeners() {
                 edgeCreated = combo.edge;
                 // set characteristics for the new edge
                 if (edgeCreated) {
-                    edgeCreated.assignCharacteristics(edgeChars.color, edgeChars.dashed, edgeChars.thickness);
+                    edgeCreated.assignCharacteristics(paletteHandler.edgeChars.color, paletteHandler.edgeChars.dashed, paletteHandler.edgeChars.thickness);
                     edgeCreated.label.fontSize = modalsHandler.settingsOptions.defaultLabelFontSize; // edge's label font size
-                    edgeCreated.assignBendCharacteristics(bendChars.color, bendChars.size);
+                    edgeCreated.assignBendCharacteristics(paletteHandler.bendChars.color, paletteHandler.bendChars.size);
                 }
             }
         }
@@ -591,9 +619,9 @@ function addMouseEventListeners() {
             // const vertex = graph.addNewVertex(mouse.x,mouse.y);
             const vertex = graph.addNewVertex(worldCoords.x, worldCoords.y);
             // console.log("new vertex at ",worldCoords.x, worldCoords.y);
-            vertex.size = vertexChars.size;
-            vertex.shape = vertexChars.shape;
-            vertex.color = vertexChars.color;
+            vertex.size = paletteHandler.vertexChars.size;
+            vertex.shape = paletteHandler.vertexChars.shape;
+            vertex.color = paletteHandler.vertexChars.color;
             vertex.label.fontSize = modalsHandler.settingsOptions.defaultLabelFontSize;
             // hoveredVertex = vertex;
         }
@@ -953,63 +981,74 @@ function setHoveredObjectsNull() {
     hoveredCrossingEdges = [null, null];
     hoveredLabelPoint = null;
 }
-function addDashedEdgeEventListeners() {
+/*
+function addDashedEdgeEventListeners(): void {
     // Get references to the specific buttons and their common parent
-    const toggleContinuousButton = document.getElementById('toggle-continuous');
-    const toggleDashedButton = document.getElementById('toggle-dashed');
+    const toggleContinuousButton = document.getElementById('toggle-continuous') as HTMLButtonElement;
+    const toggleDashedButton = document.getElementById('toggle-dashed') as HTMLButtonElement;
     const edgeStyleButtonsContainer = document.querySelector('.edge-style-buttons'); // Get the wrapper div
+
     if (edgeStyleButtonsContainer) {
         edgeStyleButtonsContainer.addEventListener('click', (event) => {
-            const clickedButton = event.target;
+            const clickedButton = event.target as HTMLElement;
+
             // Ensure a button with the 'edge-style-button' class was clicked
-            const actualButton = clickedButton.closest('.edge-style-button');
+            const actualButton = clickedButton.closest('.edge-style-button') as HTMLButtonElement;
+
             if (actualButton) {
                 // Remove 'active' class from all buttons in the group
                 const allStyleButtons = edgeStyleButtonsContainer.querySelectorAll('.edge-style-button');
                 allStyleButtons.forEach(button => {
                     button.classList.remove('active');
                 });
+
                 // Add 'active' class to the clicked button
                 actualButton.classList.add('active');
+
                 // --- Your logic for handling the selected style ---
                 if (actualButton.id === 'toggle-continuous') {
                     edgeChars.dashed = false;
-                }
-                else if (actualButton.id === 'toggle-dashed') {
+                } else if (actualButton.id === 'toggle-dashed') {
                     edgeChars.dashed = true;
                 }
+
                 // update type of selected edges
-                if (selector.edges.length > 0) {
+                if (selector.edges.length > 0)
+                {
                     stateHandler.saveState();
                     selector.edges.forEach(e => e.dashed = edgeChars.dashed);
                 }
+
                 // You might want to trigger a redraw of your canvas here to apply the style immediately
-                myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
+                myCanvasHandler?.redraw();
             }
         });
     }
 }
+
 function updatePaletteState() {
-    /*const vertexPalette = document.getElementById("vertex-palette")!;
-    const edgePalette = document.getElementById("edge-palette")!;
-    const bendPalette = document.getElementById("bend-palette")!;
-    const vertexShape = document.getElementById("vertex-shape")!;*/
-    const vertexColorPicker = document.getElementById("vertex-color");
-    const edgeColorPicker = document.getElementById("edge-color");
-    const bendColorPicker = document.getElementById("bend-color");
+
+    
+    const vertexColorPicker = document.getElementById("vertex-color") as HTMLInputElement;
+    const edgeColorPicker = document.getElementById("edge-color") as HTMLInputElement;
+    const bendColorPicker = document.getElementById("bend-color") as HTMLInputElement;
     // dashed edge buttons
-    const toggleContinuousButton = document.getElementById('toggle-continuous');
-    const toggleDashedButton = document.getElementById('toggle-dashed');
+    const toggleContinuousButton = document.getElementById('toggle-continuous') as HTMLButtonElement;
+    const toggleDashedButton = document.getElementById('toggle-dashed') as HTMLButtonElement;
+    
     const vertexSelected = selector.vertices.length > 0;
     const edgeSelected = selector.edges.length > 0;
     const bendSelected = selector.bends.length > 0;
+    
     // disable color pickers
     // vertexColorPicker.disabled = !vertexSelected;
     // edgeColorPicker.disabled = !edgeSelected;
     // bendColorPicker.disabled = !bendSelected;
+    
     // vertexPalette.classList.toggle("disabled", !vertexSelected);
     // bendPalette.classList.toggle("disabled", !bendSelected);
     // edgePalette.classList.toggle("disabled", !edgeSelected);
+
     if (vertexSelected) {
         const v = selector.vertices[selector.vertices.length - 1]; // use last selected
         vertexColorPicker.value = v.color;
@@ -1018,80 +1057,85 @@ function updatePaletteState() {
         vertexShapeButtons.forEach(btn => {
             btn.removeAttribute("disabled");
             btn.classList.remove("active");
+  
             // Highlight the correct shape button
             if (btn.getAttribute("data-shape") === v.shape) {
-                btn.classList.add("active");
+            btn.classList.add("active");
             }
         });
     }
-    else // show default values on palette
-     {
+    else    // show default values on palette
+    {
         vertexColorPicker.value = vertexChars.color;
         vertexSize.value = vertexChars.size.toString();
         vertexShapeButtons.forEach(btn => {
             btn.removeAttribute("disabled");
             btn.classList.remove("active");
+  
             // Highlight the correct shape button
             if (btn.getAttribute("data-shape") === vertexChars.shape) {
-                btn.classList.add("active");
+            btn.classList.add("active");
             }
         });
     }
     updateRenameControls(selector.vertices.length === 1);
+
     if (bendSelected) {
         const b = selector.bends[selector.bends.length - 1]; // use last selected
         bendColorPicker.value = b.color;
         // bendShape.value = b.shape;
         bendSize.value = b.size.toString();
     }
-    else {
+    else{
         bendColorPicker.value = bendChars.color;
         bendSize.value = bendChars.size.toString();
     }
+    
     if (edgeSelected) {
-        const e = selector.edges[selector.edges.length - 1];
+        const e = selector.edges[selector.edges.length-1]
         edgeColorPicker.value = e.color;
         edgeThickness.value = e.thickness.toString();
         // update dashed edge buttons
-        if (e.dashed) {
-            toggleContinuousButton === null || toggleContinuousButton === void 0 ? void 0 : toggleContinuousButton.classList.remove("active");
-            toggleDashedButton === null || toggleDashedButton === void 0 ? void 0 : toggleDashedButton.classList.add("active");
+        if (e.dashed)
+        {
+            toggleContinuousButton?.classList.remove("active");
+            toggleDashedButton?.classList.add("active");
         }
-        else {
-            toggleContinuousButton === null || toggleContinuousButton === void 0 ? void 0 : toggleContinuousButton.classList.add("active");
-            toggleDashedButton === null || toggleDashedButton === void 0 ? void 0 : toggleDashedButton.classList.remove("active");
+        else
+        {
+            toggleContinuousButton?.classList.add("active");
+            toggleDashedButton?.classList.remove("active");
         }
         // update toggle-dashed button
-        /*if (e.dashed)
-            toggle_dashed_btn?.classList.add("active");
-        else
-            toggle_dashed_btn?.classList.remove("active");*/
+        
     }
-    else {
+    else
+    {
         edgeColorPicker.value = edgeChars.color;
         edgeThickness.value = edgeChars.thickness.toString();
-        // update dashed edge buttons
-        if (edgeChars.dashed) {
-            toggleContinuousButton === null || toggleContinuousButton === void 0 ? void 0 : toggleContinuousButton.classList.remove("active");
-            toggleDashedButton === null || toggleDashedButton === void 0 ? void 0 : toggleDashedButton.classList.add("active");
+                // update dashed edge buttons
+        if (edgeChars.dashed)
+        {
+            toggleContinuousButton?.classList.remove("active");
+            toggleDashedButton?.classList.add("active");
         }
-        else {
-            toggleContinuousButton === null || toggleContinuousButton === void 0 ? void 0 : toggleContinuousButton.classList.add("active");
-            toggleDashedButton === null || toggleDashedButton === void 0 ? void 0 : toggleDashedButton.classList.remove("active");
+        else
+        {
+            toggleContinuousButton?.classList.add("active");
+            toggleDashedButton?.classList.remove("active");
         }
         // update toggle-dashed button
-        /*if (edgeChars.dashed)
-            toggle_dashed_btn?.classList.add("active");
-        else
-            toggle_dashed_btn?.classList.remove("active");*/
     }
 }
-function updateRenameControls(enabled) {
-    const input = document.getElementById("vertexIdInput");
-    const button = document.getElementById("rename-vertex");
+
+function updateRenameControls(enabled: boolean)
+{
+    const input = document.getElementById("vertexIdInput") as HTMLInputElement;
+    const button = document.getElementById("rename-vertex") as HTMLButtonElement;
+  
     input.disabled = !enabled;
     button.disabled = !enabled;
-}
+}  */
 // draw the graph
 function drawGraph(ctx, graph, localCall = false, labels = true) {
     // if (localCall)
@@ -1112,7 +1156,7 @@ function drawGraph(ctx, graph, localCall = false, labels = true) {
     // Draw vertices
     graph.vertices.forEach(vertex => {
         if (vertex.temporary)
-            shapeBend(ctx, vertex.x, vertex.y, bendChars.size, bendChars.color); // same color as bend class constructor
+            shapeBend(ctx, vertex.x, vertex.y, paletteHandler.bendChars.size, paletteHandler.bendChars.color); // same color as bend class constructor
         else
             drawVertex(ctx, vertex, labels);
     });
@@ -1128,9 +1172,9 @@ function drawGraph(ctx, graph, localCall = false, labels = true) {
         ctx.lineTo(worldCoords.x, worldCoords.y);
         // ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
         // apply characteristics of edgeChars
-        ctx.strokeStyle = edgeChars.color;
-        ctx.lineWidth = edgeChars.thickness / scale;
-        if (edgeChars.dashed)
+        ctx.strokeStyle = paletteHandler.edgeChars.color;
+        ctx.lineWidth = paletteHandler.edgeChars.thickness / scale;
+        if (paletteHandler.edgeChars.dashed)
             ctx.setLineDash([3 / scale, 3 / scale]); // dashed line
         ctx.stroke();
         // reset

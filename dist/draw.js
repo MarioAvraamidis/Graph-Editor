@@ -20,28 +20,3 @@ export class SettingsOptions {
     edit_cliqueNewEdgesColor(color) { this.cliqueNewEdgesColor = color; }
     edit_defaultLabelFontSize(size) { this.defaultLabelFontSize = size; }
 }
-/*export function get_crossings_colors()
-{
-    return crossings_colors;
-}
-
-export function edit_crossings_colors(input: any)
-{
-    crossings_colors.self = self;
-    crossings_colors.neighbor = neighbor;
-    crossings_colors.multiple = multiple;
-    crossings_colors.legal = legal;
-    crossings_colors.self = input[0].value;
-    crossings_colors.neighbor = input[1].value;
-    crossings_colors.multiple = input[2].value;
-    crossings_colors.legal = input[3].value;
-    return crossings_colors;
-}
-
-export function get_crossing_edges_colors() { return crossing_edges_colors; }
-
-export function set_crossing_edges_colors(crossing: string, nonCrossing: string)
-{
-    crossing_edges_colors.crossing = crossing;
-    crossing_edges_colors.nonCrossing = nonCrossing;
-}*/ 
