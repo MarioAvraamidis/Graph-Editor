@@ -1,11 +1,12 @@
 // src/app.ts
 import { Graph, Vertex, Bend, Edge, Point, Crossing } from "./graph.js";
-import { CanvasHandler } from './canvasHandler.js'; 
+import { CanvasHandler, Coords } from './canvasHandler.js'; 
 import { ModalsHandler } from "./modals.js";
 import { StateHandler } from "./stateHandler.js";
-import { Selector, Copier } from "./selector.js";
+import { Selector, Copier, Hover } from "./selector.js";
 import { BtnHandler } from "./buttons.js";
 import { PaletteHandler } from "./paletteHandler.js";
+import { Cmenu } from "./contextMenu.js";
 
 // Create a graph instance
 let graph = new Graph();
@@ -13,20 +14,14 @@ let graph = new Graph();
 let stateHandler: StateHandler;
 // mouse
 let mouse: {x: number,y: number};
-let worldCoords: {x: number, y: number};    // graph coordinates of cursor (used when transforming during zoom)
+// let worldCoords: {x: number, y: number};    // graph coordinates of cursor (used when transforming during zoom)
+let worldCoords: Coords    // graph coordinates of cursor (used when transforming during zoom)
 let offsetX = 0;    // x-offset between click position and mouse's current position
 let offsetY = 0;    // y-offset between click position and mouse's current position
 // dragging
-let draggingPoints: Point[] = [];
 let hasDragged = false;     // will be used to distinguish vertex selection from vertex drag
 // hovered objects
-let hoveredEdge: Edge | null = null;
-let hoveredVertex: Vertex | null = null;
-let hoveredBend: Bend | null = null;
-let hoveredLabelPoint: Point | null = null;
-let hoveredPoint: Point | null = null;
-let hoveredCrossing: Crossing | null = null;
-let hoveredCrossingEdges: [Edge | null, Edge | null];
+let hover: Hover;
 // selected items
 let selector: Selector;
 // creating edge
@@ -54,6 +49,8 @@ let showingContextMenu: boolean = false;
 let copier: Copier;
 // buttons handler
 let btnHandler: BtnHandler;
+// context menu
+let cmenu: Cmenu;
 // zoom
 let myCanvasHandler: CanvasHandler | null = null;
 let scale: number = 1;      // for all the elements that we want their size to remain the same regardless of the zoom scale, devide the size by scale
@@ -63,23 +60,20 @@ const output = document.getElementById("output");
 // universal variables
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D | null;
-// context menus
-const contextMenu = document.getElementById('contextMenu') as HTMLDivElement;
-const edgeMenu = document.getElementById("edgeMenu") as HTMLDivElement;
-const selectedMenu = document.getElementById("selectedMenu") as HTMLDivElement;
-const pointMenu = document.getElementById("pointMenu") as HTMLDivElement;
-const labelMenu = document.getElementById("labelMenu") as HTMLDivElement;
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
         // Instantiate CanvasHandler, passing your renderGraph function as the drawing callback
         myCanvasHandler = new CanvasHandler('graphCanvas', renderGraph);
+        worldCoords = new Coords();
         stateHandler = new StateHandler(graph);
-        modalsHandler = new ModalsHandler(myCanvasHandler,stateHandler);
         selector = new Selector();
+        hover = new Hover(graph,worldCoords,selector);
+        modalsHandler = new ModalsHandler(myCanvasHandler,stateHandler,hover);
         copier = new Copier();
         btnHandler = new BtnHandler(graph,myCanvasHandler,selector,stateHandler,copier,modalsHandler);
         paletteHandler = new PaletteHandler(selector,myCanvasHandler,stateHandler,graph);
+        cmenu = new Cmenu(graph,worldCoords,canvas,copier,selector,stateHandler,myCanvasHandler,modalsHandler,hover);
         canvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
         ctx = canvas.getContext("2d");
         if (!ctx)
@@ -87,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // don't show the modal when refreshing
         // modalsHandler?.hideAllModals();
         // addDashedEdgeEventListeners();
-        addMenusEventListeners();
         addMouseEventListeners();
         renderGraph();
 
@@ -162,27 +155,28 @@ function addMouseEventListeners()
 
         // set mouse position
         // mouse = getMousePos(canvas, e);
-        worldCoords = myCanvasHandler!.screenToWorld(e.clientX, e.clientY);
+        // worldCoords = myCanvasHandler!.screenToWorld(e.clientX, e.clientY);
+        worldCoords.update(myCanvasHandler!.screenToWorld(e.clientX, e.clientY));
         // hide the menu when clicking anywhere else
         // Check if the click was outside the context menu
-        if (contextMenu && !contextMenu.contains(e.target as Node) && showingContextMenu) {
-            hideContextMenu();
+        if (cmenu.contextMenu && !cmenu.contextMenu.contains(e.target as Node) && showingContextMenu) {
+            cmenu.hideContextMenu();
             showingContextMenu = false;
             canAddVertex = false;
         }
         else
             canAddVertex = true;
 
-        checkHovered();
+        hover.check(scale);
 
         // check if the clicked point belongs to the selected ones
         // if yes, set dragging points = selected points and store the positions of selected vertices at the time of mousedown
-        // hoveredPoint = graph.getPointAtPosition(mouse.x, mouse.y);
-        // hoveredPoint = graph.getPointAtPosition(worldCoords.x, worldCoords.y,scale);
-        if (hoveredPoint && selector.points.includes(hoveredPoint) || hoveredEdge && selector.edges.includes(hoveredEdge))
+        // hover.point = graph.getPointAtPosition(mouse.x, mouse.y);
+        // hover.point = graph.getPointAtPosition(worldCoords.x, worldCoords.y,scale);
+        if (hover.point && selector.points.includes(hover.point) || hover.edge && selector.edges.includes(hover.edge))
         {
             stateHandler.saveState();
-            draggingPoints = selector.points;
+            selector.draggingPoints = selector.points;
             // also add to dragging points the endpoints and bends of selected edges
             for (const se of selector.edges)
             {
@@ -200,7 +194,7 @@ function addMouseEventListeners()
         // starting vertex for edge creation
         if (selector.points.length === 0 && !creatingEdge)   // hasDragged for not setting starting vertex a selected vertex
         {
-            startingVertex = hoveredVertex;
+            startingVertex = hover.vertex;
             /*if (startingVertex)
                 console.log("mousedown, startingVertex="+startingVertex.id);
             else
@@ -209,7 +203,7 @@ function addMouseEventListeners()
 
         // label move
         if (!creatingEdge)
-            draggingLabelPoint = hoveredLabelPoint;  
+            draggingLabelPoint = hover.labelPoint;  
 
         hasDragged = false;
         mousedown = true;
@@ -229,12 +223,13 @@ function addMouseEventListeners()
     canvas.addEventListener("mousemove", e => {
         // update mouse position
         mouse = getMousePos(canvas, e);
-        worldCoords = myCanvasHandler!.screenToWorld(e.clientX, e.clientY);
+        // worldCoords = myCanvasHandler!.screenToWorld(e.clientX, e.clientY);
+        worldCoords.update(myCanvasHandler!.screenToWorld(e.clientX, e.clientY));
         // offsetX = mouse.x - clickedX;
         // offsetY = mouse.y - clickedY;
         offsetX = worldCoords.x - clickedX;
         offsetY = worldCoords.y - clickedY;
-        checkHovered();
+        hover.check(scale);
         // console.log("mousemove:",mouse.x,mouse.y,clickedX,clickedY);
 
         if (mousedown && Math.hypot(offsetX,offsetY) > 3)
@@ -255,9 +250,9 @@ function addMouseEventListeners()
             // stateHandler.saveState();
         }
 
-        for (let i=0;i<draggingPoints.length;i++)
+        for (let i=0;i<selector.draggingPoints.length;i++)
         {
-            graph.movePoint(draggingPoints[i], positionsAtMouseDown[i].x + offsetX, positionsAtMouseDown[i].y + offsetY);
+            graph.movePoint(selector.draggingPoints[i], positionsAtMouseDown[i].x + offsetX, positionsAtMouseDown[i].y + offsetY);
             // console.log("vertex "+v.id,v.x,v.y);
             // renderGraph();
             myCanvasHandler?.redraw();
@@ -304,17 +299,18 @@ function addMouseEventListeners()
 
         // set mouse position
         // mouse = getMousePos(canvas, e);
-        worldCoords = myCanvasHandler!.screenToWorld(e.clientX,e.clientY);
+        // worldCoords = myCanvasHandler!.screenToWorld(e.clientX,e.clientY);
+        worldCoords.update(myCanvasHandler!.screenToWorld(e.clientX, e.clientY));
         // check hovering
-        checkHovered();
+        hover.check(scale);
 
         if (startingVertex && creatingEdge)
         {
             const rect = canvas.getBoundingClientRect();
             const binPos = myCanvasHandler?.screenToWorld(rect.left+rubbishBinRadius,rect.top+rubbishBinRadius);
-            if (hoveredVertex)  // add a straight edge
+            if (hover.vertex)  // add a straight edge
             {
-                const edge = graph.addEdgeAdvanced(startingVertex,hoveredVertex);
+                const edge = graph.addEdgeAdvanced(startingVertex,hover.vertex);
                 if (edge)   // check if the edge can be created, based on the restrictions for self loops, simple graph etc
                 {
                     startingVertex = null;
@@ -323,7 +319,7 @@ function addMouseEventListeners()
                     edge.assignCharacteristics(paletteHandler.edgeChars.color, paletteHandler.edgeChars.dashed, paletteHandler.edgeChars.thickness);
                     edge.label.fontSize = modalsHandler.settingsOptions.defaultLabelFontSize; // edge's label font size
                     edge.assignBendCharacteristics(paletteHandler.bendChars.color, paletteHandler.bendChars.size);
-                    // hasDragged = true;  // to not select the hoveredVertex
+                    // hasDragged = true;  // to not select the hover.vertex
                     // edgeCreated = edge;
                 }
             }
@@ -372,7 +368,7 @@ function addMouseEventListeners()
                 graph.extendEdge(selectedVertex,pos.x,pos.y);
                 selectedVertex = null;
             }
-            else if (!v && !hoveredEdge && !selectedVertex) // if nothing selected, add a new vertex at the point clicked
+            else if (!v && !hover.edge && !selectedVertex) // if nothing selected, add a new vertex at the point clicked
             {
                 const vertex = new Vertex((graph.maxVertexId()+1).toString(),mouse.x,mouse.y);
                 graph.addVertex(vertex);
@@ -394,12 +390,12 @@ function addMouseEventListeners()
 
         // save state when moving
         // CHEEEEECK AGAAAAIIIIIIIIINNNNNNN
-        //if (hasDragged && draggingPoints.length > 0)
+        //if (hasDragged && selector.draggingPoints.length > 0)
         //  stateHandler.saveState();
 
         selector.isSelecting = false;
         draggingLabelPoint = null;
-        draggingPoints = [];
+        selector.draggingPoints = [];
         // hasDragged = false;
         mousedown = false;
         // renderGraph();
@@ -430,12 +426,13 @@ function addMouseEventListeners()
 
         // console.log("click passed",selector.points.length);
         
-        worldCoords = myCanvasHandler.screenToWorld(e.clientX, e.clientY);
+        // worldCoords = myCanvasHandler.screenToWorld(e.clientX, e.clientY);
+        worldCoords.update(myCanvasHandler!.screenToWorld(e.clientX, e.clientY));
         // console.log("Clicked at screen ",e.clientX,e.clientY);
-        checkHovered();
+        hover.check(scale);
 
         // if nothing hovered or selected, add a new vertex at the clicked position
-        if (!hoveredVertex && !hoveredBend && !hoveredEdge && !selector.points.length && !selector.edges.length && !draggingLabelPoint && canAddVertex)
+        if (!hover.vertex && !hover.bend && !hover.edge && !selector.points.length && !selector.edges.length && !draggingLabelPoint && canAddVertex)
             {
                 stateHandler.saveState();
                 // const vertex = graph.addNewVertex(mouse.x,mouse.y);
@@ -445,31 +442,31 @@ function addMouseEventListeners()
                 vertex.shape = paletteHandler.vertexChars.shape;
                 vertex.color = paletteHandler.vertexChars.color;
                 vertex.label.fontSize = modalsHandler.settingsOptions.defaultLabelFontSize;
-                // hoveredVertex = vertex;
+                // hover.vertex = vertex;
             }
 
 
         // add a new bend in the addBend mode if hovering over an edge
         // IMPORTANT: the following piece of code (in the brackets of if) must remain below the above piece of code
-        /* if (hoveredEdge && currentMode === "addBend") {
+        /* if (hover.edge && currentMode === "addBend") {
             stateHandler.saveState();
-            const p1 = hoveredEdge.points[0];
-            const p2 = hoveredEdge.points[1];
+            const p1 = hover.edge.points[0];
+            const p2 = hover.edge.points[1];
             if (p1 instanceof Vertex && p2 instanceof Vertex)
                 graph.addBend(p1,p2,worldCoords.x,worldCoords.y);
                 // graph.addBend(p1,p2,mouse.x,mouse.y);
             // set it free
-            hoveredEdge = null;
+            hover.edge = null;
             canvas.style.cursor = "default";
         }*/
 
         // select a vertex/bend/edge and update selected vertices
-        if (hoveredVertex)
-            selector.select(hoveredVertex,selector.vertices,e);
-        else if (hoveredBend)
-            selector.select(hoveredBend, selector.bends, e);
-        else if (hoveredEdge)
-            selector.select(hoveredEdge, selector.edges, e);
+        if (hover.vertex)
+            selector.select(hover.vertex,selector.vertices,e);
+        else if (hover.bend)
+            selector.select(hover.bend, selector.bends, e);
+        else if (hover.edge)
+            selector.select(hover.edge, selector.edges, e);
         else
         {
             selector.vertices.length = 0;
@@ -491,266 +488,6 @@ function addMouseEventListeners()
         // updatePaletteState();
         // renderGraph();
         myCanvasHandler?.redraw();
-    });
-}
-
-// Function to hide the context menu
-function hideContextMenu() {
-    /*const menus: HTMLDivElement[] = [contextMenu,edgeMenu,selectedMenu,pointMenu,labelMenu];
-    for (const menu in menus)
-            menu.style.display = 'none';*/
-    if (contextMenu) {
-        contextMenu.style.display = 'none';
-    }
-    if (edgeMenu) {
-        edgeMenu.style.display = 'none';
-    }
-    if (selectedMenu) {
-        selectedMenu.style.display = 'none';
-    }
-    if (pointMenu)
-        pointMenu.style.display = 'none';
-    if (labelMenu)
-        labelMenu.style.display = 'none';
-}
-
-// Function to show and position the context menu
-function showContextMenu(x: number, y: number, menu: HTMLDivElement) {
-    if (menu) {
-        menu.style.display = 'block';
-        // Position the menu
-        // Ensure menu stays within viewport
-        const menuWidth = menu.offsetWidth;
-        const menuHeight = menu.offsetHeight;
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-
-        let finalX = x;
-        let finalY = y;
-
-        if (x + menuWidth > viewportWidth) {
-            finalX = viewportWidth - menuWidth - 5; // 5px padding from edge
-        }
-        if (y + menuHeight > viewportHeight) {
-            finalY = viewportHeight - menuHeight - 5; // 5px padding from edge
-        }
-
-        menu.style.left = `${finalX}px`;
-        menu.style.top = `${finalY}px`;
-    }
-}
-
-function addMenusEventListeners()
-{
-    // Add event listener for right-click (contextmenu) on the canvas
-    canvas.addEventListener('contextmenu', (event) => {
-        event.preventDefault(); // Prevent the browser's default context menu
-        // rightClickPos = {x: mouse.x, y: mouse.y};
-        copier.rightClickPos = {x: worldCoords.x, y: worldCoords.y};
-        //if (hoveredVertex && selector.vertices.includes(hoveredVertex) || hoveredEdge && selector.edges.includes(hoveredEdge) || hoveredBend && selector.bends.includes(hoveredBend))
-        if (hoveredPoint && selector.points.includes(hoveredPoint) || hoveredEdge && selector.edges.includes(hoveredEdge))
-            showContextMenu(event.clientX, event.clientY, selectedMenu);
-        else if (hoveredEdge)    // show edge menu
-            showContextMenu(event.clientX, event.clientY, edgeMenu);
-        else if (hoveredPoint)    // show point menu
-            showContextMenu(event.clientX, event.clientY, pointMenu);
-        else if (hoveredLabelPoint )
-            showContextMenu(event.clientX, event.clientY, labelMenu);
-        else    // show general menu
-            showContextMenu(event.clientX, event.clientY, contextMenu);
-        showingContextMenu = true;
-    });
-    // Add event listener for clicks on the context menu options
-    contextMenu.addEventListener('click', (event) => {
-        const target = event.target as HTMLElement;
-
-        // Ensure a menu item was clicked
-        if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
-            const action = target.getAttribute('data-action');
-            hideContextMenu(); // Hide menu after selection
-
-            switch (action) {
-                case "clear-canvas":
-                    stateHandler.saveState();
-                    graph = new Graph();
-                    // renderGraph();
-                    myCanvasHandler?.redraw();
-                    break;
-                // Add more cases for other actions
-                case "paste":
-                    if (copier.selectedVertices.length > 0)
-                    {
-                        stateHandler.saveState();
-                        copier.pasteSelected(graph,selector,false);
-                        myCanvasHandler?.redraw();
-                    }
-                    break;
-                default:
-                    console.log(`Action not implemented: ${action}`);
-            }
-        }
-    });
-
-    // edge menu options
-    edgeMenu.addEventListener('click', (event) => {
-        const target = event.target as HTMLElement;
-
-        // Ensure a menu item was clicked
-        if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
-            const action = target.getAttribute('data-action');
-            hideContextMenu(); // Hide menu after selection
-
-            switch (action) {
-                case "addBend":
-                    stateHandler.saveState();
-                    const p1 = hoveredEdge!.points[0];  // edgeMenu appears only when an edge is hovered
-                    const p2 = hoveredEdge!.points[1];
-                    if (p1 instanceof Vertex && p2 instanceof Vertex)
-                        graph.addBend(p1,p2,worldCoords.x,worldCoords.y);
-                        // graph.addBend(p1,p2,mouse.x,mouse.y);
-                    // set it free
-                    hoveredEdge = null;
-                    // renderGraph();
-                    myCanvasHandler?.redraw();
-                    break;
-                case "deleteEdge":
-                    stateHandler.saveState();
-                    graph.deleteEdgee(hoveredEdge!);   // edgeMenu appears only when an edge is hovered, so hoveredEdge is not null
-                    checkHovered();
-                    myCanvasHandler?.redraw(); 
-                    break;
-                case "showLabel":
-                    if (hoveredEdge)
-                    {
-                        stateHandler.saveState();
-                        hoveredEdge.label.showLabel = true;
-                        myCanvasHandler?.redraw();
-                    }
-                    break;
-                case "hideLabel":
-                    if (hoveredEdge)
-                    {
-                        stateHandler.saveState();
-                        hoveredEdge.label.showLabel = false;
-                        myCanvasHandler?.redraw();
-                    }
-                    break;
-                    
-                // Add more cases for other actions
-                default:
-                    console.log(`Action not implemented: ${action}`);
-            }
-        }
-    });
-
-    // selected menu options
-    selectedMenu.addEventListener('click', (event) => {
-        const target = event.target as HTMLElement;
-
-        // Ensure a menu item was clicked
-        if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
-            const action = target.getAttribute('data-action');
-            hideContextMenu(); // Hide menu after selection
-
-            switch (action) {
-                case "copySelected":
-                    copier.copySelected(selector,true);
-                    break;
-                case "deleteSelected":
-                    // stateHandler.saveState();
-                    selector.deleteSelectedObjects(graph);
-                    checkHovered();
-                    myCanvasHandler?.redraw();
-                    break;
-                case "showLabels":
-                    // stateHandler.saveState();     if not commented, state is saved twice for some reason. If commented, looks to work fine
-                    for (const point of selector.points)
-                        point.label.showLabel = true;
-                    for (const edge of selector.edges)
-                        edge.label.showLabel = true;
-                    myCanvasHandler?.redraw();
-                    break;
-                case "hideLabels":
-                    if (selector.points.length > 0)
-                    {
-                        // stateHandler.saveState(); if not commented, state is saved twice for some reason. If commented, looks to work fine
-                        for (const point of selector.points)
-                            point.label.showLabel = false;
-                        myCanvasHandler?.redraw();
-                    }
-                    break;
-                // Add more cases for other actions
-                default:
-                    console.log(`Action not implemented: ${action}`);
-            }
-        }
-    });
-
-    // crossing menu options
-    pointMenu.addEventListener('click', (event) => {
-        const target = event.target as HTMLElement;
-
-        // Ensure a menu item was clicked
-        if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
-            const action = target.getAttribute('data-action');
-            hideContextMenu(); // Hide menu after selection
-
-            switch (action) {
-                case "showLabel":
-                    if (hoveredPoint)   // no need to check, as pointMenu is triggered only when hoveredPoint is not null
-                    {
-                        stateHandler.saveState();
-                        hoveredPoint.label.showLabel = true;
-                        myCanvasHandler?.redraw();
-                    }
-                    break;
-                case "hideLabel":
-                    if (hoveredPoint)
-                    {
-                        stateHandler.saveState();
-                        hoveredPoint.label.showLabel = false;
-                        myCanvasHandler?.redraw();
-                    }
-                    break;
-                // Add more cases for other actions
-                default:
-                    console.log(`Action not implemented: ${action}`);
-            }
-        }
-    });
-
-    // label menu options
-    labelMenu.addEventListener('click', (event) => {
-        const target = event.target as HTMLElement;
-
-        // Ensure a menu item was clicked
-        if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
-            const action = target.getAttribute('data-action');
-            hideContextMenu(); // Hide menu after selection
-            //console.log("label-menu");
-
-            switch (action) {
-                case "editLabel":
-                    if (hoveredLabelPoint)
-                    {
-                        // console.log("hoveredLabelPoint found");
-                        modalsHandler.showEditLabelModal(hoveredLabelPoint);
-                        // FIX: Display a warning message. No console.log
-                        // if (hoveredLabelPoint instanceof Vertex)
-                    }
-                    break;
-                case "hideLabel":
-                    if (hoveredLabelPoint)
-                    {
-                        stateHandler.saveState();
-                        hoveredLabelPoint.label.showLabel = false;
-                        myCanvasHandler?.redraw();
-                    }
-                // Add more cases for other actions
-                default:
-                    console.log(`Action not implemented: ${action}`);
-            }
-        }
     });
 }
 
@@ -789,76 +526,7 @@ function inLimits(x: number, limit: number)
     if (x > limit)
         return limit;
     return x;
-}
-
-// detect the hovering object
-function checkHovered()
-{
-    // to go back, replace all worldCoords with mouse
-    setHoveredObjectsNull();
-    hoveredVertex = graph.getVertexAtPosition(worldCoords.x, worldCoords.y, scale, selector.vertices);
-    if (hoveredVertex)
-        hoveredPoint = hoveredVertex;
-    else
-    {
-        hoveredBend = graph.isNearBend(worldCoords.x,worldCoords.y,scale);
-        if (hoveredBend)
-            hoveredPoint = hoveredBend;
-        else
-        {
-            hoveredCrossing = graph.isNearCrossing(worldCoords.x,worldCoords.y,scale);
-            if (hoveredCrossing)
-            {
-                hoveredPoint = hoveredCrossing;
-                hoveredCrossingEdges = hoveredCrossing.edges;
-            }
-            else
-                hoveredEdge = graph.isNearEdge(worldCoords.x,worldCoords.y,3/scale);
-        }
-    }
-
-    // find hoveredLabelPoint
-    if (!hoveredVertex && !hoveredBend && !hoveredEdge)
-    {
-        // check vertices first
-        for (const v of graph.vertices)
-            if (isNearLabel(v,worldCoords.x,worldCoords.y))
-            {
-                hoveredLabelPoint = v;
-                break;
-            }
-        // check crossings
-        if (!hoveredLabelPoint)
-            for (const cros of graph.crossings)
-                if (isNearLabel(cros,worldCoords.x,worldCoords.y))
-                {
-                    hoveredLabelPoint = cros;
-                    break;
-                }
-        // check bends
-        if (!hoveredLabelPoint)
-        {
-            const bends = graph.getBends();
-            for (const bend of bends)
-                if (isNearLabel(bend,worldCoords.x,worldCoords.y))
-                {
-                    hoveredLabelPoint = bend;
-                    break;
-                }
-        }
-    }
-}
-
-function setHoveredObjectsNull()
-{
-    hoveredVertex = null;
-    hoveredBend = null;
-    hoveredCrossing = null;
-    hoveredPoint = null;
-    hoveredEdge = null;
-    hoveredCrossingEdges = [null,null];
-    hoveredLabelPoint = null;
-}     
+}   
 
 // draw the graph
 function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, localCall: boolean = false, labels: boolean = true) {
@@ -891,7 +559,7 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, localCall: boole
     });
     
     // show information for the hovering objects
-    // checkHovered();
+    // hover.check(scale);
     showHoveredInfo();
 
     // Draw a temporary edge from starting vertex to mouse position and a rubbish bin to discard the new edge if necessary
@@ -936,7 +604,7 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, localCall: boole
     }
 
     // If hovering over an edge on add bend mode, show a bend (to add)
-    // if (hoveredEdge && currentMode === "addBend") 
+    // if (hover.edge && currentMode === "addBend") 
        // shapeBend(ctx,mouse.x,mouse.y,bendChars.size,bendChars.color);
 
     // draw selection rectangle
@@ -1032,7 +700,7 @@ function drawCrossing(ctx: CanvasRenderingContext2D, cros: Point, color: string)
 {
     ctx.beginPath();
     let radius = cros.size;
-    if (cros === hoveredCrossing)
+    if (cros === hover.crossing)
         radius = radius+1;
     ctx.lineWidth = 2/scale;
     ctx.arc(cros.x, cros.y, radius/scale, 0 , 2*Math.PI);
@@ -1046,7 +714,7 @@ function drawCrossing(ctx: CanvasRenderingContext2D, cros: Point, color: string)
 function drawVertex(ctx: CanvasRenderingContext2D, v: Vertex, labels: boolean = true)
 {
     let size: number = v.size;
-    if (hoveredVertex === v)
+    if (hover.vertex === v)
         size = size+1;
     drawShape(ctx,v.x,v.y,v.shape,size,v.color,true);   // scaling in drawShape function
 
@@ -1065,7 +733,7 @@ function showPointLabel(ctx: CanvasRenderingContext2D, p: Point)
     if (!p.label.showLabel)
         return;
     ctx.fillStyle = p.label.color;
-    if (hoveredLabelPoint === p)
+    if (hover.labelPoint === p)
         ctx.fillStyle = "red";
     const adjustedFontSize = p.label.fontSize / scale;
     ctx.font = `${adjustedFontSize}px sans-serif`;
@@ -1123,26 +791,26 @@ function clearLatexLabels() {
   
 function showHoveredInfo()
 {
-    if (creatingEdge || draggingPoints.length>0)
+    if (creatingEdge || selector.draggingPoints.length>0)
     {
         hideVertexInfo();
         hideEdgeInfo();
         hideCrossingInfo();
         return;
     }
-    // show vertex info of hoveredVertex
-    if (hoveredVertex)
-        showVertexInfo(hoveredVertex);
+    // show vertex info of hover.vertex
+    if (hover.vertex)
+        showVertexInfo(hover.vertex);
     else
         hideVertexInfo();
-    // show crossing info of hoveredCrossing
-    /*if (hoveredCrossing)
-        showCrossingInfo(hoveredCrossing);
+    // show crossing info of hover.crossing
+    /*if (hover.crossing)
+        showCrossingInfo(hover.crossing);
     else
         hideCrossingInfo();*/
-    // show edge info of hoveredVertex
-    if (hoveredEdge)
-        showEdgeInfo(hoveredEdge);
+    // show edge info of hover.vertex
+    if (hover.edge)
+        showEdgeInfo(hover.edge);
     else
         hideEdgeInfo();
 }
@@ -1213,7 +881,7 @@ function drawBend(ctx: CanvasRenderingContext2D, bend: Bend)
     ctx.lineWidth = 1/scale;
     // show bigger bend when mouse near it
     let size = bend.size;
-    if (bend === hoveredBend)
+    if (bend === hover.bend)
         size = size+1;
     ctx.arc(bend.x, bend.y, size/scale , 0, 2 * Math.PI); // small green circle
     ctx.fillStyle = bend.color;
@@ -1271,7 +939,7 @@ function drawShape(ctx: CanvasRenderingContext2D, x: number, y: number, shape: s
     if (fill)
         ctx.fill();
     // ctx.strokeStyle = "#2980b9";
-    //if ( (hoveredVertex === vertex && !draggingVertex) || draggingVertex === vertex) // bold line for hovered vertex or dragging vertex
+    //if ( (hover.vertex === vertex && !draggingVertex) || draggingVertex === vertex) // bold line for hovered vertex or dragging vertex
       //  ctx.lineWidth = 4;
     ctx.stroke();
 }
@@ -1309,14 +977,14 @@ function drawEdge(ctx: CanvasRenderingContext2D, edge: Edge, highlight: number =
             ctx.lineTo(bends[i].x,bends[i].y);
         ctx.lineTo(v2.x, v2.y);
         ctx.strokeStyle = edge.color;
-        // increase thickness if edge === hoveredEdge
-        if (hoveredEdge === edge)
+        // increase thickness if edge === hover.edge
+        if (hover.edge === edge)
             ctx.lineWidth = (edge.thickness+2)/scale;
         // highlight if the edge is one of the edges of a hovering crossing
-        if (hoveredCrossing && hoveredCrossingEdges.includes(edge))
+        if (hover.crossing && hover.crossingEdges.includes(edge))
         {
             ctx.lineWidth = (edge.thickness+2)/scale;                   // increase thickness
-            ctx.strokeStyle = crossingColor(hoveredCrossing);   // highlight the edge with the color of the crossing
+            ctx.strokeStyle = crossingColor(hover.crossing);   // highlight the edge with the color of the crossing
             ctx.setLineDash([]);                                // no dashed line
         }
         else if (highlight === 1)   // highlight crossing edges of selected edges
@@ -1373,18 +1041,6 @@ function showEdgeInfo(edge: Edge) {
 function hideEdgeInfo() {
     const infoBox = document.getElementById("edge-info")!;
     infoBox.style.display = "none";
-}
-
-// check that mouse is near a label (in world coordinates)
-function isNearLabel(point: Point, x: number, y: number): boolean {
-    if (!point.label.showLabel)
-        return false;   // return false if the point's label is not displayed
-    const labelX = point.x + point.label.offsetX/scale;
-    const labelY = point.y - labelOffsetY(point)/scale;    // check that label is positioned at these coordinates at drawVertex function
-    const width = point.label.content.length*point.label.fontSize/scale;  
-    const height = 1.3*point.label.fontSize/scale;
-    return x >= labelX - width/2 && x <= labelX + width/2 &&
-           y >= labelY && y <= labelY + height;
 }
   
 // return the pos of the mouse in the canvas

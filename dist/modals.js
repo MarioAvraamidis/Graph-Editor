@@ -1,7 +1,7 @@
 import { SettingsOptions } from "./draw.js";
 import { Vertex } from "./graph.js";
 export class ModalsHandler {
-    constructor(myCanvasHandler, stateHandler) {
+    constructor(myCanvasHandler, stateHandler, hover) {
         this.settingsCrossingsColorInput = []; // crossings colors
         this.settingsCrossingEdgesColorInput = []; // crossing edges colors
         // edit label modal elements
@@ -26,11 +26,11 @@ export class ModalsHandler {
         this.settingsLabelDefaultFonstSizeInput = document.getElementById('labelDefaultFontSizeInput');
         // settingsOptions
         this.settingsOptions = new SettingsOptions();
-        this.addEventListeners(myCanvasHandler, stateHandler);
+        this.addEventListeners(myCanvasHandler, stateHandler, hover);
         this.hideAllModals();
     }
-    addEventListeners(myCanvasHandler, stateHandler) {
-        var _a, _b;
+    addEventListeners(myCanvasHandler, stateHandler, hover) {
+        var _a, _b, _c;
         // listener for settings button
         (_a = document.getElementById('settingsBtn')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', () => this.showSettingsModal(this.settingsOptions));
         // listner for settings savebutton
@@ -48,18 +48,17 @@ export class ModalsHandler {
             this.hideAllModals();
         });
         // save button listener
-        /*this.saveLabelButton?.addEventListener('click', () => {
-            if (this.labelContentInput && this.labelFontSizeInput && hoveredLabelPoint)
-            {
+        (_c = this.saveLabelButton) === null || _c === void 0 ? void 0 : _c.addEventListener('click', () => {
+            if (this.labelContentInput && this.labelFontSizeInput && hover.labelPoint) {
                 stateHandler.saveState();
-                hoveredLabelPoint.label.content = this.labelContentInput.value;
-                hoveredLabelPoint.label.fontSize = parseInt(this.labelFontSizeInput.value);
+                hover.labelPoint.label.content = this.labelContentInput.value;
+                hover.labelPoint.label.fontSize = parseInt(this.labelFontSizeInput.value);
                 // checkHovered();
-                myCanvasHandler?.redraw();
+                myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
             }
             // hideEditLabelModal();
             this.hideAllModals();
-        });*/
+        });
         // activate click to save button when typing enter
         for (const input of [this.labelContentInput, this.labelFontSizeInput])
             input === null || input === void 0 ? void 0 : input.addEventListener('keydown', (e) => {

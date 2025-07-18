@@ -1,5 +1,303 @@
 // context-menu.ts
 
+import { CanvasHandler, Coords } from "./canvasHandler.js";
+import { Graph, Vertex } from "./graph.js";
+import { ModalsHandler } from "./modals.js";
+import { Copier, Hover, Selector } from "./selector.js";
+import { StateHandler } from "./stateHandler.js";
+
+export class Cmenu
+{
+
+    // context menus
+    public contextMenu = document.getElementById('contextMenu') as HTMLDivElement;
+    private edgeMenu = document.getElementById("edgeMenu") as HTMLDivElement;
+    private selectedMenu = document.getElementById("selectedMenu") as HTMLDivElement;
+    private pointMenu = document.getElementById("pointMenu") as HTMLDivElement;
+    private labelMenu = document.getElementById("labelMenu") as HTMLDivElement;
+
+    public showingContextMenu: boolean;
+
+    constructor(graph: Graph, worldCoords: Coords, canvas: HTMLCanvasElement, copier: Copier, selector: Selector, stateHandler: StateHandler, myCanvasHandler: CanvasHandler, modalsHandler: ModalsHandler, hover: Hover)
+    {
+        this.showingContextMenu = false;
+        this.addMenusEventListeners(graph,worldCoords,canvas,copier,selector,stateHandler,myCanvasHandler,modalsHandler,hover);
+    }
+
+
+    // Function to hide the context menu
+    public hideContextMenu() {
+        /*const menus: HTMLDivElement[] = [contextMenu,this.edgeMenu,this.selectedMenu,this.pointMenu,this.labelMenu];
+        for (const menu in menus)
+                menu.style.display = 'none';*/
+        if (this.contextMenu) {
+            this.contextMenu.style.display = 'none';
+        }
+        if (this.edgeMenu) {
+            this.edgeMenu.style.display = 'none';
+        }
+        if (this.selectedMenu) {
+            this.selectedMenu.style.display = 'none';
+        }
+        if (this.pointMenu)
+            this.pointMenu.style.display = 'none';
+        if (this.labelMenu)
+            this.labelMenu.style.display = 'none';
+    }
+
+    // Function to show and position the context menu
+    private showContextMenu(x: number, y: number, menu: HTMLDivElement) {
+        if (menu) {
+            menu.style.display = 'block';
+            // Position the menu
+            // Ensure menu stays within viewport
+            const menuWidth = menu.offsetWidth;
+            const menuHeight = menu.offsetHeight;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            let finalX = x;
+            let finalY = y;
+
+            if (x + menuWidth > viewportWidth) {
+                finalX = viewportWidth - menuWidth - 5; // 5px padding from edge
+            }
+            if (y + menuHeight > viewportHeight) {
+                finalY = viewportHeight - menuHeight - 5; // 5px padding from edge
+            }
+
+            menu.style.left = `${finalX}px`;
+            menu.style.top = `${finalY}px`;
+        }
+    }
+
+    private addMenusEventListeners(graph: Graph, worldCoords: Coords, canvas: HTMLCanvasElement, copier: Copier, selector: Selector, stateHandler: StateHandler, myCanvasHandler: CanvasHandler, modalsHandler: ModalsHandler, hover: Hover)
+    {
+        // Add event listener for right-click (contextmenu) on the canvas
+        canvas.addEventListener('contextmenu', (event) => {
+            event.preventDefault(); // Prevent the browser's default context menu
+            // rightClickPos = {x: mouse.x, y: mouse.y};
+            copier.rightClickPos = {x: worldCoords.x, y: worldCoords.y};
+            //if (hoveredVertex && selector.vertices.includes(hoveredVertex) || hover.edge && selector.edges.includes(hover.edge) || hoveredBend && selector.bends.includes(hoveredBend))
+            if (hover.point && selector.points.includes(hover.point) || hover.edge && selector.edges.includes(hover.edge))
+                this.showContextMenu(event.clientX, event.clientY, this.selectedMenu);
+            else if (hover.edge)    // show edge menu
+                this.showContextMenu(event.clientX, event.clientY, this.edgeMenu);
+            else if (hover.point)    // show point menu
+                this.showContextMenu(event.clientX, event.clientY, this.pointMenu);
+            else if (hover.labelPoint )
+                this.showContextMenu(event.clientX, event.clientY, this.labelMenu);
+            else    // show general menu
+                this.showContextMenu(event.clientX, event.clientY, this.contextMenu);
+            this.showingContextMenu = true;
+        });
+        // Add event listener for clicks on the context menu options
+        this.contextMenu.addEventListener('click', (event) => {
+            const target = event.target as HTMLElement;
+
+            // Ensure a menu item was clicked
+            if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
+                const action = target.getAttribute('data-action');
+                this.hideContextMenu(); // Hide menu after selection
+
+                switch (action) {
+                    case "clear-canvas":
+                        stateHandler.saveState();
+                        graph.replace(new Graph());
+                        hover.check(myCanvasHandler.getScale());
+                        // renderGraph();
+                        myCanvasHandler?.redraw();
+                        break;
+                    // Add more cases for other actions
+                    case "paste":
+                        if (copier.selectedVertices.length > 0)
+                        {
+                            stateHandler.saveState();
+                            copier.pasteSelected(graph,selector,false);
+                            hover.check(myCanvasHandler.getScale());
+                            myCanvasHandler?.redraw();
+                        }
+                        break;
+                    default:
+                        console.log(`Action not implemented: ${action}`);
+                }
+            }
+        });
+
+        // edge menu options
+        this.edgeMenu.addEventListener('click', (event) => {
+            const target = event.target as HTMLElement;
+
+            // Ensure a menu item was clicked
+            if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
+                const action = target.getAttribute('data-action');
+                this.hideContextMenu(); // Hide menu after selection
+
+                switch (action) {
+                    case "addBend":
+                        stateHandler.saveState();
+                        const p1 = hover.edge!.points[0];  // this.edgeMenu appears only when an edge is hovered
+                        const p2 = hover.edge!.points[1];
+                        if (p1 instanceof Vertex && p2 instanceof Vertex)
+                            graph.addBend(p1,p2,worldCoords.x,worldCoords.y);
+                            // graph.addBend(p1,p2,mouse.x,mouse.y);
+                        // set it free
+                        hover.edge = null;
+                        // renderGraph();
+                        myCanvasHandler?.redraw();
+                        break;
+                    case "deleteEdge":
+                        stateHandler.saveState();
+                        graph.deleteEdgee(hover.edge!);   // this.edgeMenu appears only when an edge is hovered, so hover.edge is not null
+                        hover.check(myCanvasHandler.getScale());
+                        myCanvasHandler?.redraw(); 
+                        break;
+                    case "showLabel":
+                        if (hover.edge)
+                        {
+                            stateHandler.saveState();
+                            hover.edge.label.showLabel = true;
+                            hover.check(myCanvasHandler.getScale());
+                            myCanvasHandler?.redraw();
+                        }
+                        break;
+                    case "hideLabel":
+                        if (hover.edge)
+                        {
+                            stateHandler.saveState();
+                            hover.edge.label.showLabel = false;
+                            hover.check(myCanvasHandler.getScale());
+                            myCanvasHandler?.redraw();
+                        }
+                        break;
+                        
+                    // Add more cases for other actions
+                    default:
+                        console.log(`Action not implemented: ${action}`);
+                }
+            }
+        });
+
+        // selected menu options
+        this.selectedMenu.addEventListener('click', (event) => {
+            const target = event.target as HTMLElement;
+
+            // Ensure a menu item was clicked
+            if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
+                const action = target.getAttribute('data-action');
+                this.hideContextMenu(); // Hide menu after selection
+
+                switch (action) {
+                    case "copySelected":
+                        copier.copySelected(selector,true);
+                        hover.check(myCanvasHandler.getScale());
+                        break;
+                    case "deleteSelected":
+                        // stateHandler.saveState();
+                        selector.deleteSelectedObjects(graph);
+                        hover.check(myCanvasHandler.getScale());
+                        myCanvasHandler?.redraw();
+                        break;
+                    case "showLabels":
+                        // stateHandler.saveState();     if not commented, state is saved twice for some reason. If commented, looks to work fine
+                        for (const point of selector.points)
+                            point.label.showLabel = true;
+                        for (const edge of selector.edges)
+                            edge.label.showLabel = true;
+                        hover.check(myCanvasHandler.getScale());
+                        myCanvasHandler?.redraw();
+                        break;
+                    case "hideLabels":
+                        if (selector.points.length > 0)
+                        {
+                            // stateHandler.saveState(); if not commented, state is saved twice for some reason. If commented, looks to work fine
+                            for (const point of selector.points)
+                                point.label.showLabel = false;
+                            hover.check(myCanvasHandler.getScale());
+                            myCanvasHandler?.redraw();
+                        }
+                        break;
+                    // Add more cases for other actions
+                    default:
+                        console.log(`Action not implemented: ${action}`);
+                }
+            }
+        });
+
+        // crossing menu options
+        this.pointMenu.addEventListener('click', (event) => {
+            const target = event.target as HTMLElement;
+
+            // Ensure a menu item was clicked
+            if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
+                const action = target.getAttribute('data-action');
+                this.hideContextMenu(); // Hide menu after selection
+
+                switch (action) {
+                    case "showLabel":
+                        if (hover.point)   // no need to check, as this.pointMenu is triggered only when hover.point is not null
+                        {
+                            stateHandler.saveState();
+                            hover.point.label.showLabel = true;
+                            hover.check(myCanvasHandler.getScale());
+                            myCanvasHandler?.redraw();
+                        }
+                        break;
+                    case "hideLabel":
+                        if (hover.point)
+                        {
+                            stateHandler.saveState();
+                            hover.point.label.showLabel = false;
+                            hover.check(myCanvasHandler.getScale());
+                            myCanvasHandler?.redraw();
+                        }
+                        break;
+                    // Add more cases for other actions
+                    default:
+                        console.log(`Action not implemented: ${action}`);
+                }
+            }
+        });
+
+        // label menu options
+        this.labelMenu.addEventListener('click', (event) => {
+            const target = event.target as HTMLElement;
+
+            // Ensure a menu item was clicked
+            if (target.tagName === 'LI' && target.hasAttribute('data-action')) {
+                const action = target.getAttribute('data-action');
+                this.hideContextMenu(); // Hide menu after selection
+                //console.log("label-menu");
+
+                switch (action) {
+                    case "editLabel":
+                        if (hover.labelPoint)
+                        {
+                            // console.log("hover.labelPoint found");
+                            modalsHandler.showEditLabelModal(hover.labelPoint);
+                            // FIX: Display a warning message. No console.log
+                            // if (hover.labelPoint instanceof Vertex)
+                        }
+                        break;
+                    case "hideLabel":
+                        if (hover.labelPoint)
+                        {
+                            stateHandler.saveState();
+                            hover.labelPoint.label.showLabel = false;
+                            hover.check(myCanvasHandler.getScale());
+                            myCanvasHandler?.redraw();
+                        }
+                    // Add more cases for other actions
+                    default:
+                        console.log(`Action not implemented: ${action}`);
+                }
+            }
+        });
+    }
+}
+
+
+/*
 // DOM elements (initialized on DOMContentLoaded)
 let customContextMenu: HTMLElement | null = null;
 let menuItemAddVertex: HTMLElement | null = null;
@@ -15,13 +313,14 @@ type ContextMenuActions = {
     onSettings?: (e: MouseEvent) => void;
     // ... define types for all other actions
 };
-let menuActions: ContextMenuActions = {};
+let menuActions: ContextMenuActions = {};*/
 
 
 /**
  * Initializes the context menu and sets up its event listeners.
  * @param actions An object containing callback functions for each menu item.
  */
+/*
 export function initializeContextMenu(actions: ContextMenuActions): void {
     customContextMenu = document.getElementById('customContextMenu') as HTMLElement;
     menuItemAddVertex = document.getElementById('menuItemAddVertex') as HTMLElement;
@@ -47,7 +346,7 @@ export function initializeContextMenu(actions: ContextMenuActions): void {
     // or you can pass the element to listen on. Let's assume you pass it.
     // However, the logic for *which* options to show depends on the click context,
     // so `showDynamicContextMenu` should also be exported and take context.
-}
+}*/
 
 
 /**
@@ -56,6 +355,7 @@ export function initializeContextMenu(actions: ContextMenuActions): void {
  * @param clickedObjectType The type of object clicked ('vertex' | 'edge' | 'canvas').
  * @param specificData Optional. Any specific data about the clicked object (e.g., the vertex object itself).
  */
+/*
 export function showDynamicContextMenu(e: MouseEvent, clickedObjectType: 'vertex' | 'edge' | 'canvas', specificData?: any): void {
     e.preventDefault(); // Prevent the browser's default context menu
 
@@ -104,4 +404,4 @@ function hideContextMenu(): void {
 
 // Call initializeContextMenu on DOMContentLoaded from main.ts
 // The actual event listener for contextmenu will still be in main.ts
-// because it needs to know what object was clicked to call showDynamicContextMenu.
+// because it needs to know what object was clicked to call showDynamicContextMenu.*/

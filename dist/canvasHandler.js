@@ -1,3 +1,7 @@
+export class Coords {
+    constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+    update({ x, y }) { this.x = x; this.y = y; }
+}
 export class CanvasHandler {
     constructor(canvasId, drawCallback) {
         this.scale = 1.0;

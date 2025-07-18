@@ -1,6 +1,7 @@
 import { CanvasHandler } from "./canvasHandler.js";
 import { SettingsOptions } from "./draw.js";
 import { Point, Vertex } from "./graph.js";
+import { Hover } from "./selector.js";
 import { StateHandler } from "./stateHandler.js";
 
 export class ModalsHandler
@@ -22,7 +23,7 @@ export class ModalsHandler
     // settingsOptions
     public settingsOptions: SettingsOptions;
 
-    constructor(myCanvasHandler: CanvasHandler, stateHandler: StateHandler)
+    constructor(myCanvasHandler: CanvasHandler, stateHandler: StateHandler, hover: Hover)
     {
         // edit label modal elements
         this.editLabelModal = document.getElementById('editLabelModal') as HTMLElement;
@@ -46,11 +47,11 @@ export class ModalsHandler
         this.settingsLabelDefaultFonstSizeInput = document.getElementById('labelDefaultFontSizeInput') as HTMLInputElement;
         // settingsOptions
         this.settingsOptions = new SettingsOptions();
-        this.addEventListeners(myCanvasHandler,stateHandler);
+        this.addEventListeners(myCanvasHandler,stateHandler,hover);
         this.hideAllModals();
     }
 
-    public addEventListeners(myCanvasHandler: CanvasHandler, stateHandler: StateHandler)
+    public addEventListeners(myCanvasHandler: CanvasHandler, stateHandler: StateHandler, hover: Hover)
     {
         // listener for settings button
         document.getElementById('settingsBtn')?.addEventListener('click', () => this.showSettingsModal(this.settingsOptions));
@@ -71,18 +72,18 @@ export class ModalsHandler
         });
 
         // save button listener
-        /*this.saveLabelButton?.addEventListener('click', () => {
-            if (this.labelContentInput && this.labelFontSizeInput && hoveredLabelPoint)
+        this.saveLabelButton?.addEventListener('click', () => {
+            if (this.labelContentInput && this.labelFontSizeInput && hover.labelPoint)
             {
                 stateHandler.saveState();
-                hoveredLabelPoint.label.content = this.labelContentInput.value;
-                hoveredLabelPoint.label.fontSize = parseInt(this.labelFontSizeInput.value);
+                hover.labelPoint.label.content = this.labelContentInput.value;
+                hover.labelPoint.label.fontSize = parseInt(this.labelFontSizeInput.value);
                 // checkHovered();
                 myCanvasHandler?.redraw();
             }
             // hideEditLabelModal();
             this.hideAllModals();
-        });*/
+        });
         
         // activate click to save button when typing enter
         for (const input of [this.labelContentInput,this.labelFontSizeInput])

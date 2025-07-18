@@ -11,6 +11,8 @@ export class Selector {
         this.rect = { x: 0, y: 0, width: 0, height: 0 };
         this.rectStart = { x: 0, y: 0 };
         this.isSelecting = false;
+        // dragging points
+        this.draggingPoints = [];
     }
     // selected Points = selected Vertices & selected Bends
     pointsUpdate() {
@@ -212,7 +214,7 @@ export class Copier {
     }
 }
 export class Hover {
-    constructor() {
+    constructor(graph, worldCoords, selector) {
         // hovered objects
         this.edge = null;
         this.vertex = null;
@@ -221,6 +223,9 @@ export class Hover {
         this.point = null;
         this.crossing = null;
         this.crossingEdges = [null, null];
+        this.graph = graph;
+        this.worldCoords = worldCoords;
+        this.selector = selector;
         this.setAllNull();
     }
     setAllNull() {
@@ -233,45 +238,45 @@ export class Hover {
         this.labelPoint = null;
     }
     // detect the hovering object
-    check(graph, worldCoords, scale, vertices) {
+    check(scale) {
         this.setAllNull();
-        this.vertex = graph.getVertexAtPosition(worldCoords.x, worldCoords.y, scale, vertices);
+        this.vertex = this.graph.getVertexAtPosition(this.worldCoords.x, this.worldCoords.y, scale, this.selector.vertices);
         if (this.vertex)
             this.point = this.vertex;
         else {
-            this.bend = graph.isNearBend(worldCoords.x, worldCoords.y, scale);
+            this.bend = this.graph.isNearBend(this.worldCoords.x, this.worldCoords.y, scale);
             if (this.bend)
                 this.point = this.bend;
             else {
-                this.crossing = graph.isNearCrossing(worldCoords.x, worldCoords.y, scale);
+                this.crossing = this.graph.isNearCrossing(this.worldCoords.x, this.worldCoords.y, scale);
                 if (this.crossing) {
                     this.point = this.crossing;
                     this.crossingEdges = this.crossing.edges;
                 }
                 else
-                    this.edge = graph.isNearEdge(worldCoords.x, worldCoords.y, 3 / scale);
+                    this.edge = this.graph.isNearEdge(this.worldCoords.x, this.worldCoords.y, 3 / scale);
             }
         }
         // find hoveredLabelPoint
         if (!this.vertex && !this.bend && !this.edge) {
             // check vertices first
-            for (const v of graph.vertices)
-                if (this.isNearLabel(v, worldCoords.x, worldCoords.y, scale)) {
+            for (const v of this.graph.vertices)
+                if (this.isNearLabel(v, this.worldCoords.x, this.worldCoords.y, scale)) {
                     this.labelPoint = v;
                     break;
                 }
             // check crossings
             if (!this.labelPoint)
-                for (const cros of graph.crossings)
-                    if (this.isNearLabel(cros, worldCoords.x, worldCoords.y, scale)) {
+                for (const cros of this.graph.crossings)
+                    if (this.isNearLabel(cros, this.worldCoords.x, this.worldCoords.y, scale)) {
                         this.labelPoint = cros;
                         break;
                     }
             // check bends
             if (!this.labelPoint) {
-                const bends = graph.getBends();
+                const bends = this.graph.getBends();
                 for (const bend of bends)
-                    if (this.isNearLabel(bend, worldCoords.x, worldCoords.y, scale)) {
+                    if (this.isNearLabel(bend, this.worldCoords.x, this.worldCoords.y, scale)) {
                         this.labelPoint = bend;
                         break;
                     }
