@@ -1,9 +1,5 @@
 export class PaletteHandler {
-    constructor(selector, myCanvasHandler, stateHandler, graph) {
-        // palette settings
-        this.vertexChars = { color: "#000000", size: 7, shape: "circle" }; // default settings of class Vertex
-        this.edgeChars = { color: "#898989", thickness: 2, dashed: false }; // default of class Edge
-        this.bendChars = { size: 5, color: "#0000FF" };
+    constructor(selector, myCanvasHandler, stateHandler, graph, settingsOptions) {
         // Palette for vertices
         this.vertexColor = document.getElementById("vertex-color");
         this.vertexShapeButtons = document.querySelectorAll(".shape-button");
@@ -26,6 +22,7 @@ export class PaletteHandler {
         this.myCanvasHandler = myCanvasHandler;
         this.stateHandler = stateHandler;
         this.graph = graph;
+        this.settingsOptions = settingsOptions;
         this.activateEventListeners();
         this.addDashedEdgeEventListeners();
         this.collapse();
@@ -44,7 +41,7 @@ export class PaletteHandler {
             }
             // set the color for new vertices
             else
-                this.vertexChars.color = this.vertexColor.value;
+                this.settingsOptions.vertexChars.color = this.vertexColor.value;
         });
         // vertex shape buttons
         this.vertexShapeButtons.forEach((btn) => {
@@ -63,7 +60,7 @@ export class PaletteHandler {
                     (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
                 }
                 // update new vertex shape
-                this.vertexChars.shape = selectedShape;
+                this.settingsOptions.vertexChars.shape = selectedShape;
             });
         });
         // vertex size
@@ -77,7 +74,7 @@ export class PaletteHandler {
                 (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
             }
             else
-                this.vertexChars.size = size;
+                this.settingsOptions.vertexChars.size = size;
         });
         // Vertex rename
         (_a = document.getElementById("rename-vertex")) === null || _a === void 0 ? void 0 : _a.addEventListener("click", () => {
@@ -102,7 +99,7 @@ export class PaletteHandler {
                 (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
             }
             else // set color for new bends
-                this.bendChars.color = this.bendColor.value;
+                this.settingsOptions.bendChars.color = this.bendColor.value;
         });
         // bend size
         this.bendSize.addEventListener("input", () => {
@@ -115,7 +112,7 @@ export class PaletteHandler {
                 (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
             }
             else
-                this.bendChars.size = size;
+                this.settingsOptions.bendChars.size = size;
         });
         // edge color
         this.edgeColor.addEventListener("change", () => {
@@ -127,7 +124,7 @@ export class PaletteHandler {
                 (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
             }
             else
-                this.edgeChars.color = this.edgeColor.value;
+                this.settingsOptions.edgeChars.color = this.edgeColor.value;
         });
         // edge thickness
         this.edgeThickness.addEventListener("input", () => {
@@ -139,7 +136,7 @@ export class PaletteHandler {
                 (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
             }
             else
-                this.edgeChars.thickness = parseInt(this.edgeThickness.value);
+                this.settingsOptions.edgeChars.thickness = parseInt(this.edgeThickness.value);
         });
         // delete vertex button
         this.deleteVertexBtn.addEventListener("click", () => {
@@ -206,15 +203,15 @@ export class PaletteHandler {
                     actualButton.classList.add('active');
                     // --- Your logic for handling the selected style ---
                     if (actualButton.id === 'toggle-continuous') {
-                        this.edgeChars.dashed = false;
+                        this.settingsOptions.edgeChars.dashed = false;
                     }
                     else if (actualButton.id === 'toggle-dashed') {
-                        this.edgeChars.dashed = true;
+                        this.settingsOptions.edgeChars.dashed = true;
                     }
                     // update type of selected edges
                     if (this.selector.edges.length > 0) {
                         this.stateHandler.saveState();
-                        this.selector.edges.forEach(e => e.dashed = this.edgeChars.dashed);
+                        this.selector.edges.forEach(e => e.dashed = this.settingsOptions.edgeChars.dashed);
                     }
                     // You might want to trigger a redraw of your canvas here to apply the style immediately
                     (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
@@ -259,13 +256,13 @@ export class PaletteHandler {
         }
         else // show default values on palette
          {
-            vertexColorPicker.value = this.vertexChars.color;
-            this.vertexSize.value = this.vertexChars.size.toString();
+            vertexColorPicker.value = this.settingsOptions.vertexChars.color;
+            this.vertexSize.value = this.settingsOptions.vertexChars.size.toString();
             this.vertexShapeButtons.forEach(btn => {
                 btn.removeAttribute("disabled");
                 btn.classList.remove("active");
                 // Highlight the correct shape button
-                if (btn.getAttribute("data-shape") === this.vertexChars.shape) {
+                if (btn.getAttribute("data-shape") === this.settingsOptions.vertexChars.shape) {
                     btn.classList.add("active");
                 }
             });
@@ -278,8 +275,8 @@ export class PaletteHandler {
             this.bendSize.value = b.size.toString();
         }
         else {
-            bendColorPicker.value = this.bendChars.color;
-            this.bendSize.value = this.bendChars.size.toString();
+            bendColorPicker.value = this.settingsOptions.bendChars.color;
+            this.bendSize.value = this.settingsOptions.bendChars.size.toString();
         }
         if (edgeSelected) {
             const e = this.selector.edges[this.selector.edges.length - 1];
@@ -301,10 +298,10 @@ export class PaletteHandler {
                 toggle_dashed_btn?.classList.remove("active");*/
         }
         else {
-            edgeColorPicker.value = this.edgeChars.color;
-            this.edgeThickness.value = this.edgeChars.thickness.toString();
+            edgeColorPicker.value = this.settingsOptions.edgeChars.color;
+            this.edgeThickness.value = this.settingsOptions.edgeChars.thickness.toString();
             // update dashed edge buttons
-            if (this.edgeChars.dashed) {
+            if (this.settingsOptions.edgeChars.dashed) {
                 toggleContinuousButton === null || toggleContinuousButton === void 0 ? void 0 : toggleContinuousButton.classList.remove("active");
                 toggleDashedButton === null || toggleDashedButton === void 0 ? void 0 : toggleDashedButton.classList.add("active");
             }

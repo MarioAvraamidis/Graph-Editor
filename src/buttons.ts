@@ -2,8 +2,8 @@ import { CanvasHandler } from "./canvasHandler.js";
 import { Copier, Selector } from "./selector.js";
 import { Graph } from "./graph.js";
 import { StateHandler } from "./stateHandler.js";
-import { ModalsHandler } from "./modals.js";
 import { exportCanvasAsImage, exportCanvasAsPdf, exportGraph, restoreGraphFromJSON } from "./exporting.js";
+import { SettingsOptions } from "./settings.js";
 
 export class BtnHandler
 {
@@ -12,16 +12,16 @@ export class BtnHandler
     private selector: Selector;
     private stateHandler: StateHandler;
     private copier: Copier;
-    private modalsHandler: ModalsHandler;
+    private settingsOptions: SettingsOptions;
 
-    constructor(graph: Graph, canvasHandler: CanvasHandler, selector: Selector, stateHandler: StateHandler, copier: Copier, modalsHandler: ModalsHandler)
+    constructor(graph: Graph, canvasHandler: CanvasHandler, selector: Selector, stateHandler: StateHandler, copier: Copier, settingsOptions: SettingsOptions)
     {
         // this.graph = graph;
         this.myCanvasHandler = canvasHandler;
         this.selector = selector;
         this.stateHandler = stateHandler;
         this.copier = copier;
-        this.modalsHandler = modalsHandler;
+        this.settingsOptions = settingsOptions;
         // activate event listeners
         this.activateEventListeners(graph);
     }
@@ -127,7 +127,7 @@ export class BtnHandler
         // make the graph (or the group of selected vertices) clique
         document.getElementById("make-clique")?.addEventListener("click", () => {
             this.stateHandler.saveState();
-            graph.addAllEdges(this.selector.vertices,this.modalsHandler.settingsOptions.cliqueNewEdgesColor);
+            graph.addAllEdges(this.selector.vertices,this.settingsOptions.cliqueNewEdgesColor);
             // renderGraph();
             this.myCanvasHandler?.redraw();
         })

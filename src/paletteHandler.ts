@@ -1,14 +1,11 @@
 import { CanvasHandler } from "./canvasHandler";
 import { Graph } from "./graph";
 import { Selector } from "./selector";
+import { SettingsOptions } from "./settings";
 import { StateHandler } from "./stateHandler";
 
 export class PaletteHandler
 {
-    // palette settings
-    public vertexChars = { color: "#000000", size: 7, shape: "circle" }  // default settings of class Vertex
-    public edgeChars = {color: "#898989", thickness: 2, dashed: false} // default of class Edge
-    public bendChars = {size: 5, color: "#0000FF"}
 
     // Palette for vertices
     private vertexColor = document.getElementById("vertex-color") as HTMLSelectElement
@@ -35,13 +32,15 @@ export class PaletteHandler
     private myCanvasHandler: CanvasHandler;
     private stateHandler: StateHandler
     private graph: Graph
+    private settingsOptions: SettingsOptions;
 
-    constructor(selector: Selector, myCanvasHandler: CanvasHandler, stateHandler: StateHandler, graph: Graph)
+    constructor(selector: Selector, myCanvasHandler: CanvasHandler, stateHandler: StateHandler, graph: Graph, settingsOptions: SettingsOptions)
     {
         this.selector = selector;
         this.myCanvasHandler = myCanvasHandler;
         this.stateHandler = stateHandler;
         this.graph = graph;
+        this.settingsOptions = settingsOptions;
         this.activateEventListeners();
         this.addDashedEdgeEventListeners();
         this.collapse();
@@ -61,7 +60,7 @@ export class PaletteHandler
             }
             // set the color for new vertices
             else
-                this.vertexChars.color = this.vertexColor.value;
+                this.settingsOptions.vertexChars.color = this.vertexColor.value;
         });
 
         // vertex shape buttons
@@ -83,7 +82,7 @@ export class PaletteHandler
                 this.myCanvasHandler?.redraw();
             }
             // update new vertex shape
-            this.vertexChars.shape = selectedShape!;
+            this.settingsOptions.vertexChars.shape = selectedShape!;
             });
         });
 
@@ -98,7 +97,7 @@ export class PaletteHandler
                 this.myCanvasHandler?.redraw();
             }
             else
-                this.vertexChars.size = size;
+                this.settingsOptions.vertexChars.size = size;
         });
 
         // Vertex rename
@@ -123,7 +122,7 @@ export class PaletteHandler
                 this.myCanvasHandler?.redraw();
             }
             else    // set color for new bends
-                this.bendChars.color = this.bendColor.value;
+                this.settingsOptions.bendChars.color = this.bendColor.value;
         });
 
         // bend size
@@ -137,7 +136,7 @@ export class PaletteHandler
                 this.myCanvasHandler?.redraw();
             }
             else
-                this.bendChars.size = size;
+                this.settingsOptions.bendChars.size = size;
         });
 
         // edge color
@@ -150,7 +149,7 @@ export class PaletteHandler
                 this.myCanvasHandler?.redraw();
             }
             else
-                this.edgeChars.color = this.edgeColor.value;
+                this.settingsOptions.edgeChars.color = this.edgeColor.value;
         });
 
         // edge thickness
@@ -163,7 +162,7 @@ export class PaletteHandler
                 this.myCanvasHandler?.redraw();
             }
             else
-                this.edgeChars.thickness = parseInt(this.edgeThickness.value);
+                this.settingsOptions.edgeChars.thickness = parseInt(this.edgeThickness.value);
         });
 
         // delete vertex button
@@ -239,16 +238,16 @@ export class PaletteHandler
 
                     // --- Your logic for handling the selected style ---
                     if (actualButton.id === 'toggle-continuous') {
-                        this.edgeChars.dashed = false;
+                        this.settingsOptions.edgeChars.dashed = false;
                     } else if (actualButton.id === 'toggle-dashed') {
-                        this.edgeChars.dashed = true;
+                        this.settingsOptions.edgeChars.dashed = true;
                     }
 
                     // update type of selected edges
                     if (this.selector.edges.length > 0)
                     {
                         this.stateHandler.saveState();
-                        this.selector.edges.forEach(e => e.dashed = this.edgeChars.dashed);
+                        this.selector.edges.forEach(e => e.dashed = this.settingsOptions.edgeChars.dashed);
                     }
 
                     // You might want to trigger a redraw of your canvas here to apply the style immediately
@@ -301,14 +300,14 @@ export class PaletteHandler
         }
         else    // show default values on palette
         {
-            vertexColorPicker.value = this.vertexChars.color;
-            this.vertexSize.value = this.vertexChars.size.toString();
+            vertexColorPicker.value = this.settingsOptions.vertexChars.color;
+            this.vertexSize.value = this.settingsOptions.vertexChars.size.toString();
             this.vertexShapeButtons.forEach(btn => {
                 btn.removeAttribute("disabled");
                 btn.classList.remove("active");
     
                 // Highlight the correct shape button
-                if (btn.getAttribute("data-shape") === this.vertexChars.shape) {
+                if (btn.getAttribute("data-shape") === this.settingsOptions.vertexChars.shape) {
                 btn.classList.add("active");
                 }
             });
@@ -322,8 +321,8 @@ export class PaletteHandler
             this.bendSize.value = b.size.toString();
         }
         else{
-            bendColorPicker.value = this.bendChars.color;
-            this.bendSize.value = this.bendChars.size.toString();
+            bendColorPicker.value = this.settingsOptions.bendChars.color;
+            this.bendSize.value = this.settingsOptions.bendChars.size.toString();
         }
         
         if (edgeSelected) {
@@ -349,10 +348,10 @@ export class PaletteHandler
         }
         else
         {
-            edgeColorPicker.value = this.edgeChars.color;
-            this.edgeThickness.value = this.edgeChars.thickness.toString();
+            edgeColorPicker.value = this.settingsOptions.edgeChars.color;
+            this.edgeThickness.value = this.settingsOptions.edgeChars.thickness.toString();
                     // update dashed edge buttons
-            if (this.edgeChars.dashed)
+            if (this.settingsOptions.edgeChars.dashed)
             {
                 toggleContinuousButton?.classList.remove("active");
                 toggleDashedButton?.classList.add("active");

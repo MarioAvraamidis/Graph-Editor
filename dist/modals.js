@@ -1,7 +1,6 @@
-import { SettingsOptions } from "./draw.js";
 import { Vertex } from "./graph.js";
 export class ModalsHandler {
-    constructor(myCanvasHandler, stateHandler, hover) {
+    constructor(myCanvasHandler, stateHandler, hover, settingsOptions) {
         this.settingsCrossingsColorInput = []; // crossings colors
         this.settingsCrossingEdgesColorInput = []; // crossing edges colors
         // edit label modal elements
@@ -25,7 +24,7 @@ export class ModalsHandler {
         // default label font size settings
         this.settingsLabelDefaultFonstSizeInput = document.getElementById('labelDefaultFontSizeInput');
         // settingsOptions
-        this.settingsOptions = new SettingsOptions();
+        this.settingsOptions = settingsOptions;
         this.addEventListeners(myCanvasHandler, stateHandler, hover);
         this.hideAllModals();
     }

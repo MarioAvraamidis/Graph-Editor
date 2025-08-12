@@ -1,6 +1,6 @@
 import { Graph, Point, Vertex, Edge, Bend, Crossing} from "./graph.js"
 import { showCustomAlert } from "./alert.js";
-import { Coords } from "./canvasHandler.js";
+import { Coords } from "./zoomHelpers.js";
 
 export class Selector
 {
@@ -291,7 +291,9 @@ export class Hover
 
     constructor(graph: Graph, worldCoords: Coords, selector: Selector)
     {
-        this.graph = graph; this.worldCoords = worldCoords; this.selector = selector;
+        this.graph = graph;
+        this.worldCoords = worldCoords;
+        this.selector = selector;
         this.setAllNull(); 
     }
 

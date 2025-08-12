@@ -9,13 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { exportCanvasAsPdf, exportGraph, restoreGraphFromJSON } from "./exporting.js";
 export class BtnHandler {
-    constructor(graph, canvasHandler, selector, stateHandler, copier, modalsHandler) {
+    constructor(graph, canvasHandler, selector, stateHandler, copier, settingsOptions) {
         // this.graph = graph;
         this.myCanvasHandler = canvasHandler;
         this.selector = selector;
         this.stateHandler = stateHandler;
         this.copier = copier;
-        this.modalsHandler = modalsHandler;
+        this.settingsOptions = settingsOptions;
         // activate event listeners
         this.activateEventListeners(graph);
     }
@@ -109,7 +109,7 @@ export class BtnHandler {
         (_d = document.getElementById("make-clique")) === null || _d === void 0 ? void 0 : _d.addEventListener("click", () => {
             var _a;
             this.stateHandler.saveState();
-            graph.addAllEdges(this.selector.vertices, this.modalsHandler.settingsOptions.cliqueNewEdgesColor);
+            graph.addAllEdges(this.selector.vertices, this.settingsOptions.cliqueNewEdgesColor);
             // renderGraph();
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });

@@ -1,6 +1,7 @@
-// context-menu.ts
+// contextMenu.ts
 
-import { CanvasHandler, Coords } from "./canvasHandler.js";
+import { CanvasHandler } from "./canvasHandler.js";
+import { Coords } from "./zoomHelpers.js";
 import { Graph, Vertex } from "./graph.js";
 import { ModalsHandler } from "./modals.js";
 import { Copier, Hover, Selector } from "./selector.js";

@@ -1,5 +1,5 @@
 import { CanvasHandler } from "./canvasHandler.js";
-import { SettingsOptions } from "./draw.js";
+import { SettingsOptions } from "./settings.js";
 import { Point, Vertex } from "./graph.js";
 import { Hover } from "./selector.js";
 import { StateHandler } from "./stateHandler.js";
@@ -23,7 +23,7 @@ export class ModalsHandler
     // settingsOptions
     public settingsOptions: SettingsOptions;
 
-    constructor(myCanvasHandler: CanvasHandler, stateHandler: StateHandler, hover: Hover)
+    constructor(myCanvasHandler: CanvasHandler, stateHandler: StateHandler, hover: Hover, settingsOptions: SettingsOptions)
     {
         // edit label modal elements
         this.editLabelModal = document.getElementById('editLabelModal') as HTMLElement;
@@ -46,7 +46,7 @@ export class ModalsHandler
         // default label font size settings
         this.settingsLabelDefaultFonstSizeInput = document.getElementById('labelDefaultFontSizeInput') as HTMLInputElement;
         // settingsOptions
-        this.settingsOptions = new SettingsOptions();
+        this.settingsOptions = settingsOptions;
         this.addEventListeners(myCanvasHandler,stateHandler,hover);
         this.hideAllModals();
     }

@@ -1489,3 +1489,19 @@ export class Graph {
         this.tempCount = newGraph.tempCount;
     }
 }
+
+// a helpful class for creating a bended edge
+export class BendedEdgeCreator
+{
+    private _creatingEdge: boolean = false;          // will be used to check if a new edge is being drawn
+    private _startingVertex: Vertex | null = null;   // the vertex from which an edge starts
+    private _edgeCreated: Edge | null = null;        // the new edge that is being created during edge creation
+
+    get creatingEdge() {return this._creatingEdge; }
+    get startingVertex() { return this._startingVertex; }
+    get edgeCreated() { return this._edgeCreated}
+
+    set startingVertex(v: Vertex | null ) { this._startingVertex = v; }
+    set creatingEdge( b: boolean) { this._creatingEdge = b; }
+    set edgeCreated( e: Edge| null) { this._edgeCreated = e; }
+}

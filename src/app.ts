@@ -1,60 +1,48 @@
 // src/app.ts
-import { Graph, Vertex, Bend, Edge, Point, Crossing } from "./graph.js";
-import { CanvasHandler, Coords } from './canvasHandler.js'; 
+import { Graph, Vertex, Bend, Edge, Point, Crossing, BendedEdgeCreator } from "./graph.js";
+import { CanvasHandler } from './canvasHandler.js'; 
+import { Coords, Scaler } from "./zoomHelpers.js";
 import { ModalsHandler } from "./modals.js";
 import { StateHandler } from "./stateHandler.js";
 import { Selector, Copier, Hover } from "./selector.js";
 import { BtnHandler } from "./buttons.js";
 import { PaletteHandler } from "./paletteHandler.js";
 import { Cmenu } from "./contextMenu.js";
+import { MouseHandler } from "./mouse.js";
+import { Drawer } from "./draw.js";
+import { SettingsOptions } from "./settings.js";
 
 // Create a graph instance
 let graph = new Graph();
 // undo/redo utilities
 let stateHandler: StateHandler;
-// mouse
-let mouse: {x: number,y: number};
-// let worldCoords: {x: number, y: number};    // graph coordinates of cursor (used when transforming during zoom)
-let worldCoords: Coords    // graph coordinates of cursor (used when transforming during zoom)
-let offsetX = 0;    // x-offset between click position and mouse's current position
-let offsetY = 0;    // y-offset between click position and mouse's current position
-// dragging
-let hasDragged = false;     // will be used to distinguish vertex selection from vertex drag
 // hovered objects
 let hover: Hover;
 // selected items
 let selector: Selector;
-// creating edge
-let creatingEdge: boolean = false;          // will be used to check if a new edge is being drawn
-let startingVertex: Vertex | null = null;   // the vertex from which an edge starts
-let canClick: boolean = true;               // is activated a click after an edge creation is done
-let edgeCreated: Edge | null = null;        // the new edge that is being created during edge creation
-const rubbishBinRadius: number = 50;
-// new Vertex
-let canAddVertex: boolean = true;
-// mousedown
-let mousedown: boolean = false;
-let clickedX: number = 0;                               // mouse x-coordinate at mousedown
-let clickedY: number = 0;                               // mouse y-coordinate at mousedown
-let positionsAtMouseDown: {x: number,y: number}[] = []; // positions of selected objects (points) at mousedown time
-// moving labels
-let draggingLabelPoint: Point | null = null;
+// settings/default options
+let settingsOptions: SettingsOptions;
 // default colors for crossings
 let modalsHandler: ModalsHandler;
 // palette handler
 let paletteHandler: PaletteHandler;
-// context menu
-let showingContextMenu: boolean = false;
 // copy selected items
 let copier: Copier;
 // buttons handler
 let btnHandler: BtnHandler;
-// context menu
+// context menus
 let cmenu: Cmenu;
+// drawing
+let drawer: Drawer;
+// creating bended edges
+let bendedEdgeCreator: BendedEdgeCreator;
 // zoom
+let scaler: Scaler;
 let myCanvasHandler: CanvasHandler | null = null;
 let scale: number = 1;      // for all the elements that we want their size to remain the same regardless of the zoom scale, devide the size by scale
-const dpr = window.devicePixelRatio || 1;
+// let worldCoords: {x: number, y: number};    // graph coordinates of cursor (used when transforming during zoom)
+let worldCoords: Coords    // graph coordinates of cursor (used when transforming during zoom)
+let mouseHandler: MouseHandler; // handle mouse events (mousedown, mouseup, mousemove, click)
 // output in report
 const output = document.getElementById("output");
 // universal variables
@@ -64,24 +52,30 @@ let ctx: CanvasRenderingContext2D | null;
 document.addEventListener('DOMContentLoaded', () => {
     try {
         // Instantiate CanvasHandler, passing your renderGraph function as the drawing callback
-        myCanvasHandler = new CanvasHandler('graphCanvas', renderGraph);
+        canvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
+        ctx = canvas.getContext("2d");
+        scaler = new Scaler(canvas);
+        // myCanvasHandler = new CanvasHandler('graphCanvas', renderGraph,scaler);
         worldCoords = new Coords();
         stateHandler = new StateHandler(graph);
         selector = new Selector();
         hover = new Hover(graph,worldCoords,selector);
-        modalsHandler = new ModalsHandler(myCanvasHandler,stateHandler,hover);
+        settingsOptions = new SettingsOptions();        // save settings options and palette options
         copier = new Copier();
-        btnHandler = new BtnHandler(graph,myCanvasHandler,selector,stateHandler,copier,modalsHandler);
-        paletteHandler = new PaletteHandler(selector,myCanvasHandler,stateHandler,graph);
+        bendedEdgeCreator = new BendedEdgeCreator();
+        drawer = new Drawer(selector,settingsOptions,hover,worldCoords,scaler,bendedEdgeCreator);
+        myCanvasHandler = new CanvasHandler('graphCanvas',drawer,graph);
+        paletteHandler = new PaletteHandler(selector,myCanvasHandler,stateHandler,graph,settingsOptions);
+        modalsHandler = new ModalsHandler(myCanvasHandler,stateHandler,hover,settingsOptions);
+        btnHandler = new BtnHandler(graph,myCanvasHandler,selector,stateHandler,copier,settingsOptions);
         cmenu = new Cmenu(graph,worldCoords,canvas,copier,selector,stateHandler,myCanvasHandler,modalsHandler,hover);
-        canvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
-        ctx = canvas.getContext("2d");
+        mouseHandler = new MouseHandler(graph,canvas,worldCoords,cmenu,hover,selector,stateHandler,paletteHandler,settingsOptions,scaler,myCanvasHandler,bendedEdgeCreator);
         if (!ctx)
             throw new Error("Could not get canvas rendering context");
         // don't show the modal when refreshing
         // modalsHandler?.hideAllModals();
         // addDashedEdgeEventListeners();
-        addMouseEventListeners();
+        // addMouseEventListeners();
         renderGraph();
 
         // Example: If your graph data changes later (not due to zoom/pan),
@@ -148,349 +142,6 @@ function renderGraph() {
     paletteHandler.updatePaletteState();
 }
 
-function addMouseEventListeners()
-{
-    // detect vertex/bend selection
-    canvas.addEventListener("mousedown", (e) => {
-
-        // set mouse position
-        // mouse = getMousePos(canvas, e);
-        // worldCoords = myCanvasHandler!.screenToWorld(e.clientX, e.clientY);
-        worldCoords.update(myCanvasHandler!.screenToWorld(e.clientX, e.clientY));
-        // hide the menu when clicking anywhere else
-        // Check if the click was outside the context menu
-        if (cmenu.contextMenu && !cmenu.contextMenu.contains(e.target as Node) && showingContextMenu) {
-            cmenu.hideContextMenu();
-            showingContextMenu = false;
-            canAddVertex = false;
-        }
-        else
-            canAddVertex = true;
-
-        hover.check(scale);
-
-        // check if the clicked point belongs to the selected ones
-        // if yes, set dragging points = selected points and store the positions of selected vertices at the time of mousedown
-        // hover.point = graph.getPointAtPosition(mouse.x, mouse.y);
-        // hover.point = graph.getPointAtPosition(worldCoords.x, worldCoords.y,scale);
-        if (hover.point && selector.points.includes(hover.point) || hover.edge && selector.edges.includes(hover.edge))
-        {
-            stateHandler.saveState();
-            selector.draggingPoints = selector.points;
-            // also add to dragging points the endpoints and bends of selected edges
-            for (const se of selector.edges)
-            {
-                selector.points.push(se.points[0]);
-                selector.points.push(se.points[1]);
-                for (const bend of se.bends)
-                    selector.points.push(bend);
-            }
-            // save positions at mousedown
-            positionsAtMouseDown = [];
-            for (let i=0;i<selector.points.length;i++)
-                positionsAtMouseDown.push({x: selector.points[i].x,y: selector.points[i].y});
-        }
-
-        // starting vertex for edge creation
-        if (selector.points.length === 0 && !creatingEdge)   // hasDragged for not setting starting vertex a selected vertex
-        {
-            startingVertex = hover.vertex;
-            /*if (startingVertex)
-                console.log("mousedown, startingVertex="+startingVertex.id);
-            else
-                console.log("mousedown, startingVertex = null");*/
-        }
-
-        // label move
-        if (!creatingEdge)
-            draggingLabelPoint = hover.labelPoint;  
-
-        hasDragged = false;
-        mousedown = true;
-        // save mouse position
-        // clickedX = mouse.x;
-        // clickedY = mouse.y;
-        clickedX = worldCoords.x;
-        clickedY = worldCoords.y;
-        // selection rectangle starting points
-        // selector.rectStart.x = mouse.x;
-        // selector.rectStart.y = mouse.y;
-        selector.rectStart.x = worldCoords.x;
-        selector.rectStart.y = worldCoords.y;
-    });
-
-    // detect vertex or bend moving
-    canvas.addEventListener("mousemove", e => {
-        // update mouse position
-        mouse = getMousePos(canvas, e);
-        // worldCoords = myCanvasHandler!.screenToWorld(e.clientX, e.clientY);
-        worldCoords.update(myCanvasHandler!.screenToWorld(e.clientX, e.clientY));
-        // offsetX = mouse.x - clickedX;
-        // offsetY = mouse.y - clickedY;
-        offsetX = worldCoords.x - clickedX;
-        offsetY = worldCoords.y - clickedY;
-        hover.check(scale);
-        // console.log("mousemove:",mouse.x,mouse.y,clickedX,clickedY);
-
-        if (mousedown && Math.hypot(offsetX,offsetY) > 3)
-        {
-            hasDragged = true;
-            if (startingVertex && selector.points.length===0 && !creatingEdge)    // creatingEdge is activated only if we have a starting vertex and no selected points
-            {
-                creatingEdge = true;
-                canClick = false;
-                stateHandler.saveState();
-            }
-            /*else
-            {
-                // startingVertex = null;
-                creatingEdge = false;
-            }*/
-            // if (selector.points.length > 0)
-            // stateHandler.saveState();
-        }
-
-        for (let i=0;i<selector.draggingPoints.length;i++)
-        {
-            graph.movePoint(selector.draggingPoints[i], positionsAtMouseDown[i].x + offsetX, positionsAtMouseDown[i].y + offsetY);
-            // console.log("vertex "+v.id,v.x,v.y);
-            // renderGraph();
-            myCanvasHandler?.redraw();
-        }
-
-        // label move
-        if (draggingLabelPoint && hasDragged)
-        {
-            // make sure dragging label is not moved far away from the point
-            const limit = Math.max(2*draggingLabelPoint.size+draggingLabelPoint.label.fontSize,40);
-            draggingLabelPoint.label.offsetX = inLimits(worldCoords.x - draggingLabelPoint.x,limit/scale)*scale;
-            draggingLabelPoint.label.offsetY = inLimits(- worldCoords.y + draggingLabelPoint.y,limit/scale)*scale;
-        }
-
-        // create a rectangle showing selected space
-        if (selector.points.length === 0 && !creatingEdge && !e.ctrlKey && !e.metaKey && !draggingLabelPoint && mousedown && hasDragged)
-        {
-            selector.isSelecting = true;
-            // console.log("creatingEdge=",creatingEdge);
-        }
-
-        // rectangle for selected space
-        if (selector.isSelecting)
-        {
-            // console.log("is selecting = true, creatingEdge=",creatingEdge);
-            // selector.rect.x = Math.min(selector.rectStart.x, mouse.x);
-            // selector.rect.y = Math.min(selector.rectStart.y, mouse.y);
-            // selector.rect.width = Math.abs(mouse.x - selector.rectStart.x);
-            // selector.rect.height = Math.abs(mouse.y - selector.rectStart.y);
-            selector.rect.x = Math.min(selector.rectStart.x, worldCoords.x);
-            selector.rect.y = Math.min(selector.rectStart.y, worldCoords.y);
-            selector.rect.width = Math.abs(worldCoords.x - selector.rectStart.x);
-            selector.rect.height = Math.abs(worldCoords.y - selector.rectStart.y);
-            // drawGraph(ctx, graph); // Redraw with selection box
-            myCanvasHandler?.redraw();
-        }
-
-        // renderGraph();
-        myCanvasHandler?.redraw();
-    });
-
-    // detect vertex release
-    canvas.addEventListener("mouseup", (e) => {
-
-        // set mouse position
-        // mouse = getMousePos(canvas, e);
-        // worldCoords = myCanvasHandler!.screenToWorld(e.clientX,e.clientY);
-        worldCoords.update(myCanvasHandler!.screenToWorld(e.clientX, e.clientY));
-        // check hovering
-        hover.check(scale);
-
-        if (startingVertex && creatingEdge)
-        {
-            const rect = canvas.getBoundingClientRect();
-            const binPos = myCanvasHandler?.screenToWorld(rect.left+rubbishBinRadius,rect.top+rubbishBinRadius);
-            if (hover.vertex)  // add a straight edge
-            {
-                const edge = graph.addEdgeAdvanced(startingVertex,hover.vertex);
-                if (edge)   // check if the edge can be created, based on the restrictions for self loops, simple graph etc
-                {
-                    startingVertex = null;
-                    creatingEdge = false;
-                    // set characteristics for the new edge
-                    edge.assignCharacteristics(paletteHandler.edgeChars.color, paletteHandler.edgeChars.dashed, paletteHandler.edgeChars.thickness);
-                    edge.label.fontSize = modalsHandler.settingsOptions.defaultLabelFontSize; // edge's label font size
-                    edge.assignBendCharacteristics(paletteHandler.bendChars.color, paletteHandler.bendChars.size);
-                    // hasDragged = true;  // to not select the hover.vertex
-                    // edgeCreated = edge;
-                }
-            }
-            else if (binPos && isMouseNear(binPos.x,binPos.y,rubbishBinRadius/scale)) // stop creating vertex if clicked on the up-left corner (a bin should be drawn to show the option)
-            {
-                if (edgeCreated !== null)   // delete the edge created
-                    graph.deleteEdgee(edgeCreated);
-                if (startingVertex !== null && startingVertex.temporary)    // if startingVertex is temporary, delete it
-                    graph.deleteVertex(startingVertex);
-                edgeCreated = null;
-                startingVertex = null;
-                creatingEdge = false;
-                stateHandler.pop(); // historyStack.pop();     // don't save state if no edge created (state saved when mousedown)
-                // hasDragged = true;  // to not create a new edge when rubbish bin is clicked
-            }
-            else // continue creating a bended edge
-            {
-                // stateHandler.saveState();
-                // let combo = graph.extendEdge(startingVertex,mouse.x,mouse.y);
-                let combo = graph.extendEdge(startingVertex,worldCoords.x,worldCoords.y);
-                startingVertex = combo.vertex;
-                edgeCreated = combo.edge;
-                // set characteristics for the new edge
-                if(edgeCreated)
-                {
-                    edgeCreated.assignCharacteristics(paletteHandler.edgeChars.color, paletteHandler.edgeChars.dashed, paletteHandler.edgeChars.thickness);
-                    edgeCreated.label.fontSize = modalsHandler.settingsOptions.defaultLabelFontSize; // edge's label font size
-                    edgeCreated.assignBendCharacteristics(paletteHandler.bendChars.color, paletteHandler.bendChars.size);
-                }
-            }
-        }
-        else
-            canClick = true;
-
-        /*
-        if (!hasDragged) {
-            // It's a click, not a drag
-            if (selectedVertex && v && selectedVertex !== v) {
-                stateHandler.saveState();
-                graph.addEdgeAdvanced(selectedVertex, v);
-                selectedVertex = null;
-            } 
-            else if (selectedVertex && currentMode === "createEdge")
-            {
-                stateHandler.saveState();
-                graph.extendEdge(selectedVertex,pos.x,pos.y);
-                selectedVertex = null;
-            }
-            else if (!v && !hover.edge && !selectedVertex) // if nothing selected, add a new vertex at the point clicked
-            {
-                const vertex = new Vertex((graph.maxVertexId()+1).toString(),mouse.x,mouse.y);
-                graph.addVertex(vertex);
-            }
-            else {
-                selectedVertex = v;
-            }
-        }*/
-
-        if(selector.isSelecting)
-        {
-            selector.points = graph.pointsInRect(selector.rect.x, selector.rect.y, selector.rect.width, selector.rect.height);
-            // console.log("mouseup",selector.points.length);
-            selector.vertices = selector.points.filter(v => v instanceof Vertex);
-            selector.bends = selector.points.filter(v => v instanceof Bend);
-            selector.edges = graph.edgesInRect(selector.rect.x, selector.rect.y, selector.rect.width, selector.rect.height);
-            // selector.isSelecting = false;
-        }
-
-        // save state when moving
-        // CHEEEEECK AGAAAAIIIIIIIIINNNNNNN
-        //if (hasDragged && selector.draggingPoints.length > 0)
-        //  stateHandler.saveState();
-
-        selector.isSelecting = false;
-        draggingLabelPoint = null;
-        selector.draggingPoints = [];
-        // hasDragged = false;
-        mousedown = false;
-        // renderGraph();
-        myCanvasHandler?.redraw();
-    });
-
-    /* canvas.addEventListener("dblclick", (e) => {
-        // const { x, y } = getMousePos(canvas, e);
-        for (const v of graph.vertices) {
-        if (isNearLabel(v, mouse.x, mouse.y)) {
-            const newLabel = prompt("Enter new label:", v.id);
-            if (newLabel !== null && !graph.vertexIdExists(newLabel)) {
-            v.id = newLabel;  // changing the name needs a lot more changes (id changes of edges, bends etc)
-            renderGraph();
-            }
-            break;
-        }
-        }
-    });*/
-
-    canvas.addEventListener("click", (e: MouseEvent) => {
-
-        // console.log("click")
-
-        // if dragging cursor, don't consider it a click
-        if (hasDragged || !canClick || !myCanvasHandler)
-            return;
-
-        // console.log("click passed",selector.points.length);
-        
-        // worldCoords = myCanvasHandler.screenToWorld(e.clientX, e.clientY);
-        worldCoords.update(myCanvasHandler!.screenToWorld(e.clientX, e.clientY));
-        // console.log("Clicked at screen ",e.clientX,e.clientY);
-        hover.check(scale);
-
-        // if nothing hovered or selected, add a new vertex at the clicked position
-        if (!hover.vertex && !hover.bend && !hover.edge && !selector.points.length && !selector.edges.length && !draggingLabelPoint && canAddVertex)
-            {
-                stateHandler.saveState();
-                // const vertex = graph.addNewVertex(mouse.x,mouse.y);
-                const vertex = graph.addNewVertex(worldCoords.x,worldCoords.y);
-                // console.log("new vertex at ",worldCoords.x, worldCoords.y);
-                vertex.size = paletteHandler.vertexChars.size;
-                vertex.shape = paletteHandler.vertexChars.shape;
-                vertex.color = paletteHandler.vertexChars.color;
-                vertex.label.fontSize = modalsHandler.settingsOptions.defaultLabelFontSize;
-                // hover.vertex = vertex;
-            }
-
-
-        // add a new bend in the addBend mode if hovering over an edge
-        // IMPORTANT: the following piece of code (in the brackets of if) must remain below the above piece of code
-        /* if (hover.edge && currentMode === "addBend") {
-            stateHandler.saveState();
-            const p1 = hover.edge.points[0];
-            const p2 = hover.edge.points[1];
-            if (p1 instanceof Vertex && p2 instanceof Vertex)
-                graph.addBend(p1,p2,worldCoords.x,worldCoords.y);
-                // graph.addBend(p1,p2,mouse.x,mouse.y);
-            // set it free
-            hover.edge = null;
-            canvas.style.cursor = "default";
-        }*/
-
-        // select a vertex/bend/edge and update selected vertices
-        if (hover.vertex)
-            selector.select(hover.vertex,selector.vertices,e);
-        else if (hover.bend)
-            selector.select(hover.bend, selector.bends, e);
-        else if (hover.edge)
-            selector.select(hover.edge, selector.edges, e);
-        else
-        {
-            selector.vertices.length = 0;
-            selector.bends.length = 0;
-            selector.edges.length = 0;
-            // console.log("else",selector.vertices.length,selector.bends.length);
-        }
-        selector.pointsUpdate();
-
-        // select a vertex label
-        /*for (const v of graph.vertices) {
-            if (isNearLabel(v, mouse.x, mouse.y)) {
-            draggingLabelVertex = v;
-            e.preventDefault();
-            // return;
-            }
-        }*/
-
-        // updatePaletteState();
-        // renderGraph();
-        myCanvasHandler?.redraw();
-    });
-}
-
 // Allow clicking outside the modal content to close it 
 /*if (settingsModal) {
     settingsModal.addEventListener('click', (event) => {
@@ -501,32 +152,13 @@ function addMouseEventListeners()
 }*/
 
 // check that no one of the main acts is in process
-function nothingInProcess() { return !creatingEdge && !draggingLabelPoint && !hasDragged && !selector.isSelecting; }
-
-// not sure if necessary
-function selectEdge(e: Edge)
-{
-    for (const bend of e.bends)
-        if (!selector.bends.includes(bend))
-            selector.bends.push(bend);
-}
+// function nothingInProcess() { return !mouseHandler.creatingEdge && !draggingLabelPoint && !hasDragged && !selector.isSelecting; }
 
 function isMouseNear(x: number, y: number, dist: number)
 {
     // return Math.hypot(mouse.x-x,mouse.y-y)<dist;
     return Math.hypot(worldCoords.x-x,worldCoords.y-y)<dist;
 }
-
-// check if the given number is in [-limit, limit]. If not, return the nearest endpoint
-// limit must be non negative
-function inLimits(x: number, limit: number)
-{
-    if (x < -limit)
-        return -limit;
-    if (x > limit)
-        return limit;
-    return x;
-}   
 
 // draw the graph
 function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, localCall: boolean = false, labels: boolean = true) {
@@ -553,7 +185,7 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, localCall: boole
     graph.vertices.forEach(vertex => 
     {
         if (vertex.temporary)
-            shapeBend(ctx,vertex.x,vertex.y,paletteHandler.bendChars.size,paletteHandler.bendChars.color);  // same color as bend class constructor
+            shapeBend(ctx,vertex.x,vertex.y,settingsOptions.bendChars.size,settingsOptions.bendChars.color);  // same color as bend class constructor
         else
             drawVertex(ctx,vertex,labels);
     });
@@ -563,17 +195,17 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, localCall: boole
     showHoveredInfo();
 
     // Draw a temporary edge from starting vertex to mouse position and a rubbish bin to discard the new edge if necessary
-    if (creatingEdge && startingVertex) {
+    if (bendedEdgeCreator.creatingEdge && bendedEdgeCreator.startingVertex) {
         // console.log("startingVertex:", startingVertex.id);
         ctx.beginPath();
-        ctx.moveTo(startingVertex.x, startingVertex.y);
+        ctx.moveTo(bendedEdgeCreator.startingVertex.x, bendedEdgeCreator.startingVertex.y);
         // ctx.lineTo(mouse.x, mouse.y);
         ctx.lineTo(worldCoords.x, worldCoords.y);
         // ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
         // apply characteristics of edgeChars
-        ctx.strokeStyle = paletteHandler.edgeChars.color;
-        ctx.lineWidth = paletteHandler.edgeChars.thickness/scale;
-        if (paletteHandler.edgeChars.dashed)
+        ctx.strokeStyle = settingsOptions.edgeChars.color;
+        ctx.lineWidth = settingsOptions.edgeChars.thickness/scale;
+        if (settingsOptions.edgeChars.dashed)
             ctx.setLineDash([3/scale, 3/scale]); // dashed line
         ctx.stroke();
         // reset
@@ -584,10 +216,10 @@ function drawGraph(ctx: CanvasRenderingContext2D, graph: Graph, localCall: boole
         // if (!graph.isNearVertex(mouse.x,mouse.y) && currentMode === "createEdge")
            // shapeBend(ctx,mouse.x,mouse.y,bendRadius);
         // draw the rubbish bin
-        if (creatingEdge)
+        if (bendedEdgeCreator.creatingEdge)
         {
             const rect = canvas.getBoundingClientRect();
-            const binPos = myCanvasHandler?.screenToWorld(rect.left+rubbishBinRadius,rect.top+rubbishBinRadius);
+            const binPos = scaler.screenToWorld(rect.left+mouseHandler.rubbishBinRadius,rect.top+mouseHandler.rubbishBinRadius);
             if (binPos)
                 drawRubbishBin(ctx,binPos.x,binPos.y);
         }
@@ -791,7 +423,7 @@ function clearLatexLabels() {
   
 function showHoveredInfo()
 {
-    if (creatingEdge || selector.draggingPoints.length>0)
+    if (bendedEdgeCreator.creatingEdge || selector.draggingPoints.length>0)
     {
         hideVertexInfo();
         hideEdgeInfo();
@@ -804,10 +436,10 @@ function showHoveredInfo()
     else
         hideVertexInfo();
     // show crossing info of hover.crossing
-    /*if (hover.crossing)
+    if (hover.crossing)
         showCrossingInfo(hover.crossing);
     else
-        hideCrossingInfo();*/
+        hideCrossingInfo();
     // show edge info of hover.vertex
     if (hover.edge)
         showEdgeInfo(hover.edge);
@@ -828,7 +460,7 @@ function showVertexInfo(vertex: Vertex) {
     infoBox.innerHTML = infoText;
     // infoBox.style.left = `${rect.left + vertex.x - 100}px`;
     // infoBox.style.top = `${rect.top + vertex.y - 50}px`;
-    const canvasPos = myCanvasHandler?.worldToCanvas(vertex.x,vertex.y);
+    const canvasPos = scaler.worldToCanvas(vertex.x,vertex.y);
     if (canvasPos)
     {
         infoBox.style.left = `${rect.left + canvasPos.x + 10}px`;
@@ -849,7 +481,7 @@ function showCrossingInfo(cross: Crossing) {
     let infoText: string;
 
     if (cross.selfCrossing)     // self-crossing
-        infoText = `Self-crossing`;
+        infoText = `Self-crossing (edge ${cross.edges[0]!.id})`;
     else if (!cross.legal)      // illegal crossing
         infoText = `Illegal crossing <br>
                     Edges: ${cross.edges[0]!.id} and ${cross.edges[1]!.id}`;
@@ -863,13 +495,33 @@ function showCrossingInfo(cross: Crossing) {
     infoBox.innerHTML = infoText;
     // infoBox.style.left = `${cross.x + 30 }px`;
     // infoBox.style.top = `${cross.y + 50}px`;
-    infoBox.style.left = `${mouse.x + rect.left + 5}px`;
-    infoBox.style.top = `${mouse.y + rect.top + 5}px`;
+    infoBox.style.left = `${mouseHandler.mouse.x + rect.left + 5}px`;
+    infoBox.style.top = `${mouseHandler.mouse.y + rect.top + 5}px`;
     infoBox.style.display = "block";
 }
 
 function hideCrossingInfo() {
     const infoBox = document.getElementById("crossing-info")!;
+    infoBox.style.display = "none";
+}
+
+function showEdgeInfo(edge: Edge) {
+    const infoBox = document.getElementById("edge-info")!;
+    const rect = canvas.getBoundingClientRect();
+
+    const infoText =  ` Edge: ${edge.id}<br>
+                        CC: ${edge.bends.length}`;
+
+    infoBox.innerHTML = infoText;
+    // infoBox.style.left = `${rect.left + mouse.x + 5}px`;
+    // infoBox.style.top = `${rect.top + mouse.y + 5}px`;
+    infoBox.style.left = `${rect.left + mouseHandler.mouse.x + 10}px`;
+    infoBox.style.top = `${rect.top + mouseHandler.mouse.y + 10}px`;
+    infoBox.style.display = "block";
+}
+
+function hideEdgeInfo() {
+    const infoBox = document.getElementById("edge-info")!;
     infoBox.style.display = "none";
 }
 
@@ -1022,26 +674,6 @@ function drawEdge(ctx: CanvasRenderingContext2D, edge: Edge, highlight: number =
         showEdgeLabel(ctx,edge);
     }
 }
-
-function showEdgeInfo(edge: Edge) {
-    const infoBox = document.getElementById("edge-info")!;
-    const rect = canvas.getBoundingClientRect();
-
-    const infoText =  ` Edge: ${edge.id}<br>
-                        CC: ${edge.bends.length}`;
-
-    infoBox.innerHTML = infoText;
-    // infoBox.style.left = `${rect.left + mouse.x + 5}px`;
-    // infoBox.style.top = `${rect.top + mouse.y + 5}px`;
-    infoBox.style.left = `${rect.left + mouse.x + 10}px`;
-    infoBox.style.top = `${rect.top + mouse.y + 10}px`;
-    infoBox.style.display = "block";
-}
-
-function hideEdgeInfo() {
-    const infoBox = document.getElementById("edge-info")!;
-    infoBox.style.display = "none";
-}
   
 // return the pos of the mouse in the canvas
 function getMousePos(canvas: HTMLCanvasElement, evt: MouseEvent) {
@@ -1055,7 +687,7 @@ function getMousePos(canvas: HTMLCanvasElement, evt: MouseEvent) {
 // draw a rubbish bin (when creating a new edge)
 function drawRubbishBin(ctx: CanvasRenderingContext2D, x: number, y: number) {
     ctx.save();
-    if(isMouseNear(x,y,rubbishBinRadius/scale))
+    if(isMouseNear(x,y,mouseHandler.rubbishBinRadius/scale))
         ctx.strokeStyle = "red"
     else
         ctx.strokeStyle = "black";
