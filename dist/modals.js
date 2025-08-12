@@ -110,6 +110,14 @@ export class ModalsHandler {
             }
         }
     }
+    // Allow clicking outside the modal content to close it 
+    /*if (settingsModal) {
+        settingsModal.addEventListener('click', (event) => {
+            if (event.target === settingsModal) { // Check if the click was directly on the modal background
+                hideSettingsModal();
+            }
+        });
+    }*/
     // display the edit label modal
     showSettingsModal(settingsOptions) {
         if (this.settingsModal && this.settingsCrossingsColorInput) {
