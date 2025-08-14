@@ -99,9 +99,15 @@ export class InfoBoxHandler
         // infoBox.style.top = `${cross.y + 50}px`;
         // infoBox.style.left = `${this.mouseHandler.mouse.x + rect.left + 5}px`;
         // infoBox.style.top = `${this.mouseHandler.mouse.y + rect.top + 5}px`;
-        const canvasPos = this.scaler.worldToCanvas(this.worldCoords.x,this.worldCoords.y);
-        infoBox.style.left = `${canvasPos.x /* + rect.left*/  + 5}px`;
-        infoBox.style.top = `${canvasPos.y + /* rect.top */ + 5}px`;
+        // const canvasPos = this.scaler.worldToCanvas(this.worldCoords.x,this.worldCoords.y);
+        // infoBox.style.left = `${canvasPos.x + rect.left  + 5}px`;
+        // infoBox.style.top = `${canvasPos.y + rect.top  + 5}px`;
+        const canvasPos = this.scaler.worldToCanvas(cross.x,cross.y);
+        if (canvasPos)
+        {
+             infoBox.style.left = `${rect.left + canvasPos.x + 10}px`;
+             infoBox.style.top = `${rect.top + canvasPos.y + 10}px`;
+        }
         infoBox.style.display = "block";
     }
 
@@ -123,8 +129,8 @@ export class InfoBoxHandler
         // infoBox.style.left = `${rect.left + this.mouseHandler.mouse.x + 10}px`;
         // infoBox.style.top = `${rect.top + this.mouseHandler.mouse.y + 10}px`;
         const canvasPos = this.scaler.worldToCanvas(this.worldCoords.x,this.worldCoords.y);
-        infoBox.style.left = `${canvasPos.x /* + rect.left*/  + 5}px`;
-        infoBox.style.top = `${canvasPos.y + /* rect.top */ + 5}px`;
+        infoBox.style.left = `${canvasPos.x + rect.left + 5 }px`;
+        infoBox.style.top = `${canvasPos.y + rect.top + 5 }px`;
         infoBox.style.display = "block";
     }
 

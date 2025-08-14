@@ -12,57 +12,38 @@ import { MouseHandler } from "./mouse.js";
 import { Drawer } from "./draw.js";
 import { SettingsOptions } from "./settings.js";
 
-// Create a graph instance
-let graph = new Graph();
-// undo/redo utilities
-let stateHandler: StateHandler;
-// hovered objects
-let hover: Hover;
-// selected items
-let selector: Selector;
-// settings/default options
-let settingsOptions: SettingsOptions;
-// default colors for crossings
-let modalsHandler: ModalsHandler;
-// palette handler
-let paletteHandler: PaletteHandler;
-// copy selected items
-let copier: Copier;
-// buttons handler
-let btnHandler: BtnHandler;
-// context menus
-let cmenu: Cmenu;
-// drawing
-let drawer: Drawer;
-// creating bended edges
-let bendedEdgeCreator: BendedEdgeCreator;
-// zoom
-let scaler: Scaler;
-let myCanvasHandler: CanvasHandler | null = null;
-let scale: number = 1;      // for all the elements that we want their size to remain the same regardless of the zoom scale, devide the size by scale
-// let worldCoords: {x: number, y: number};    // graph coordinates of cursor (used when transforming during zoom)
-let worldCoords: Coords    // graph coordinates of cursor (used when transforming during zoom)
+let graph = new Graph();        // Create a graph instance
+let stateHandler: StateHandler; // undo/redo utilities
+let hover: Hover;               // hovered objects
+let selector: Selector;         // selected items
+let copier: Copier;             // copy selected items
+let btnHandler: BtnHandler;     // buttons handler
+let cmenu: Cmenu;               // context menus
+let drawer: Drawer;             // drawing
+let scaler: Scaler;             // zoom
+let worldCoords: Coords         // graph coordinates of cursor (used when transforming during zoom)
 let mouseHandler: MouseHandler; // handle mouse events (mousedown, mouseup, mousemove, click)
-// output in report
-const output = document.getElementById("output");
-// universal variables
-let canvas: HTMLCanvasElement;
-let ctx: CanvasRenderingContext2D | null;
+let settingsOptions: SettingsOptions;       // settings/default options
+let modalsHandler: ModalsHandler;           // handle settings and label modals
+let paletteHandler: PaletteHandler;         // palette handler
+let bendedEdgeCreator: BendedEdgeCreator;   // creating bended edges
+let canvas: HTMLCanvasElement;              // canvas
+let ctx: CanvasRenderingContext2D | null;   // canvas context
+let myCanvasHandler: CanvasHandler | null = null;   // handle zoom in canvas
+// let scale: number = 1;      // for all the elements that we want their size to remain the same regardless of the zoom scale, devide the size by scale
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
-        // Instantiate CanvasHandler, passing your renderGraph function as the drawing callback
         canvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
         ctx = canvas.getContext("2d");
         if (!ctx)
             throw new Error("Could not get canvas rendering context");
         scaler = new Scaler(canvas);
-        // myCanvasHandler = new CanvasHandler('graphCanvas', renderGraph,scaler);
         worldCoords = new Coords();
         stateHandler = new StateHandler(graph);
         selector = new Selector();
         hover = new Hover(graph,worldCoords,selector);
-        settingsOptions = new SettingsOptions();        // save settings options and palette options
+        settingsOptions = new SettingsOptions();
         copier = new Copier();
         bendedEdgeCreator = new BendedEdgeCreator();
         drawer = new Drawer(selector,settingsOptions,hover,worldCoords,scaler,bendedEdgeCreator);

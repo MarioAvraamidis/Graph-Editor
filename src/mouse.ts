@@ -71,19 +71,23 @@ export class MouseHandler
             if (hover.point && selector.points.includes(hover.point) || hover.edge && selector.edges.includes(hover.edge))
             {
                 stateHandler.saveState();
-                selector.draggingPoints = selector.points;
+                // selector.draggingPoints = selector.points;
+                for (const point of selector.points)
+                    selector.draggingPoints.push(point);
                 // also add to dragging points the endpoints and bends of selected edges
                 for (const se of selector.edges)
                 {
-                    selector.points.push(se.points[0]);
-                    selector.points.push(se.points[1]);
+                    selector.draggingPoints.push(se.points[0]);
+                    selector.draggingPoints.push(se.points[1]);
                     for (const bend of se.bends)
-                        selector.points.push(bend);
+                        selector.draggingPoints.push(bend);
                 }
                 // save positions at mousedown
                 this.positionsAtMouseDown = [];
-                for (let i=0;i<selector.points.length;i++)
-                    this.positionsAtMouseDown.push({x: selector.points[i].x,y: selector.points[i].y});
+                // for (let i=0;i<selector.points.length;i++)
+                   //  this.positionsAtMouseDown.push({x: selector.points[i].x,y: selector.points[i].y});
+                for (let i=0;i<selector.draggingPoints.length;i++)
+                    this.positionsAtMouseDown.push({x: selector.draggingPoints[i].x,y: selector.draggingPoints[i].y});
             }
 
             // starting vertex for edge creation
@@ -165,7 +169,7 @@ export class MouseHandler
             }
 
             // create a rectangle showing selected space
-            if (selector.points.length === 0 && !bendedEdgeCreator.creatingEdge && !e.ctrlKey && !e.metaKey && !this.draggingLabelPoint && this.mousedown && this.hasDragged)
+            if (selector.draggingPoints.length === 0 && !bendedEdgeCreator.creatingEdge && !e.ctrlKey && !e.metaKey && !this.draggingLabelPoint && this.mousedown && this.hasDragged)
             {
                 selector.isSelecting = true;
                 // console.log("creatingEdge=",creatingEdge);

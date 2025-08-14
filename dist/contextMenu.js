@@ -180,6 +180,8 @@ export class Cmenu {
                             // stateHandler.saveState(); if not commented, state is saved twice for some reason. If commented, looks to work fine
                             for (const point of selector.points)
                                 point.label.showLabel = false;
+                            for (const edge of selector.edges)
+                                edge.label.showLabel = false;
                             hover.check(myCanvasHandler.getScale());
                             myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
                         }
