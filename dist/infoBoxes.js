@@ -7,7 +7,7 @@ export class InfoBoxHandler {
         this.worldCoords = worldCoords;
     }
     showHoveredInfo(canvas) {
-        if (this.bendedEdgeCreator.creatingEdge || this.selector.draggingPoints.length > 0) {
+        if (this.bendedEdgeCreator.creatingEdge /*|| this.selector.draggingPoints.length>0 */) {
             this.hideVertexInfo();
             this.hideEdgeInfo();
             this.hideCrossingInfo();

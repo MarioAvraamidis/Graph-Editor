@@ -51,7 +51,7 @@ export class BtnHandler {
                 this.copier.copySelected(this.selector, false);
             // paste
             else if ((e.ctrlKey || e.metaKey) && e.key == 'v') {
-                if (this.copier.selectedVertices.length > 0) {
+                if (this.copier.canPaste()) {
                     this.stateHandler.saveState();
                     this.copier.pasteSelected(graph, this.selector, true);
                     (_c = this.myCanvasHandler) === null || _c === void 0 ? void 0 : _c.redraw();

@@ -1445,7 +1445,7 @@ export class Graph {
         return cloned;
     }
 
-    // merge this graph with the given newGraph and return the new subgraph that represents newGraph and is now part of the big graph
+    // merge this graph with (a copy of) the given newGraph and return the new subgraph that represents newGraph and is now part of the big graph
     merge(newGraph: Graph, offset = {x: 0, y: 0} )
     {
         const newSubGraph: Graph = new Graph();

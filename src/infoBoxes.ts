@@ -21,7 +21,7 @@ export class InfoBoxHandler
 
     public showHoveredInfo(canvas: HTMLCanvasElement)
     {
-        if (this.bendedEdgeCreator.creatingEdge || this.selector.draggingPoints.length>0)
+        if (this.bendedEdgeCreator.creatingEdge /*|| this.selector.draggingPoints.length>0 */ )
         {
             this.hideVertexInfo();
             this.hideEdgeInfo();

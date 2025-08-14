@@ -31,6 +31,7 @@ export class MouseHandler {
         this.addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator);
     }
     addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator) {
+        const draggingPoints = [];
         // detect vertex/bend selection
         canvas.addEventListener("mousedown", (e) => {
             // set mouse position
@@ -55,20 +56,20 @@ export class MouseHandler {
                 stateHandler.saveState();
                 // selector.draggingPoints = selector.points;
                 for (const point of selector.points)
-                    selector.draggingPoints.push(point);
+                    draggingPoints.push(point);
                 // also add to dragging points the endpoints and bends of selected edges
                 for (const se of selector.edges) {
-                    selector.draggingPoints.push(se.points[0]);
-                    selector.draggingPoints.push(se.points[1]);
+                    draggingPoints.push(se.points[0]);
+                    draggingPoints.push(se.points[1]);
                     for (const bend of se.bends)
-                        selector.draggingPoints.push(bend);
+                        draggingPoints.push(bend);
                 }
                 // save positions at mousedown
                 this.positionsAtMouseDown = [];
                 // for (let i=0;i<selector.points.length;i++)
                 //  this.positionsAtMouseDown.push({x: selector.points[i].x,y: selector.points[i].y});
-                for (let i = 0; i < selector.draggingPoints.length; i++)
-                    this.positionsAtMouseDown.push({ x: selector.draggingPoints[i].x, y: selector.draggingPoints[i].y });
+                for (let i = 0; i < draggingPoints.length; i++)
+                    this.positionsAtMouseDown.push({ x: draggingPoints[i].x, y: draggingPoints[i].y });
             }
             // starting vertex for edge creation
             if (selector.points.length === 0 && !bendedEdgeCreator.creatingEdge) // hasDragged for not setting starting vertex a selected vertex
@@ -125,8 +126,8 @@ export class MouseHandler {
                 // if (selector.points.length > 0)
                 // stateHandler.saveState();
             }
-            for (let i = 0; i < selector.draggingPoints.length; i++) {
-                graph.movePoint(selector.draggingPoints[i], this.positionsAtMouseDown[i].x + this.offsetX, this.positionsAtMouseDown[i].y + this.offsetY);
+            for (let i = 0; i < draggingPoints.length; i++) {
+                graph.movePoint(draggingPoints[i], this.positionsAtMouseDown[i].x + this.offsetX, this.positionsAtMouseDown[i].y + this.offsetY);
                 // console.log("vertex "+v.id,v.x,v.y);
                 // renderGraph();
                 // myCanvasHandler?.redraw();
@@ -139,7 +140,7 @@ export class MouseHandler {
                 this.draggingLabelPoint.label.offsetY = this.inLimits(-worldCoords.y + this.draggingLabelPoint.y, limit / scaler.scale) * scaler.scale;
             }
             // create a rectangle showing selected space
-            if (selector.draggingPoints.length === 0 && !bendedEdgeCreator.creatingEdge && !e.ctrlKey && !e.metaKey && !this.draggingLabelPoint && this.mousedown && this.hasDragged) {
+            if (draggingPoints.length === 0 && !bendedEdgeCreator.creatingEdge && !e.ctrlKey && !e.metaKey && !this.draggingLabelPoint && this.mousedown && this.hasDragged) {
                 selector.isSelecting = true;
                 // console.log("creatingEdge=",creatingEdge);
             }
@@ -252,7 +253,7 @@ export class MouseHandler {
             //  stateHandler.saveState();
             selector.isSelecting = false;
             this.draggingLabelPoint = null;
-            selector.draggingPoints = [];
+            draggingPoints.length = 0;
             // hasDragged = false;
             this.mousedown = false;
             // renderGraph();

@@ -1,5 +1,5 @@
 // src/app.ts
-import { Graph, Vertex, Bend, Edge, Point, Crossing, BendedEdgeCreator } from "./graph.js";
+import { Graph, BendedEdgeCreator } from "./graph.js";
 import { CanvasHandler } from './canvasHandler.js'; 
 import { Coords, Scaler } from "./zoomHelpers.js";
 import { ModalsHandler } from "./modals.js";
@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx = canvas.getContext("2d");
         if (!ctx)
             throw new Error("Could not get canvas rendering context");
-        scaler = new Scaler(canvas);
         worldCoords = new Coords();
         stateHandler = new StateHandler(graph);
         selector = new Selector();
@@ -46,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsOptions = new SettingsOptions();
         copier = new Copier();
         bendedEdgeCreator = new BendedEdgeCreator();
+        scaler = new Scaler(canvas);
         drawer = new Drawer(selector,settingsOptions,hover,worldCoords,scaler,bendedEdgeCreator);
         myCanvasHandler = new CanvasHandler('graphCanvas',drawer,graph);
         paletteHandler = new PaletteHandler(selector,myCanvasHandler,stateHandler,graph,settingsOptions);

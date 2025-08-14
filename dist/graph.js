@@ -1170,7 +1170,7 @@ export class Graph {
         cloned.updateCurveComplexity();
         return cloned;
     }
-    // merge this graph with the given newGraph and return the new subgraph that represents newGraph and is now part of the big graph
+    // merge this graph with (a copy of) the given newGraph and return the new subgraph that represents newGraph and is now part of the big graph
     merge(newGraph, offset = { x: 0, y: 0 }) {
         const newSubGraph = new Graph();
         // create a map for the new vertices (of this graph) and vertices of the newGraph (so that the new edges can be created)

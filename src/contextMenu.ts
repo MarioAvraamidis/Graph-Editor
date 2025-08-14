@@ -111,7 +111,7 @@ export class Cmenu
                         break;
                     // Add more cases for other actions
                     case "paste":
-                        if (copier.selectedVertices.length > 0)
+                        if ( copier.canPaste() )
                         {
                             stateHandler.saveState();
                             copier.pasteSelected(graph,selector,false);

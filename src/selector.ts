@@ -2,6 +2,9 @@ import { Graph, Point, Vertex, Edge, Bend, Crossing} from "./graph.js"
 import { showCustomAlert } from "./alert.js";
 import { Coords } from "./zoomHelpers.js";
 
+// class Selector is responsible for handling the objects (vertices, edges, bends) that the user selects
+// It uses an array for each kind of objects and stores the selected items of that kind in the array
+// The class is also responsible for selection of objects inside a selection rectangle (the class stores the position and dimensions of the selection rectangle)
 export class Selector
 {
     // selected objects
@@ -14,7 +17,7 @@ export class Selector
     public rectStart: {x: number, y: number};
     public isSelecting: boolean;
     // dragging points
-    public draggingPoints: Point[];
+    // public draggingPoints: Point[];
 
     constructor()
     {
@@ -28,7 +31,7 @@ export class Selector
         this.rectStart = {x: 0, y: 0};
         this.isSelecting = false;
         // dragging points
-        this.draggingPoints = [];
+        // this.draggingPoints = [];
     }
 
     // selected Points = selected Vertices & selected Bends
@@ -121,7 +124,6 @@ export class Selector
         else    // if not control key pushed, remove all the selected objects and then add the selected one
         {
             this.setNothingSelected();
-            // array.length = 0;   // clear the array in place
             array.push(obj);
             // if (obj instanceof Edge)
             // selectPointsOfSelectedEdge(obj);
@@ -143,6 +145,16 @@ export class Selector
             if (!this.bends.includes(bend))
                 this.bends.push(bend);
     }
+
+    // select the vertices and edges of the given graph
+    public selectGraph(graph: Graph)
+    {
+        this.setNothingSelected();
+        this.vertices = graph.vertices;
+        this.edges = graph.edges;
+        this.bends = graph.getBends();
+        this.pointsUpdate();
+    }
 }
 
 export class Copier
@@ -150,24 +162,20 @@ export class Copier
     // copy selected items
     public rightClickPos: {x: number, y: number};       // coordinates of right click (will be used when copy/paste using context menu)
     public selectedClickedPos: {x: number, y: number};  // coordinates of the clicked object when copy from context menu
-    public selectedVertices: Vertex[];
-    public selectedEdges: Edge[];
-    public menuCopy: boolean;
-    public pasteOffset: {x:number, y: number};
-    private copiedGraph: Graph;
+    public menuCopy: boolean;                   // true if the user chooses copy from a context menu, false when the user uses shortcuts (ctrl+c) for copy
+    public pasteOffset: {x:number, y: number};  // offset for pasting copied objects (necessary during consecutive ctrl+z's)
+    private copiedGraph: Graph;                 // consider the copied items as a subgraph and store them as a graph
 
     constructor()
     {
         this.rightClickPos = {x: 0, y: 0};
         this.selectedClickedPos = {x: 0, y: 0};
-        this.selectedVertices = [];
-        this.selectedEdges = [];
         this.pasteOffset = {x: 0, y: 0};
         this.menuCopy = false;
         this.copiedGraph = new Graph();
     }
 
-    // Check if the vertices of the selector.edges are selected. If not, return false
+    // Check if the 2 vertices of the selector.edges are selected. If not, return false
     public checkSelected(selector: Selector)
     {
         for (const e of selector.edges)
@@ -183,39 +191,36 @@ export class Copier
     // store the selected items
     public copySelected(selector: Selector, menuCopy: boolean)
     {
+        // check if both vertices of the selected edges are selected
+        // if not, inform the user to select the vertices of the selected edges in order to copy an edge
         if (!this.checkSelected(selector))
         {
-            showCustomAlert("Select both the vertices of the selected edges");
+            showCustomAlert("Select both vertices of the selected edges");
             return;
         }
+        // if the user chose copy from the context menu, save the position of the click
         if (menuCopy)
             this.selectedClickedPos = {x: this.rightClickPos.x, y: this.rightClickPos.y};
-        this.menuCopy = menuCopy;
-        this.selectedVertices.length = 0;
-        this.selectedEdges.length = 0;
-        // IMPORTAAAAANTTTT Consider pushing a clone
-        for (const v of selector.vertices)
-            this.selectedVertices.push(v);
-        for (const e of selector.edges)
-            this.selectedEdges.push(e);
-        // set pasteOffset to {0,0}
-        this.pasteOffset = {x: 0, y: 0};
-        this.copiedGraph = new Graph(selector.vertices,selector.edges,false);
+        this.menuCopy = menuCopy;           // menuCopy update
+        this.pasteOffset = {x: 0, y: 0};    // set pasteOffset to {0,0}
+        this.copiedGraph = new Graph(selector.vertices,selector.edges,false);   // crete the subgraph using the selected vertices and edges
     }
 
-    // find and return the uppermost selected point
-    public uppermostCopiedSelectedVertex()
+    // find and return the uppermost selected vertex
+    private uppermost(vert: Vertex[])
     {
-        if (this.selectedVertices.length === 0)
+        if (vert.length === 0)
             return null;
-        let maxYpoint = this.selectedVertices[0];
-        for (let i=1; i<this.selectedVertices.length; i++)
-            if (this.selectedVertices[i].y < maxYpoint.y)  // positive is down in canvas
-                maxYpoint = this.selectedVertices[i];
+        let maxYpoint = vert[0];
+        for (let i=1; i<vert.length; i++)
+            if (vert[i].y < maxYpoint.y)  // positive is down in canvas
+                maxYpoint = vert[i];
         return maxYpoint;
     }
 
-    // paste the copied items
+    // add the copied items (stored in copiedGraph) to the given graph
+    // also update the selector to select the new pasted items
+    // if the user used keyboard shortcut for paste (ctrl+z), compute the position of the new pasted items
     public pasteSelected(graph: Graph, selector: Selector, pasteShortcut: boolean)
     {
         // compute the offset between the copied objects and the new objects
@@ -232,46 +237,18 @@ export class Copier
             else
             {
                 // paste the uppermost selected point at the clicked position
-                let uppermostPoint = this.uppermostCopiedSelectedVertex();
+                let uppermostPoint = this.uppermost(this.copiedGraph.vertices);
                 if (uppermostPoint)
                     offset = {x: this.rightClickPos.x-uppermostPoint.x, y: this.rightClickPos.y - uppermostPoint.y};
             }
         }
-        /*
-        // create a map for the new and old vertices
-        const map = new Map<Vertex, Vertex>();
-        // set the new vertices and edges as selected
-        selector.setNothingSelected();
-        // copy vertices
-        for (const v of this.selectedVertices)
-        {
-            let newVertex = graph.addNewVertex(v.x+offset.x, v.y+offset.y);
-            newVertex.cloneCharacteristics(v);
-            map.set(v,newVertex);
-            selector.vertices.push(newVertex);
-        }
-        // copy edges
-        // IMPORTANT: Make sure that checkSelected is run before pasting the new edges
-        for (const e of this.selectedEdges)
-        {
-            const v1 = e.points[0];
-            const v2 = e.points[1];
-            let newEdge: Edge | null = null;
-            if (v1 instanceof Vertex && v2 instanceof Vertex)
-                newEdge = graph.addEdge(map.get(v1)!,map.get(v2)!)!;
-            if (newEdge)
-            {
-                newEdge.cloneCharacteristics(e,offset.x,offset.y);
-                selector.edges.push(newEdge);
-            }
-        }*/
         const subGraph = graph.merge(this.copiedGraph,offset);
         // update selected points
-        selector.setNothingSelected();
-        selector.vertices = subGraph.vertices;
-        selector.edges = subGraph.edges;
-        selector.pointsUpdate();
+        selector.selectGraph(subGraph);
     }
+
+    // return true if there exist at least one vertex in the copiedGraph
+    public canPaste() { return this.copiedGraph.vertices.length > 0; }
 }
 
 export class Hover
