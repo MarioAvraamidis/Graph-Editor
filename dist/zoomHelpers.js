@@ -1,7 +1,15 @@
+/**
+ * A class for storing coordinates
+ */
 export class Coords {
-    constructor(x = 0, y = 0) { this.x = x; this.y = y; }
-    update({ x, y }) { this.x = x; this.y = y; }
+    get x() { return this._x; }
+    get y() { return this._y; }
+    constructor(x = 0, y = 0) { this._x = x; this._y = y; }
+    update({ x, y }) { this._x = x; this._y = y; }
 }
+/**
+ * A class which handles zoom settings
+ */
 export class Scaler {
     get ZOOM_FACTOR() { return this._ZOOM_FACTOR; }
     get MIN_SCALE() { return this._MIN_SCALE; }

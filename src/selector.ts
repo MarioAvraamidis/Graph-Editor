@@ -68,6 +68,7 @@ export class Selector
         // selecte all edges
         for (const e of graph.edges)
             this.edges.push(e);
+        this.pointsUpdate();
     }
 
     // deletion of selected vertices (and removal of their corresponding edges and bends from selected objects)
@@ -160,15 +161,18 @@ export class Selector
 export class Copier
 {
     // copy selected items
-    public rightClickPos: {x: number, y: number};       // coordinates of right click (will be used when copy/paste using context menu)
-    public selectedClickedPos: {x: number, y: number};  // coordinates of the clicked object when copy from context menu
-    public menuCopy: boolean;                   // true if the user chooses copy from a context menu, false when the user uses shortcuts (ctrl+c) for copy
-    public pasteOffset: {x:number, y: number};  // offset for pasting copied objects (necessary during consecutive ctrl+z's)
+    private _rightClickPos: {x: number, y: number};       // coordinates of right click (will be used when copy/paste using context menu)
+    private selectedClickedPos: {x: number, y: number};  // coordinates of the clicked object when copy from context menu
+    private menuCopy: boolean;                   // true if the user chooses copy from a context menu, false when the user uses shortcuts (ctrl+c) for copy
+    private pasteOffset: {x:number, y: number};  // offset for pasting copied objects (necessary during consecutive ctrl+z's)
     private copiedGraph: Graph;                 // consider the copied items as a subgraph and store them as a graph
+
+    get rightClickPos() { return this._rightClickPos; }
+    set rightClickPos({x,y}: {x: number, y: number}) { this._rightClickPos = {x,y}; }
 
     constructor()
     {
-        this.rightClickPos = {x: 0, y: 0};
+        this._rightClickPos = {x: 0, y: 0};
         this.selectedClickedPos = {x: 0, y: 0};
         this.pasteOffset = {x: 0, y: 0};
         this.menuCopy = false;
@@ -176,7 +180,7 @@ export class Copier
     }
 
     // Check if the 2 vertices of the selector.edges are selected. If not, return false
-    public checkSelected(selector: Selector)
+    private checkSelected(selector: Selector)
     {
         for (const e of selector.edges)
         {
@@ -188,7 +192,12 @@ export class Copier
         return true;
     }
 
-    // store the selected items
+    /** Store the selected items (as a new graph)
+     * 
+     * @param selector contains the selected vertices and edges to be copied
+     * @param menuCopy indicates whether the user chose copy from a context menu or from keyboard shortcut (ctrl+z)
+     * @returns 
+     */
     public copySelected(selector: Selector, menuCopy: boolean)
     {
         // check if both vertices of the selected edges are selected
@@ -202,11 +211,16 @@ export class Copier
         if (menuCopy)
             this.selectedClickedPos = {x: this.rightClickPos.x, y: this.rightClickPos.y};
         this.menuCopy = menuCopy;           // menuCopy update
-        this.pasteOffset = {x: 0, y: 0};    // set pasteOffset to {0,0}
-        this.copiedGraph = new Graph(selector.vertices,selector.edges,false);   // crete the subgraph using the selected vertices and edges
+        this.pasteOffset = {x: 0, y: 0};    // update value of pasteOffset to {0,0}
+        // crete a subgraph using the selected vertices and edges
+        this.copiedGraph = new Graph(selector.vertices,selector.edges,false);
     }
 
-    // find and return the uppermost selected vertex
+    /**find and return the uppermost selected vertex
+     * 
+     * @param vert 
+     * @returns 
+     */
     private uppermost(vert: Vertex[])
     {
         if (vert.length === 0)
@@ -218,9 +232,14 @@ export class Copier
         return maxYpoint;
     }
 
-    // add the copied items (stored in copiedGraph) to the given graph
-    // also update the selector to select the new pasted items
-    // if the user used keyboard shortcut for paste (ctrl+z), compute the position of the new pasted items
+    /** Add the copied items (already stored in copiedGraph) to the given graph
+     * Also update the selector to select the new pasted items
+     * If the user used keyboard shortcut for paste (ctrl+z), compute the position of the new pasted items
+     * 
+     * @param graph the main graph
+     * @param selector for update of the selected items
+     * @param pasteShortcut indicates if the user used keyboard shortcut (ctrl+Y) for paste
+     */
     public pasteSelected(graph: Graph, selector: Selector, pasteShortcut: boolean)
     {
         // compute the offset between the copied objects and the new objects
@@ -242,12 +261,15 @@ export class Copier
                     offset = {x: this.rightClickPos.x-uppermostPoint.x, y: this.rightClickPos.y - uppermostPoint.y};
             }
         }
-        const subGraph = graph.merge(this.copiedGraph,offset);
-        // update selected points
-        selector.selectGraph(subGraph);
+        const subGraph = graph.merge(this.copiedGraph,offset);  // merge the new subgraph (of copied items) with the existing graph
+        selector.selectGraph(subGraph);                         // update selected points
     }
 
-    // return true if there exist at least one vertex in the copiedGraph
+    /** Return true if there exist at least one vertex in the copiedGraph
+     * 
+     * @returns true if there exist at least one vertex in the copiedGraph
+     */
+    //
     public canPaste() { return this.copiedGraph.vertices.length > 0; }
 }
 
@@ -274,7 +296,10 @@ export class Hover
         this.setAllNull(); 
     }
 
-    public setAllNull()
+    /**
+     * Set all the objects null
+     */
+    private setAllNull()
     {
         this.vertex = null;
         this.bend = null;
@@ -285,7 +310,10 @@ export class Hover
         this.labelPoint = null;
     }
 
-    // detect the hovering object
+    /** Detect the hovering object
+     * 
+     * @param scale 
+     */
     public check(scale: number)
     {
         this.setAllNull();

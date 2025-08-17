@@ -1,17 +1,17 @@
 export class SettingsOptions
 {
-    // default colors for crossings
-    public crossings_colors: any //= { self: "#A020F0" /*purple*/, neighbor: "#FF0000"/*red*/, multiple: "#FFA500"/*orange*/, legal: "#008000"/*green*/ };
-    // default colors for crossing edges
-    public crossing_edges_colors: any /* = {crossing: "#2fee3c", nonCrossing: "#f0f42a"} */
-    // default color for new edges when creating clique
+    // colors for crossings
+    public crossings_colors: {self: string, neighbor: string, multiple: string, legal: string};
+    // colors for crossing edges
+    public crossing_edges_colors:  {crossing: string, nonCrossing: string}  
+    // color for new edges when creating clique
     public cliqueNewEdgesColor: string;
-    // default label font size
+    // label font size
     public defaultLabelFontSize: number;
     // palette settings
-    public vertexChars = { color: "#000000", size: 7, shape: "circle" }  // default settings of class Vertex
-    public edgeChars = {color: "#898989", thickness: 2, dashed: false} // default of class Edge
-    public bendChars = {size: 5, color: "#0000FF"}
+    public vertexChars: { color: string, size: number, shape: string }      // palette settings for Vertices
+    public edgeChars: {color: string, thickness: number, dashed: boolean}   // palette settings for Edges
+    public bendChars: {size: number, color: string}                         // palette settings for Bends
 
     constructor()
     {
@@ -19,6 +19,9 @@ export class SettingsOptions
         this.crossing_edges_colors = {crossing: "#2fee3c", nonCrossing: "#f0f42a"};
         this.cliqueNewEdgesColor = '#0000ff';
         this.defaultLabelFontSize = 18;
+        this.vertexChars = { color: "#000000", size: 7, shape: "circle" }
+        this.edgeChars = {color: "#898989", thickness: 2, dashed: false}
+        this.bendChars = {size: 5, color: "#0000FF"}
     }
 
     public edit_crossings_colors(input: any)

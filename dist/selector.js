@@ -48,6 +48,7 @@ export class Selector {
         // selecte all edges
         for (const e of graph.edges)
             this.edges.push(e);
+        this.pointsUpdate();
     }
     // deletion of selected vertices (and removal of their corresponding edges and bends from selected objects)
     deleteSelectedVertices(graph) {
@@ -121,8 +122,10 @@ export class Selector {
     }
 }
 export class Copier {
+    get rightClickPos() { return this._rightClickPos; }
+    set rightClickPos({ x, y }) { this._rightClickPos = { x, y }; }
     constructor() {
-        this.rightClickPos = { x: 0, y: 0 };
+        this._rightClickPos = { x: 0, y: 0 };
         this.selectedClickedPos = { x: 0, y: 0 };
         this.pasteOffset = { x: 0, y: 0 };
         this.menuCopy = false;
@@ -138,7 +141,12 @@ export class Copier {
         }
         return true;
     }
-    // store the selected items
+    /** Store the selected items (as a new graph)
+     *
+     * @param selector contains the selected vertices and edges to be copied
+     * @param menuCopy indicates whether the user chose copy from a context menu or from keyboard shortcut (ctrl+z)
+     * @returns
+     */
     copySelected(selector, menuCopy) {
         // check if both vertices of the selected edges are selected
         // if not, inform the user to select the vertices of the selected edges in order to copy an edge
@@ -150,10 +158,15 @@ export class Copier {
         if (menuCopy)
             this.selectedClickedPos = { x: this.rightClickPos.x, y: this.rightClickPos.y };
         this.menuCopy = menuCopy; // menuCopy update
-        this.pasteOffset = { x: 0, y: 0 }; // set pasteOffset to {0,0}
-        this.copiedGraph = new Graph(selector.vertices, selector.edges, false); // crete the subgraph using the selected vertices and edges
+        this.pasteOffset = { x: 0, y: 0 }; // update value of pasteOffset to {0,0}
+        // crete a subgraph using the selected vertices and edges
+        this.copiedGraph = new Graph(selector.vertices, selector.edges, false);
     }
-    // find and return the uppermost selected vertex
+    /**find and return the uppermost selected vertex
+     *
+     * @param vert
+     * @returns
+     */
     uppermost(vert) {
         if (vert.length === 0)
             return null;
@@ -163,9 +176,14 @@ export class Copier {
                 maxYpoint = vert[i];
         return maxYpoint;
     }
-    // add the copied items (stored in copiedGraph) to the given graph
-    // also update the selector to select the new pasted items
-    // if the user used keyboard shortcut for paste (ctrl+z), compute the position of the new pasted items
+    /** Add the copied items (already stored in copiedGraph) to the given graph
+     * Also update the selector to select the new pasted items
+     * If the user used keyboard shortcut for paste (ctrl+z), compute the position of the new pasted items
+     *
+     * @param graph the main graph
+     * @param selector for update of the selected items
+     * @param pasteShortcut indicates if the user used keyboard shortcut (ctrl+Y) for paste
+     */
     pasteSelected(graph, selector, pasteShortcut) {
         // compute the offset between the copied objects and the new objects
         let offset = { x: 0, y: 0 };
@@ -184,11 +202,14 @@ export class Copier {
                     offset = { x: this.rightClickPos.x - uppermostPoint.x, y: this.rightClickPos.y - uppermostPoint.y };
             }
         }
-        const subGraph = graph.merge(this.copiedGraph, offset);
-        // update selected points
-        selector.selectGraph(subGraph);
+        const subGraph = graph.merge(this.copiedGraph, offset); // merge the new subgraph (of copied items) with the existing graph
+        selector.selectGraph(subGraph); // update selected points
     }
-    // return true if there exist at least one vertex in the copiedGraph
+    /** Return true if there exist at least one vertex in the copiedGraph
+     *
+     * @returns true if there exist at least one vertex in the copiedGraph
+     */
+    //
     canPaste() { return this.copiedGraph.vertices.length > 0; }
 }
 export class Hover {
@@ -206,6 +227,9 @@ export class Hover {
         this.selector = selector;
         this.setAllNull();
     }
+    /**
+     * Set all the objects null
+     */
     setAllNull() {
         this.vertex = null;
         this.bend = null;
@@ -215,7 +239,10 @@ export class Hover {
         this.crossingEdges = [null, null];
         this.labelPoint = null;
     }
-    // detect the hovering object
+    /** Detect the hovering object
+     *
+     * @param scale
+     */
     check(scale) {
         this.setAllNull();
         this.vertex = this.graph.getVertexAtPosition(this.worldCoords.x, this.worldCoords.y, scale, this.selector.vertices);

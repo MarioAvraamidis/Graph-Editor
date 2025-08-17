@@ -77,7 +77,7 @@ export class Cmenu
         // Add event listener for right-click (contextmenu) on the canvas
         canvas.addEventListener('contextmenu', (event) => {
             event.preventDefault(); // Prevent the browser's default context menu
-            // rightClickPos = {x: mouse.x, y: mouse.y};
+            // inform the copier for the right click position
             copier.rightClickPos = {x: worldCoords.x, y: worldCoords.y};
             //if (hoveredVertex && selector.vertices.includes(hoveredVertex) || hover.edge && selector.edges.includes(hover.edge) || hoveredBend && selector.bends.includes(hoveredBend))
             if (hover.point && selector.points.includes(hover.point) || hover.edge && selector.edges.includes(hover.edge))

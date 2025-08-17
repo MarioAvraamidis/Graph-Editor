@@ -1,14 +1,22 @@
-
+/**
+ * A class for storing coordinates
+ */
 export class Coords
 {
-    public x: number;
-    public y: number;
+    private _x: number;
+    private _y: number;
 
-    constructor(x: number = 0, y: number = 0) { this.x = x; this.y = y; }
+    get x() { return this._x; }
+    get y() { return this._y; }
 
-    update( {x,y}: {x: number, y: number }) {this.x = x; this.y = y; }
+    constructor(x: number = 0, y: number = 0) { this._x = x; this._y = y; }
+
+    update( {x,y}: {x: number, y: number }) {this._x = x; this._y = y; }
 }
 
+/**
+ * A class which handles zoom settings
+ */
 export class Scaler
 {
     public scale: number = 1.0;
