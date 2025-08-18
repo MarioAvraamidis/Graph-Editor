@@ -2,7 +2,7 @@ import { CanvasHandler } from "./canvasHandler.js";
 import { Copier, Selector } from "./selector.js";
 import { Graph } from "./graph.js";
 import { StateHandler } from "./stateHandler.js";
-import { exportCanvasAsImage, exportCanvasAsPdf, exportGraph, restoreGraphFromJSON } from "./exporting.js";
+import { exportCanvasAsImage, exportCanvasAsPdf, exportJSON, restoreGraphFromJSON } from "./exporting.js";
 import { SettingsOptions } from "./settings.js";
 
 export class BtnHandler
@@ -146,7 +146,7 @@ export class BtnHandler
         // listener for reset view in CanvasHandler.ts
     
         document.getElementById("export-json-btn")!.addEventListener("click", () => {
-            exportGraph(graph);
+            exportJSON(graph);
         });
     
         /*document.getElementById("export-image")!.addEventListener("click", () => {

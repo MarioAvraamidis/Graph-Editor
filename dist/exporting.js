@@ -8,8 +8,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { Graph, Vertex } from "./graph.js";
-// export as JSON
-export function exportGraph(graph) {
+function serializeLabel(label) {
+    return {
+        showLabel: label.showLabel,
+        offsetX: label.offsetX,
+        offsetY: label.offsetY,
+        color: label.color,
+        fontSize: label.fontSize,
+    };
+}
+export function exportJSON(graph) {
     const exportData = {
         vertices: graph.vertices.map(v => ({
             id: v.id,
@@ -18,8 +26,7 @@ export function exportGraph(graph) {
             color: v.color,
             size: v.size,
             shape: v.shape,
-            // labelOffsetX: v.labelOffsetX,
-            // labelOffsetY: v.labelOffsetY,
+            label: serializeLabel(v.label),
         })),
         edges: graph.edges.map(e => ({
             v1: e.points[0].id,
@@ -27,7 +34,14 @@ export function exportGraph(graph) {
             dashed: e.dashed,
             thickness: e.thickness,
             color: e.color,
-            bends: e.bends.map(b => ({ x: b.x, y: b.y, size: b.size, color: b.color })),
+            label: serializeLabel(e.label),
+            bends: e.bends.map(b => ({
+                x: b.x,
+                y: b.y,
+                size: b.size,
+                color: b.color,
+                label: serializeLabel(b.label),
+            })),
         })),
     };
     const json = JSON.stringify(exportData, null, 2);
@@ -51,10 +65,9 @@ export function restoreGraphFromJSON(data) {
             vertex.size = v.size;
         if (v.shape)
             vertex.shape = v.shape;
-        // if (v.labelOffsetX)
-        // vertex.labelOffsetX = v.labelOffsetX;
-        // if (v.labelOffsetY)
-        // vertex.labelOffsetY = v.labelOffsetY;
+        // label
+        if (v.label)
+            vertex.label.cloneCharacteristics(v.label);
         newGraph.vertices.push(vertex);
     }
     // Reconstruct edges
@@ -70,6 +83,9 @@ export function restoreGraphFromJSON(data) {
                 edge.thickness = e.thickness;
             if (e.dashed)
                 edge.dashed = e.dashed;
+            // label
+            if (edge && e.label)
+                edge.label.cloneCharacteristics(e.label);
             // bends
             for (const b of e.bends) {
                 const newBend = newGraph.addBend(v1, v2, b.x, b.y, false, false);
@@ -77,6 +93,8 @@ export function restoreGraphFromJSON(data) {
                     newBend.size = b.size;
                 if (b.color)
                     newBend.color = b.color;
+                if (newBend && b.label)
+                    newBend.label.cloneCharacteristics(b.label);
                 //newBend?.assignCharacteristics(b.size,b.color);
             }
         }

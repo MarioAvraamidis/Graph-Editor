@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { exportCanvasAsPdf, exportGraph, restoreGraphFromJSON } from "./exporting.js";
+import { exportCanvasAsPdf, exportJSON, restoreGraphFromJSON } from "./exporting.js";
 export class BtnHandler {
     constructor(graph, canvasHandler, selector, stateHandler, copier, settingsOptions) {
         // this.graph = graph;
@@ -125,7 +125,7 @@ export class BtnHandler {
         (_f = document.getElementById('fix-view')) === null || _f === void 0 ? void 0 : _f.addEventListener('click', () => this.myCanvasHandler.fixView(graph, this.selector));
         // listener for reset view in CanvasHandler.ts
         document.getElementById("export-json-btn").addEventListener("click", () => {
-            exportGraph(graph);
+            exportJSON(graph);
         });
         /*document.getElementById("export-image")!.addEventListener("click", () => {
             if(this.myCanvasHandler.ctx)

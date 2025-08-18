@@ -1,6 +1,6 @@
 import { showCustomAlert } from "./alert.js";
 
-class Label
+export class Label
 {
     private _content: string;
     private _showLabel: boolean = false;
@@ -29,7 +29,7 @@ class Label
     set fontSize(fontSize: number) { this._fontSize = fontSize; }
 
     // copy the characteristics of the given label to this label
-    cloneCharacteristics(lab: Label)
+    cloneCharacteristics(lab: Label | any)
     {
         // labeling
         // this.labelContent = p.labelContent;

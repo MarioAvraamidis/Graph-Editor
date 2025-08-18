@@ -1,41 +1,56 @@
-import { Graph, Vertex} from "./graph.js";
+import { Graph, Vertex, Label} from "./graph.js";
 
-// export as JSON
-export function exportGraph(graph: Graph) {
-    const exportData = {
-      vertices: graph.vertices.map(v => ({
-        id: v.id,
-        x: v.x,
-        y: v.y,
-        color: v.color,
-        size: v.size,
-        shape: v.shape,
-        // labelOffsetX: v.labelOffsetX,
-        // labelOffsetY: v.labelOffsetY,
-      })),
-      edges: graph.edges.map(e => ({
-        v1: e.points[0].id,
-        v2: e.points[1].id,
-        dashed: e.dashed,
-        thickness: e.thickness,
-        color: e.color,
-        bends: e.bends.map(b => ({ x: b.x, y: b.y, size: b.size, color: b.color })),
-      })),
-    };
-  
-    const json = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-  
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "graph.json";
-    a.click();
-  
-    URL.revokeObjectURL(url);
-  }
+function serializeLabel(label: Label) {
+  return {
+    showLabel: label.showLabel,
+    offsetX: label.offsetX,
+    offsetY: label.offsetY,
+    color: label.color,
+    fontSize: label.fontSize,
+  };
+}
 
-  export function restoreGraphFromJSON(data: any): Graph {
+export function exportJSON(graph: Graph) {
+  const exportData = {
+    vertices: graph.vertices.map(v => ({
+      id: v.id,
+      x: v.x,
+      y: v.y,
+      color: v.color,
+      size: v.size,
+      shape: v.shape,
+      label: serializeLabel(v.label),
+    })),
+    edges: graph.edges.map(e => ({
+      v1: e.points[0].id,
+      v2: e.points[1].id,
+      dashed: e.dashed,
+      thickness: e.thickness,
+      color: e.color,
+      label: serializeLabel(e.label),
+      bends: e.bends.map(b => ({
+        x: b.x,
+        y: b.y,
+        size: b.size,
+        color: b.color,
+        label: serializeLabel(b.label),
+      })),
+    })),
+  };
+
+  const json = JSON.stringify(exportData, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "graph.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+export function restoreGraphFromJSON(data: any): Graph {
     const newGraph = new Graph();
 
     // Reconstruct vertices
@@ -48,10 +63,9 @@ export function exportGraph(graph: Graph) {
             vertex.size = v.size;
         if (v.shape)
             vertex.shape = v.shape;
-        // if (v.labelOffsetX)
-           // vertex.labelOffsetX = v.labelOffsetX;
-        // if (v.labelOffsetY)
-           // vertex.labelOffsetY = v.labelOffsetY;
+        // label
+        if (v.label)
+            vertex.label.cloneCharacteristics(v.label);
         newGraph.vertices.push(vertex);
     }
 
@@ -68,6 +82,9 @@ export function exportGraph(graph: Graph) {
                 edge!.thickness = e.thickness;
             if (e.dashed)
                 edge!.dashed = e.dashed;
+            // label
+            if (edge && e.label)
+                edge.label.cloneCharacteristics(e.label);
             // bends
             for (const b of e.bends)
             {
@@ -76,6 +93,8 @@ export function exportGraph(graph: Graph) {
                     newBend!.size = b.size;
                 if (b.color)
                     newBend!.color = b.color;
+                if (newBend && b.label)
+                    newBend.label.cloneCharacteristics(b.label);
                 //newBend?.assignCharacteristics(b.size,b.color);
             }
         }

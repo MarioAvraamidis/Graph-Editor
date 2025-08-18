@@ -1,5 +1,5 @@
 import { showCustomAlert } from "./alert.js";
-class Label {
+export class Label {
     constructor(objectId) {
         this._showLabel = false;
         this._offsetX = 0;
