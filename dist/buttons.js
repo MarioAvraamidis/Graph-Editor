@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { exportCanvasAsPdf, exportJSON, restoreGraphFromJSON } from "./exporting.js";
+import { exportCanvasAsImage, exportCanvasAsPdf, exportJSON, restoreGraphFromJSON } from "./exporting.js";
 export class BtnHandler {
     constructor(graph, canvasHandler, selector, stateHandler, copier, settingsOptions) {
         // this.graph = graph;
@@ -127,14 +127,13 @@ export class BtnHandler {
         document.getElementById("export-json-btn").addEventListener("click", () => {
             exportJSON(graph);
         });
-        /*document.getElementById("export-image")!.addEventListener("click", () => {
-            if(this.myCanvasHandler.ctx)
-            {
-                drawGraph(this.myCanvasHandler.ctx,this.graph,true,false);
+        document.getElementById("export-image").addEventListener("click", () => {
+            if (this.myCanvasHandler.ctx) {
+                // drawGraph(this.myCanvasHandler.ctx,this.graph,true,false);
                 exportCanvasAsImage();
-                drawGraph(this.myCanvasHandler.ctx,this.graph);
+                // drawGraph(this.myCanvasHandler.ctx,this.graph);
             }
-        });*/
+        });
         document.getElementById("export-pdf").addEventListener("click", () => {
             exportCanvasAsPdf(this.myCanvasHandler.canvas);
         });

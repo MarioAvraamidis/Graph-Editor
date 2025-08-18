@@ -145,18 +145,18 @@ export class BtnHandler
     
         // listener for reset view in CanvasHandler.ts
     
-        document.getElementById("export-json-btn")!.addEventListener("click", () => {
+        document.getElementById("export-json-btn")?.addEventListener("click", () => {
             exportJSON(graph);
         });
     
-        /*document.getElementById("export-image")!.addEventListener("click", () => {
+        document.getElementById("export-image")?.addEventListener("click", () => {
             if(this.myCanvasHandler.ctx)
             {
-                drawGraph(this.myCanvasHandler.ctx,this.graph,true,false);
+                // drawGraph(this.myCanvasHandler.ctx,this.graph,true,false);
                 exportCanvasAsImage();
-                drawGraph(this.myCanvasHandler.ctx,this.graph);
+                // drawGraph(this.myCanvasHandler.ctx,this.graph);
             }
-        });*/
+        });
     
         document.getElementById("export-pdf")!.addEventListener("click", () => {
             exportCanvasAsPdf(this.myCanvasHandler.canvas);

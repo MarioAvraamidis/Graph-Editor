@@ -89,7 +89,7 @@ export class Drawer
     }
 
         // draw the graph
-    public drawGraph(canvas: HTMLCanvasElement, graph: Graph, localCall: boolean = false, labels: boolean = true) {
+    public drawGraph(canvas: HTMLCanvasElement, graph: Graph, labels: boolean = true) {
 
         // if (localCall)
         // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
