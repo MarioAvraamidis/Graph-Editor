@@ -300,6 +300,6 @@ export class Hover {
             y >= labelY && y <= labelY + height;
     }
     labelOffsetY(point) {
-        return (point.size + point.label.offsetY + point.label.fontSize);
+        return (point.size + point.label.offsetY /* + point.label.fontSize*/);
     }
 }

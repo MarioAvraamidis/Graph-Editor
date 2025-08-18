@@ -384,6 +384,6 @@ export class Hover
 
     private labelOffsetY(point: Point)
     {
-        return (point.size + point.label.offsetY + point.label.fontSize);
+        return (point.size + point.label.offsetY /* + point.label.fontSize*/ );
     }
 }

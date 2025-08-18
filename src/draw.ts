@@ -323,7 +323,7 @@ export class Drawer
 
     private labelOffsetY(point: Point)
     {
-        return (point.size + point.label.offsetY + point.label.fontSize);
+        return (point.size + point.label.offsetY/*  + point.label.fontSize*/ );
     }
 
     /*private renderLatexLabel(vertex: Vertex) {

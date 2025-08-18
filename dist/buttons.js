@@ -79,7 +79,7 @@ export class BtnHandler {
         });
     }
     addButtonsEventListeners(graph) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         // Undo button
         (_a = document.getElementById("undo-button")) === null || _a === void 0 ? void 0 : _a.addEventListener("click", () => {
             var _a;
@@ -124,10 +124,10 @@ export class BtnHandler {
         // set up listener for fix view
         (_f = document.getElementById('fix-view')) === null || _f === void 0 ? void 0 : _f.addEventListener('click', () => this.myCanvasHandler.fixView(graph, this.selector));
         // listener for reset view in CanvasHandler.ts
-        document.getElementById("export-json-btn").addEventListener("click", () => {
+        (_g = document.getElementById("export-json-btn")) === null || _g === void 0 ? void 0 : _g.addEventListener("click", () => {
             exportJSON(graph);
         });
-        document.getElementById("export-image").addEventListener("click", () => {
+        (_h = document.getElementById("export-image")) === null || _h === void 0 ? void 0 : _h.addEventListener("click", () => {
             if (this.myCanvasHandler.ctx) {
                 // drawGraph(this.myCanvasHandler.ctx,this.graph,true,false);
                 exportCanvasAsImage();

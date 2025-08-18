@@ -68,7 +68,7 @@ export class Drawer {
         // this.paletteHandler.updatePaletteState();       // update palettes state
     }
     // draw the graph
-    drawGraph(canvas, graph, localCall = false, labels = true) {
+    drawGraph(canvas, graph, labels = true) {
         var _a, _b, _c, _d;
         // if (localCall)
         // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -261,7 +261,7 @@ export class Drawer {
         ctx.fillStyle = "#000";
     }
     labelOffsetY(point) {
-        return (point.size + point.label.offsetY + point.label.fontSize);
+        return (point.size + point.label.offsetY /*  + point.label.fontSize*/);
     }
     /*private renderLatexLabel(vertex: Vertex) {
         declare var MathJax: any;
