@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { exportCanvasAsImage, exportCanvasAsPdf, exportJSON, restoreGraphFromJSON } from "./exporting.js";
-import { newBinaryTree } from "./graphCreator.js";
 export class BtnHandler {
     constructor(graph, canvasHandler, selector, stateHandler, copier, settingsOptions) {
         // this.graph = graph;
@@ -80,7 +79,7 @@ export class BtnHandler {
         });
     }
     addButtonsEventListeners(graph) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         // Undo button
         (_a = document.getElementById("undo-button")) === null || _a === void 0 ? void 0 : _a.addEventListener("click", () => {
             var _a;
@@ -114,16 +113,15 @@ export class BtnHandler {
             // renderGraph();
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });
-        (_e = document.getElementById("new-circle")) === null || _e === void 0 ? void 0 : _e.addEventListener("click", () => {
-            var _a, _b;
+        /*document.getElementById("new-circle")?.addEventListener("click", () => {
             this.stateHandler.saveState();
             const tree = graph.merge(newBinaryTree(5));
             this.selector.selectGraph(tree);
-            (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.fixView(graph, this.selector);
-            (_b = this.myCanvasHandler) === null || _b === void 0 ? void 0 : _b.redraw();
-        });
+            this.myCanvasHandler?.fixView(graph,this.selector);
+            this.myCanvasHandler?.redraw();
+        });*/
         // make the graph straight line
-        (_f = document.getElementById("clear-bends")) === null || _f === void 0 ? void 0 : _f.addEventListener("click", () => {
+        (_e = document.getElementById("clear-bends")) === null || _e === void 0 ? void 0 : _e.addEventListener("click", () => {
             var _a;
             this.stateHandler.saveState();
             graph.removeBends();
@@ -131,12 +129,12 @@ export class BtnHandler {
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });
         // set up listener for fix view
-        (_g = document.getElementById('fix-view')) === null || _g === void 0 ? void 0 : _g.addEventListener('click', () => this.myCanvasHandler.fixView(graph, this.selector));
+        (_f = document.getElementById('fix-view')) === null || _f === void 0 ? void 0 : _f.addEventListener('click', () => this.myCanvasHandler.fixView(graph, this.selector));
         // listener for reset view in CanvasHandler.ts
-        (_h = document.getElementById("export-json-btn")) === null || _h === void 0 ? void 0 : _h.addEventListener("click", () => {
+        (_g = document.getElementById("export-json-btn")) === null || _g === void 0 ? void 0 : _g.addEventListener("click", () => {
             exportJSON(graph);
         });
-        (_j = document.getElementById("export-image")) === null || _j === void 0 ? void 0 : _j.addEventListener("click", () => {
+        (_h = document.getElementById("export-image")) === null || _h === void 0 ? void 0 : _h.addEventListener("click", () => {
             if (this.myCanvasHandler.ctx) {
                 // drawGraph(this.myCanvasHandler.ctx,this.graph,true,false);
                 exportCanvasAsImage();

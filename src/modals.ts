@@ -1,8 +1,9 @@
 import { CanvasHandler } from "./canvasHandler.js";
 import { SettingsOptions } from "./settings.js";
-import { Point, Vertex } from "./graph.js";
-import { Hover } from "./selector.js";
+import { Graph, Point, Vertex } from "./graph.js";
+import { Hover, Selector } from "./selector.js";
 import { StateHandler } from "./stateHandler.js";
+import { createGraph } from "./graphCreator.js";
 
 export class ModalsHandler
 {
@@ -20,10 +21,13 @@ export class ModalsHandler
     private settingsCrossingEdgesColorInput: HTMLInputElement[] = [];   // crossing edges colors
     private settingsCliqueNewEdgesColorInput: HTMLInputElement;          // clique new edges color
     private settingsLabelDefaultFonstSizeInput: HTMLInputElement;       // default label font size settings
+    // new graph modal
+    private newGraphModal: HTMLElement = document.getElementById('newGraphModal') as HTMLElement;
+    private newGraphCloseButton: HTMLElement = this.newGraphModal.querySelector('.close-button') as HTMLElement;
     // settingsOptions
     public settingsOptions: SettingsOptions;
 
-    constructor(myCanvasHandler: CanvasHandler, stateHandler: StateHandler, hover: Hover, settingsOptions: SettingsOptions)
+    constructor(graph: Graph, myCanvasHandler: CanvasHandler, stateHandler: StateHandler, hover: Hover, settingsOptions: SettingsOptions, selector: Selector)
     {
         // edit label modal elements
         this.editLabelModal = document.getElementById('editLabelModal') as HTMLElement;
@@ -47,14 +51,16 @@ export class ModalsHandler
         this.settingsLabelDefaultFonstSizeInput = document.getElementById('labelDefaultFontSizeInput') as HTMLInputElement;
         // settingsOptions
         this.settingsOptions = settingsOptions;
-        this.addEventListeners(myCanvasHandler,stateHandler,hover);
+        this.addEventListeners(graph,myCanvasHandler,stateHandler,hover,selector);
         this.hideAllModals();
     }
 
-    public addEventListeners(myCanvasHandler: CanvasHandler, stateHandler: StateHandler, hover: Hover)
+    public addEventListeners(graph: Graph,myCanvasHandler: CanvasHandler, stateHandler: StateHandler, hover: Hover, selector: Selector)
     {
         // listener for settings button
         document.getElementById('settingsBtn')?.addEventListener('click', () => this.showSettingsModal(this.settingsOptions));
+        // listener for new graph button
+        document.getElementById('newGraphBtn')?.addEventListener('click', () => this.showNewGraphModal() );
          // listner for settings savebutton
         this.settingsSaveButton?.addEventListener('click', () => {
             if (this.settingsCrossingsColorInput)
@@ -97,7 +103,9 @@ export class ModalsHandler
         // event listener for the close button in the edit label modal
         if (this.editLabelCloseButton) { this.editLabelCloseButton.addEventListener('click', () => this.hideAllModals() ) }
         // event listener for the close button in the settings modal
-        if (this.settingsCloseButton) { this.settingsCloseButton.addEventListener('click', () =>  this.hideAllModals() ) };
+        if (this.settingsCloseButton) { this.settingsCloseButton.addEventListener('click', () =>  this.hideAllModals() ) }
+        // event listener for the close button in the edit label modal
+        if (this.newGraphCloseButton) { this.newGraphCloseButton.addEventListener('click', () => this.hideAllModals() ); }
 
         // Allow clicking outside the modal content to close it 
         if (this.editLabelModal) {
@@ -108,6 +116,60 @@ export class ModalsHandler
                 }
             });
         }
+
+        // Show/hide parameter fields depending on selected graph type
+        document.querySelectorAll<HTMLInputElement>("input[name='graphType']").forEach(radio => {
+            radio.addEventListener("change", () => {
+                // hide all parameter sections
+                document.querySelectorAll<HTMLElement>(".parameter").forEach(div => {
+                div.style.display = "none";
+                });
+
+                // show only the relevant one
+                const selected = (radio as HTMLInputElement).value;
+                const paramDiv = document.getElementById(`param-${selected}`);
+                if (paramDiv) paramDiv.style.display = "block";
+            });
+        });
+
+        // Handle form submission
+        document.getElementById("newGraphForm")?.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const form = e.target as HTMLFormElement;
+            const formData = new FormData(form);
+
+            const graphType = formData.get("graphType");
+            let param: number = 1;
+
+            switch (graphType) {
+                case "path":
+                param = Number(formData.get("pathLength"));
+                break;
+                case "cycle":
+                param = Number(formData.get("cycleLength"));
+                break;
+                case "tree":
+                param = Number(formData.get("treeHeight"));
+                break;
+                // case "complete":
+                // params.n = Number(formData.get("completeN"));
+                // break;
+            }
+
+            // console.log("Creating new graph:", graphType, param);
+            // 👉 Call your backend function here:
+            stateHandler.saveState();
+            const newGraph = graph.merge(createGraph(graphType?.toString()!, param) as Graph);
+            selector.selectGraph(newGraph);
+            myCanvasHandler?.redraw();
+            // myCanvasHandler?.fixView(graph,selector);
+            
+            createGraph(graphType?.toString()!, param);
+
+            // Close modal after creation
+            this.hideAllModals();
+        });
     }
 
     public hideAllModals() 
@@ -117,6 +179,7 @@ export class ModalsHandler
         if (this.settingsModal) {
             this.settingsModal.style.display = 'none';
         }
+        this.newGraphModal.style.display = 'none';
         // console.log("hideAllModals");
     }
 
@@ -163,6 +226,11 @@ export class ModalsHandler
             this.settingsLabelDefaultFonstSizeInput.value = settingsOptions.defaultLabelFontSize.toString();
             this.settingsModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
         }
+    }
+
+    public showNewGraphModal()
+    {
+        this.newGraphModal.style.display = 'flex';
     }
 }
 

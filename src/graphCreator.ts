@@ -1,6 +1,19 @@
 import { Graph, Vertex } from "./graph.js";
 
-export function newPath(n: number)
+export function createGraph(type: string, param: number)
+{
+    switch(type)
+    {
+        case "path":
+        return newPath(param);
+        case "cycle":
+        return newCircle(param);
+        case "tree":
+        return newBinaryTree(param);
+    }
+}
+
+function newPath(n: number)
 {
     const path: Graph = new Graph();
     let prev = path.addNewVertex();
@@ -15,7 +28,7 @@ export function newPath(n: number)
     return path;
 }
 
-export function newCircle(n: number)
+function newCircle(n: number)
 {
     const circle: Graph = new Graph();
     const first = circle.addNewVertex();
@@ -27,11 +40,11 @@ export function newCircle(n: number)
         prev = next;
     }
     circle.addEdge(prev,first);
-    circle.makeCircle(0,0,200);
+    circle.makeCircle(0,0,100);
     return circle;
 }
 
-export function newBinaryTree(h: number, xDiff: number = 10, yDiff: number = 50)
+function newBinaryTree(h: number, xDiff: number = 10, yDiff: number = 50)
 {
     const tree: Graph = new Graph();
     const root: Vertex = tree.addNewVertex(0,0);

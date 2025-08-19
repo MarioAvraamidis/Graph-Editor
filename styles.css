@@ -536,6 +536,7 @@ body {
     justify-content: flex-end; /* Align buttons to the right */
     gap: 10px; /* Space between buttons */
     margin-top: 15px;
+    /* text-align: right; */
 }
 
 .modal-actions button {
@@ -545,6 +546,11 @@ body {
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.2s ease;
+}
+
+.parameter {
+  margin-left: 20px;
+  margin-bottom: 10px;
 }
 
 #saveLabelButton {

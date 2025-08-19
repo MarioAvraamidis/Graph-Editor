@@ -4,7 +4,6 @@ import { Graph } from "./graph.js";
 import { StateHandler } from "./stateHandler.js";
 import { exportCanvasAsImage, exportCanvasAsPdf, exportJSON, restoreGraphFromJSON } from "./exporting.js";
 import { SettingsOptions } from "./settings.js";
-import { newPath, newCircle, newBinaryTree } from "./graphCreator.js";
 
 export class BtnHandler
 {
@@ -133,13 +132,13 @@ export class BtnHandler
             this.myCanvasHandler?.redraw();
         });
 
-        document.getElementById("new-circle")?.addEventListener("click", () => {
+        /*document.getElementById("new-circle")?.addEventListener("click", () => {
             this.stateHandler.saveState();
             const tree = graph.merge(newBinaryTree(5));
             this.selector.selectGraph(tree);
             this.myCanvasHandler?.fixView(graph,this.selector);
             this.myCanvasHandler?.redraw();
-        });
+        });*/
     
         // make the graph straight line
         document.getElementById("clear-bends")?.addEventListener("click", () => {

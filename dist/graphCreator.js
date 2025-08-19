@@ -1,5 +1,15 @@
 import { Graph } from "./graph.js";
-export function newPath(n) {
+export function createGraph(type, param) {
+    switch (type) {
+        case "path":
+            return newPath(param);
+        case "cycle":
+            return newCircle(param);
+        case "tree":
+            return newBinaryTree(param);
+    }
+}
+function newPath(n) {
     const path = new Graph();
     let prev = path.addNewVertex();
     let next;
@@ -11,7 +21,7 @@ export function newPath(n) {
     path.straightLine();
     return path;
 }
-export function newCircle(n) {
+function newCircle(n) {
     const circle = new Graph();
     const first = circle.addNewVertex();
     let prev = first, next;
@@ -21,10 +31,10 @@ export function newCircle(n) {
         prev = next;
     }
     circle.addEdge(prev, first);
-    circle.makeCircle(0, 0, 200);
+    circle.makeCircle(0, 0, 100);
     return circle;
 }
-export function newBinaryTree(h, xDiff = 10, yDiff = 50) {
+function newBinaryTree(h, xDiff = 10, yDiff = 50) {
     const tree = new Graph();
     const root = tree.addNewVertex(0, 0);
     let child1, child2;

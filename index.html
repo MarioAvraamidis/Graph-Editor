@@ -42,7 +42,7 @@
           <button id="redo-button">Redo</button>
           <button id="circle-placement"> Circle</button>
           <button id="make-clique"> Clique</button>
-          <button id="new-circle"> New Circle </button>
+          <button id='newGraphBtn'> New Graph </button>
           <!-- <button id="clear-edges"> Clear Edges</button> -->
           <button id="clear-bends"> Clear Bends</button>
           <button id="resetViewButton"> Reset View </button>
@@ -340,6 +340,62 @@
             </div>
         </div>
       </div>
+
+      <!-- New Graph Modal -->
+      <div id="newGraphModal" class="modal">
+        <div class="modal-content">
+          <span class="close-button">&times;</span>
+          <h2>New Graph</h2>
+
+          <form id="newGraphForm">
+            <!-- Option 1: Path -->
+            <label>
+              <input type="radio" name="graphType" value="path" required>
+              Path
+            </label>
+            <div class="parameter" id="param-path" style="display: none;">
+              <label for="pathLength">Length:</label>
+              <input type="number" id="pathLength" name="pathLength" min="1" value="5">
+            </div>
+
+            <!-- Option 2: Cycle -->
+            <label>
+              <input type="radio" name="graphType" value="cycle">
+              Circle
+            </label>
+            <div class="parameter" id="param-cycle" style="display: none;">
+              <label for="cycleLength">Length:</label>
+              <input type="number" id="cycleLength" name="cycleLength" min="3" value="5">
+            </div>
+
+            <!-- Option 3: Tree -->
+            <label>
+              <input type="radio" name="graphType" value="tree">
+              Binary Tree
+            </label>
+            <div class="parameter" id="param-tree" style="display: none;">
+              <label for="treeHeight">Height:</label>
+              <input type="number" id="treeHeight" name="treeHeight" min="1" value="3">
+            </div>
+
+            <!-- Option 4: Complete Graph -->
+            <!-- <label>
+              <input type="radio" name="graphType" value="complete">
+              Complete Graph
+            </label>
+            <div class="parameter" id="param-complete" style="display: none;">
+              <label for="completeN">Number of vertices:</label>
+              <input type="number" id="completeN" name="completeN" min="1" value="4">
+            </div> -->
+
+            <div class="modal-actions">
+              <button type="submit" class="btn">Create</button>
+              <button type="button" class="btn cancel" id="cancelNewGraph">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
 
       <!-- Custom Alert Message -->
       <div id="customAlert" class="custom-alert">
