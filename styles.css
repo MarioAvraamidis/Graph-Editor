@@ -675,3 +675,45 @@ body {
 .custom-alert-close:hover {
     color: #333; /* Darker color on hover */
 }
+
+.export-dropdown {
+  position: relative;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+/* .export-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+} */
+
+.export-menu {
+  display: none;
+  position: absolute;
+  background-color: white;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+  border-radius: 6px;
+  z-index: 1;
+}
+
+.export-menu a {
+  color: black;
+  padding: 10px 14px;
+  text-decoration: none;
+  display: block;
+}
+
+.export-menu a:hover {
+  background-color: #f1f1f1;
+}
+
+.export-dropdown:hover .export-menu {
+  display: block;
+}

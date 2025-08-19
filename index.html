@@ -43,13 +43,17 @@
           <button id="circle-placement"> Circle</button>
           <button id="make-clique"> Clique</button>
           <button id='newGraphBtn'> New Graph </button>
-          <!-- <button id="clear-edges"> Clear Edges</button> -->
           <button id="clear-bends"> Clear Bends</button>
           <button id="resetViewButton"> Reset View </button>
           <button id="fix-view"> Fix View </button>
-          <button id="export-json-btn">Export JSON</button>
-          <button id="export-image">Export PNG</button>
-          <button id="export-pdf">Export PDF</button>
+          <div class="export-dropdown">
+            <button id="export-btn">Export ▼</button>
+            <div class="export-menu">
+              <a href="#" id="export-json-btn">Export as JSON</a>
+              <a href="#" id="export-pdf">Export as PDF</a>
+              <a href="#" id="export-image">Export as PNG</a>
+            </div>
+          </div> 
           <input type="file" id="import-input" accept=".json">
         </div>
 
