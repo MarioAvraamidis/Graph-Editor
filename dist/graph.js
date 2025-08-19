@@ -3,7 +3,7 @@ export class Label {
     constructor(objectId) {
         this._showLabel = false;
         this._offsetX = 0;
-        this._offsetY = 5; // remember that positive is down in canvas
+        this._offsetY = 15; // remember that positive is down in canvas
         this._color = "#000";
         this._fontSize = 14;
         this._content = objectId;
@@ -472,7 +472,7 @@ export class Graph {
             this.addVertex(v);
     }
     // add a new vertex to the graph at the specified position with the id of the max numerical ids and return the vertex
-    addNewVertex(x, y) {
+    addNewVertex(x = 0, y = 0) {
         let newVertex = new Vertex((this.maxVertexId() + 1).toString(), x, y);
         this.addVertex(newVertex);
         return newVertex;
@@ -972,6 +972,26 @@ export class Graph {
             });
             this.updateCrossings();
         }
+    }
+    // place all the non-temporary vertices in a straightline
+    straightLine(xDist = 50, y = 0, vert = []) {
+        // place a selected group of vertices in a straight line
+        if (vert.length > 0) {
+            const half = vert.length / 2;
+            vert.forEach((vertex, index) => {
+                const xPos = (index - half) * xDist;
+                this.moveVertex(vertex, xPos, y, false);
+            });
+        }
+        else {
+            const nonTempVertices = this._vertices.filter(vertex => !vertex.temporary); // array with the non-temporary vertices
+            const half = this.vertices.length / 2;
+            nonTempVertices.forEach((vertex, index) => {
+                const xPos = (index - half) * xDist;
+                this.moveVertex(vertex, xPos, y, false); // don't update crossings for each vertex movement
+            });
+        }
+        this.updateCrossings();
     }
     // check if a given (x,y) point is near any edge of the graph and return the edge (at distance < dist)
     // if the point is near a bend of the edge, do not return the edge (used for drawing)

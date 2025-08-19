@@ -222,7 +222,7 @@ export class CanvasHandler {
             return;
         }
         // --- Handle Degenerate Cases (line or point) ---
-        if (worldWidth === 0 || worldHeight === 0) {
+        if (worldWidth < 1e-5 && worldHeight < 1e-5) {
             // console.log("fixView: Degenerate world dimensions (line or point). Setting scale to 1 and centering.");
             this.scaler.scale = 1.0; // As requested, set scale to 1 for degenerate cases
             // Center the degenerate axis/point on the canvas
@@ -233,10 +233,19 @@ export class CanvasHandler {
         }
         // --- Handle Valid (Non-Degenerate) World Rectangle ---
         // Calculate the scale needed to fit the content with padding
-        const scaleX = (canvasWidth * paddingFactor) / worldWidth;
-        const scaleY = (canvasHeight * paddingFactor) / worldHeight;
+        let scaleX, scaleY, newScale = 1;
+        if (worldWidth >= 1e-5)
+            scaleX = (canvasWidth * paddingFactor) / worldWidth;
+        if (worldHeight >= 1e-5)
+            scaleY = (canvasHeight * paddingFactor) / worldHeight;
         // Choose the smaller scale to ensure the entire content fits
-        let newScale = Math.min(scaleX, scaleY);
+        if (scaleX) {
+            newScale = scaleX;
+            if (scaleY)
+                newScale = Math.min(scaleY, newScale);
+        }
+        else if (scaleY)
+            newScale = scaleY;
         // Clamp the new scale within the defined min/max limits
         newScale = Math.max(this.scaler.MIN_SCALE, Math.min(this.scaler.MAX_SCALE, newScale));
         this.scaler.scale = newScale;

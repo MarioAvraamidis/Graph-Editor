@@ -5,7 +5,7 @@ export class Label
     private _content: string;
     private _showLabel: boolean = false;
     private _offsetX: number = 0;
-    private _offsetY: number = 5;  // remember that positive is down in canvas
+    private _offsetY: number = 15;  // remember that positive is down in canvas
     private _color: string = "#000";
     private _fontSize: number = 14;
 
@@ -599,7 +599,7 @@ export class Graph {
     }
 
     // add a new vertex to the graph at the specified position with the id of the max numerical ids and return the vertex
-    addNewVertex(x: number, y: number)
+    addNewVertex(x: number = 0, y: number = 0)
     {
         let newVertex = new Vertex((this.maxVertexId()+1).toString(),x,y);
         this.addVertex(newVertex);
@@ -1204,6 +1204,30 @@ export class Graph {
             });
             this.updateCrossings();
         }
+    }
+
+    // place all the non-temporary vertices in a straightline
+    straightLine(xDist:number = 50, y: number = 0, vert: Vertex[]=[])
+    {
+        // place a selected group of vertices in a straight line
+        if (vert.length > 0)
+        {
+            const half = vert.length/2;
+            vert.forEach((vertex,index) => {
+                const xPos = (index-half)*xDist;
+                this.moveVertex(vertex, xPos, y, false);
+            })
+        }
+        else
+        {
+            const nonTempVertices = this._vertices.filter(vertex => !vertex.temporary); // array with the non-temporary vertices
+            const half = this.vertices.length/2;
+            nonTempVertices.forEach((vertex, index) => {
+                const xPos = (index-half)*xDist;
+                this.moveVertex(vertex, xPos, y, false);    // don't update crossings for each vertex movement
+            });
+        }
+        this.updateCrossings();
     }
 
     // check if a given (x,y) point is near any edge of the graph and return the edge (at distance < dist)
