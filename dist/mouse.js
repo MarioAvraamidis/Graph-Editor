@@ -83,6 +83,8 @@ export class MouseHandler {
             // label move
             if (!bendedEdgeCreator.creatingEdge)
                 this.draggingLabelPoint = hover.labelPoint;
+            if (this.draggingLabelPoint)
+                stateHandler.saveState();
             this.hasDragged = false;
             this.mousedown = true;
             // save mouse position
