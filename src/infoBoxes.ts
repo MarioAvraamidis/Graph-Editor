@@ -4,15 +4,15 @@ import { Hover, Selector } from "./selector.js";
 
 export class InfoBoxHandler
 {
-    private selector: Selector;
+    // private selector: Selector;
     private hover: Hover;
     private scaler: Scaler;
     private bendedEdgeCreator: BendedEdgeCreator;
     private worldCoords: Coords;
 
-    constructor(selector: Selector, hover: Hover, scaler: Scaler, bendedEdgeCreator: BendedEdgeCreator, worldCoords: Coords)
+    constructor(/* selector: Selector, */hover: Hover, scaler: Scaler, bendedEdgeCreator: BendedEdgeCreator, worldCoords: Coords)
     {
-        this.selector = selector;
+        // this.selector = selector;
         this.hover = hover;
         this.scaler = scaler;
         this.bendedEdgeCreator = bendedEdgeCreator;

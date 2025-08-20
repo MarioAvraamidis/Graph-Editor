@@ -15,7 +15,7 @@ export class Drawer {
         // rubbish bin radius
         this.rubbishBinRadius = 50;
         // infoBoxes
-        this.infoBoxHandler = new InfoBoxHandler(this.selector, this.hover, this.scaler, this.bendedEdgeCreator, this.worldCoords);
+        this.infoBoxHandler = new InfoBoxHandler(/*this.selector,*/ this.hover, this.scaler, this.bendedEdgeCreator, this.worldCoords);
     }
     renderGraph(graph, canvas) {
         if (this.output) {

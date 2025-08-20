@@ -1,6 +1,6 @@
 export class InfoBoxHandler {
-    constructor(selector, hover, scaler, bendedEdgeCreator, worldCoords) {
-        this.selector = selector;
+    constructor(/* selector: Selector, */ hover, scaler, bendedEdgeCreator, worldCoords) {
+        // this.selector = selector;
         this.hover = hover;
         this.scaler = scaler;
         this.bendedEdgeCreator = bendedEdgeCreator;

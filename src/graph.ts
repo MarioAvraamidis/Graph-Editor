@@ -781,13 +781,13 @@ export class Graph {
     // used for cloning
     addEdgee(e: Edge, updateCrossings: boolean = true)
     {
-        const v1 = e.points[0], v2 = e.points[1];
-        if (v1 instanceof Vertex && v2 instanceof Vertex && this.checkEdgeId(v1,v2))
+        const v1 = e.points[0] as Vertex, v2 = e.points[1] as Vertex;
+        if (this.checkEdgeId(v1,v2))
         {
-            this._edges.push(e);
-            // update neighbors
-            v1.addNeighbor(v2);
-            v2.addNeighbor(v1);
+            this.edges.push(e);
+            // update neighbors not necessary as the neighbors are already there
+            // v1.addNeighbor(v2);
+            // v2.addNeighbor(v1);
             // update crossings
             if (updateCrossings)
             {
@@ -1486,11 +1486,10 @@ export class Graph {
         // merge edges
         for (const e of newGraph.edges)
         {
-            const v1 = e.points[0];
-            const v2 = e.points[1];
+            const v1 = e.points[0] as Vertex;
+            const v2 = e.points[1] as Vertex;
             let newEdge: Edge | null = null;
-            if (v1 instanceof Vertex && v2 instanceof Vertex)
-                newEdge = this.addEdge(map.get(v1)!,map.get(v2)!)!;
+            newEdge = this.addEdge(map.get(v1)!,map.get(v2)!)!;
             if (newEdge){
                 newEdge.cloneCharacteristics(e,offset.x,offset.y);
                 newSubGraph.addEdgee(newEdge,false);
