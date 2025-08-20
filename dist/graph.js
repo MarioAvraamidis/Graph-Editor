@@ -3,7 +3,7 @@ export class Label {
     constructor(objectId) {
         this._showLabel = false;
         this._offsetX = 0;
-        this._offsetY = 15; // remember that positive is down in canvas
+        this._offsetY = 20; // remember that positive is down in canvas
         this._color = "#000";
         this._fontSize = 14;
         this._content = objectId;
@@ -296,10 +296,11 @@ export class Edge extends LineSegment {
         this._dashed = dashed;
         this._thickness = thickness;
     }
-    assignBendCharacteristics(color, size) {
+    assignBendCharacteristics(color, size, showLabels = false) {
         this._bends.forEach(b => {
             b.color = color;
             b.size = size;
+            b.label.showLabel = showLabels;
         });
     }
     // check if the entire edge is in a rectangle

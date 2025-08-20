@@ -5,7 +5,7 @@ export class Label
     private _content: string;
     private _showLabel: boolean = false;
     private _offsetX: number = 0;
-    private _offsetY: number = 15;  // remember that positive is down in canvas
+    private _offsetY: number = 20;  // remember that positive is down in canvas
     private _color: string = "#000";
     private _fontSize: number = 14;
 
@@ -374,11 +374,12 @@ export class Edge extends LineSegment
         this._color = color; this._dashed = dashed; this._thickness = thickness;
     }
 
-    assignBendCharacteristics(color: string, size: number)
+    assignBendCharacteristics(color: string, size: number, showLabels: boolean = false)
     {
         this._bends.forEach(b => {
             b.color = color;
             b.size = size;
+            b.label.showLabel = showLabels;
         })
     }
 

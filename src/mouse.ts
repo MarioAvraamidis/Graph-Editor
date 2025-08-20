@@ -32,6 +32,10 @@ export class MouseHandler
     // offsets
     private offsetX = 0;    // x-offset between click position and mouse's current position
     private offsetY = 0;    // y-offset between click position and mouse's current position
+    // showing labels
+    private showVertexLabel = document.getElementById("vertex-show-labels") as HTMLInputElement;
+    private showEdgeLabel = document.getElementById("edge-show-labels") as HTMLInputElement;
+    private showBendLabel = document.getElementById("bend-show-label") as HTMLInputElement;
 
     // get creatingEdge() {return this._creatingEdge; }
     // get startingVertex() { return this._startingVertex; }
@@ -222,7 +226,8 @@ export class MouseHandler
                         // set characteristics for the new edge
                         edge.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
                         edge.label.fontSize = settingsOptions.defaultLabelFontSize; // edge's label font size
-                        edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size);
+                        edge.label.showLabel = this.showEdgeLabel.checked;
+                        edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size/*, this.showBendLabel.checked*/ );
                         // hasDragged = true;  // to not select the hover.vertex
                         // edgeCreated = edge;
                     }
@@ -348,6 +353,7 @@ export class MouseHandler
                     vertex.shape = settingsOptions.vertexChars.shape;
                     vertex.color = settingsOptions.vertexChars.color;
                     vertex.label.fontSize = settingsOptions.defaultLabelFontSize;
+                    vertex.label.showLabel = this.showVertexLabel.checked;
                     // hover.vertex = vertex;
                 }
 

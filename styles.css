@@ -42,7 +42,7 @@ body {
     background-color: #f0f0f0; /* Light grey background for the page */
     height: 100%;
     box-sizing: border-box;
-    /* overflow-y: auto; /* Enable vertical scrolling */
+    overflow-y: auto; /* Enable vertical scrolling */
     overflow-x: hidden; /* Hide horizontal scrollbar if not needed */
 }
 
@@ -409,6 +409,20 @@ body {
   width: 15px;
   text-align: right;
 }*/
+
+/*
+#vertex-show-labels,
+label[for="vertex-show-labels"] {
+  display: inline-block;
+  vertical-align: middle; } /* align them nicely */
+
+.show-label-checkbox {
+  display: flex;
+  align-items: center; /* keeps checkbox and label aligned vertically */
+  gap: 5px;            /* optional spacing */
+  white-space: nowrap;
+  flex-grow: 1;
+}
 
 .tickbox-label-pair {
     display: flex;

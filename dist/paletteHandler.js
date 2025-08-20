@@ -18,17 +18,21 @@ export class PaletteHandler {
         this.vertexPalette = document.getElementById('vertex-palette');
         this.edgePalette = document.getElementById('edge-palette');
         this.bendPalette = document.getElementById('bend-palette');
+        // show labels
+        this.showVertexLabels = document.getElementById("vertex-show-labels");
+        this.showEdgeLabels = document.getElementById("edge-show-labels");
         this.selector = selector;
         this.myCanvasHandler = myCanvasHandler;
         this.stateHandler = stateHandler;
         this.graph = graph;
         this.settingsOptions = settingsOptions;
         this.activateEventListeners();
+        this.updatePaletteState();
         this.addDashedEdgeEventListeners();
         this.collapse();
     }
     activateEventListeners() {
-        var _a;
+        var _a, _b, _c;
         // using palettes
         this.vertexColor.addEventListener("change", () => {
             var _a;
@@ -87,6 +91,16 @@ export class PaletteHandler {
                 // renderGraph();
                 (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
             }
+        });
+        // Show label checkbox
+        (_b = this.showVertexLabels) === null || _b === void 0 ? void 0 : _b.addEventListener("change", () => {
+            this.selector.vertices.forEach(vertex => vertex.label.showLabel = this.showVertexLabels.checked);
+            this.myCanvasHandler.redraw();
+        });
+        // Show label checkbox
+        (_c = this.showEdgeLabels) === null || _c === void 0 ? void 0 : _c.addEventListener("change", () => {
+            this.selector.edges.forEach(edge => edge.label.showLabel = this.showEdgeLabels.checked);
+            this.myCanvasHandler.redraw();
         });
         // bend color
         this.bendColor.addEventListener("change", () => {

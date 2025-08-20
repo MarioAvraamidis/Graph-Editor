@@ -27,6 +27,10 @@ export class PaletteHandler
     private edgePalette = document.getElementById('edge-palette');
     private bendPalette = document.getElementById('bend-palette');
 
+    // show labels
+    private showVertexLabels = document.getElementById("vertex-show-labels") as HTMLInputElement;
+    private showEdgeLabels = document.getElementById("edge-show-labels") as HTMLInputElement;
+
     // helpers
     private selector: Selector;
     private myCanvasHandler: CanvasHandler;
@@ -42,6 +46,7 @@ export class PaletteHandler
         this.graph = graph;
         this.settingsOptions = settingsOptions;
         this.activateEventListeners();
+        this.updatePaletteState();
         this.addDashedEdgeEventListeners();
         this.collapse();
     }
@@ -111,6 +116,18 @@ export class PaletteHandler
                 this.myCanvasHandler?.redraw();
             }
         });
+
+        // Show label checkbox
+        this.showVertexLabels?.addEventListener("change", () => {
+            this.selector.vertices.forEach(vertex => vertex.label.showLabel = this.showVertexLabels.checked);
+            this.myCanvasHandler.redraw();
+        })
+        
+        // Show label checkbox
+        this.showEdgeLabels?.addEventListener("change", () => {
+            this.selector.edges.forEach(edge => edge.label.showLabel = this.showEdgeLabels.checked);
+            this.myCanvasHandler.redraw();
+        })
 
         // bend color
         this.bendColor.addEventListener("change", () => {

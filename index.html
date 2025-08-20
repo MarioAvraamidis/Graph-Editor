@@ -148,6 +148,11 @@
                   <button id="rename-vertex">Rename</button>
                 </div>
 
+                <div class="show-label-checkbox">
+                  <input type="checkbox" id="vertex-show-labels" checked>
+                  <label for="vertex-show-labels">Show Label</label>
+                </div>
+
                 <button id="delete-vertex-palette">Delete</button>
               </div>
             </div>
@@ -180,9 +185,11 @@
                         </button>
                     </div>
                 </div>
-                
-            
-                <button id="delete-edge-palette">Delete</button>
+
+                <div class="show-label-checkbox">
+                  <input type="checkbox" id="edge-show-labels">
+                  <label for="edge-show-labels">Show Label</label>
+                </div>
 
                 <div class="tickbox-label-pair">
                   <input type="checkbox" id="highlight-crossing-edges" checked >
@@ -193,6 +200,9 @@
                   <input type="checkbox" id="highlight-non-crossing-edges" >
                   <label for="highlight-non-crossing-edges" data-color-key="nonCrossing">Highlight non-Crossing Edges</label>
                 </div>
+                
+                <button id="delete-edge-palette">Delete</button>
+
               </div>
             </div>
 
@@ -212,6 +222,11 @@
                   <div class="palette-row">
                       <label for="bend-size">Size:</label>
                       <input type="number" id="bend-size" min="2" max="30" />
+                  </div>
+
+                  <div class="show-label-checkbox">
+                    <input type="checkbox" id="bend-show-labels">
+                    <label for="bend-show-labels">Show Label</label>
                   </div>
 
                   <button id="delete-bend">Delete </button>

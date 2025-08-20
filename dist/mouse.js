@@ -28,6 +28,10 @@ export class MouseHandler {
         // offsets
         this.offsetX = 0; // x-offset between click position and mouse's current position
         this.offsetY = 0; // y-offset between click position and mouse's current position
+        // showing labels
+        this.showVertexLabel = document.getElementById("vertex-show-labels");
+        this.showEdgeLabel = document.getElementById("edge-show-labels");
+        this.showBendLabel = document.getElementById("bend-show-label");
         this.addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator);
     }
     addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator) {
@@ -184,7 +188,8 @@ export class MouseHandler {
                         // set characteristics for the new edge
                         edge.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
                         edge.label.fontSize = settingsOptions.defaultLabelFontSize; // edge's label font size
-                        edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size);
+                        edge.label.showLabel = this.showEdgeLabel.checked;
+                        edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size /*, this.showBendLabel.checked*/);
                         // hasDragged = true;  // to not select the hover.vertex
                         // edgeCreated = edge;
                     }
@@ -296,6 +301,7 @@ export class MouseHandler {
                 vertex.shape = settingsOptions.vertexChars.shape;
                 vertex.color = settingsOptions.vertexChars.color;
                 vertex.label.fontSize = settingsOptions.defaultLabelFontSize;
+                vertex.label.showLabel = this.showVertexLabel.checked;
                 // hover.vertex = vertex;
             }
             // add a new bend in the addBend mode if hovering over an edge
