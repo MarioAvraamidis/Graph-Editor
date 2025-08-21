@@ -370,7 +370,7 @@ export class Edge extends LineSegment
 
     assignBendCharacteristics(color: string, size: number, showLabels: boolean = false)
     {
-        this._bends.forEach(b => {
+        this.bends.forEach(b => {
             b.color = color;
             b.size = size;
             b.label.showLabel = showLabels;

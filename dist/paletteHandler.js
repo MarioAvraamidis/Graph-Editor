@@ -21,6 +21,7 @@ export class PaletteHandler {
         // show labels
         this.showVertexLabels = document.getElementById("vertex-show-labels");
         this.showEdgeLabels = document.getElementById("edge-show-labels");
+        this.showBendLabels = document.getElementById("bend-show-labels");
         this.selector = selector;
         this.myCanvasHandler = myCanvasHandler;
         this.stateHandler = stateHandler;
@@ -32,7 +33,7 @@ export class PaletteHandler {
         this.collapse();
     }
     activateEventListeners() {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         // using palettes
         this.vertexColor.addEventListener("change", () => {
             var _a;
@@ -100,11 +101,17 @@ export class PaletteHandler {
                 this.myCanvasHandler.redraw();
             }
         });
-        // Show label checkbox
         (_c = this.showEdgeLabels) === null || _c === void 0 ? void 0 : _c.addEventListener("change", () => {
             if (this.selector.edges.length > 0) {
                 this.stateHandler.saveState();
                 this.selector.edges.forEach(edge => edge.label.showLabel = this.showEdgeLabels.checked);
+                this.myCanvasHandler.redraw();
+            }
+        });
+        (_d = this.showBendLabels) === null || _d === void 0 ? void 0 : _d.addEventListener("change", () => {
+            if (this.selector.bends.length > 0) {
+                this.stateHandler.saveState();
+                this.selector.bends.forEach(bend => bend.label.showLabel = this.showBendLabels.checked);
                 this.myCanvasHandler.redraw();
             }
         });
@@ -294,6 +301,7 @@ export class PaletteHandler {
             bendColorPicker.value = b.color;
             // bendShape.value = b.shape;
             this.bendSize.value = b.size.toString();
+            this.showBendLabels.checked = b.label.showLabel;
         }
         else {
             bendColorPicker.value = this.settingsOptions.bendChars.color;

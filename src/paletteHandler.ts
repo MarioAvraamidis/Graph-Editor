@@ -30,6 +30,7 @@ export class PaletteHandler
     // show labels
     private showVertexLabels = document.getElementById("vertex-show-labels") as HTMLInputElement;
     private showEdgeLabels = document.getElementById("edge-show-labels") as HTMLInputElement;
+    private showBendLabels = document.getElementById("bend-show-labels") as HTMLInputElement;
 
     // helpers
     private selector: Selector;
@@ -126,13 +127,19 @@ export class PaletteHandler
                 this.myCanvasHandler.redraw();
             }
         })
-        
-        // Show label checkbox
         this.showEdgeLabels?.addEventListener("change", () => {
             if (this.selector.edges.length > 0)
             {
                 this.stateHandler.saveState();
                 this.selector.edges.forEach(edge => edge.label.showLabel = this.showEdgeLabels.checked);
+                this.myCanvasHandler.redraw();
+            }
+        })
+        this.showBendLabels?.addEventListener("change", () => {
+            if (this.selector.bends.length > 0)
+            {
+                this.stateHandler.saveState();
+                this.selector.bends.forEach(bend => bend.label.showLabel = this.showBendLabels.checked);
                 this.myCanvasHandler.redraw();
             }
         })
@@ -345,6 +352,7 @@ export class PaletteHandler
             bendColorPicker.value = b.color;
             // bendShape.value = b.shape;
             this.bendSize.value = b.size.toString();
+            this.showBendLabels.checked = b.label.showLabel;
         }
         else{
             bendColorPicker.value = this.settingsOptions.bendChars.color;

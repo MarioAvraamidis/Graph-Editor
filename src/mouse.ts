@@ -256,7 +256,7 @@ export class MouseHandler
                     {
                         bendedEdgeCreator.edgeCreated.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
                         bendedEdgeCreator.edgeCreated.label.fontSize = settingsOptions.defaultLabelFontSize; // edge's label font size
-                        bendedEdgeCreator.edgeCreated.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size);
+                        bendedEdgeCreator.edgeCreated.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size, this.showBendLabel.checked);
                     }
                 }
             }
