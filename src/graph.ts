@@ -51,12 +51,6 @@ export abstract class Point
     private _color: string = "#000000";
     // labeling
     label: Label;
-    /*private _labelContent: string;
-    private _showLabel: boolean = false;
-    labelOffsetX: number = 0;
-    labelOffsetY: number = 5;  // remember that positive is down in canvas
-    labelColor: string = "#000";
-    labelFont: number = 14;*/
 
     constructor(id: string, x_pos?:number, y_pos?:number)
     {

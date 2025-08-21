@@ -1,26 +1,28 @@
 import { Graph, Vertex } from "./graph.js";
 
-export function createGraph(type: string, param: number)
+export function createGraph(type: string, param: number, labelFontSize: number = 14)
 {
     switch(type)
     {
         case "path":
-        return newPath(param);
+        return newPath(param, labelFontSize);
         case "cycle":
-        return newCircle(param);
+        return newCircle(param, labelFontSize);
         case "tree":
-        return newBinaryTree(param);
+        return newBinaryTree(param, labelFontSize);
     }
 }
 
-function newPath(n: number)
+function newPath(n: number, labelFontSize: number = 14)
 {
     const path: Graph = new Graph();
     let prev = path.addNewVertex();
+    prev.label.fontSize = labelFontSize;   // label font size from settings
     let next;
     for (let i=1;i<n;i++)
     {
         next = path.addNewVertex();
+        next.label.fontSize = labelFontSize;   // label font size from settings
         path.addEdge(prev,next,false);
         prev = next;
     }
@@ -28,14 +30,16 @@ function newPath(n: number)
     return path;
 }
 
-function newCircle(n: number)
+function newCircle(n: number, labelFontSize: number = 14)
 {
     const circle: Graph = new Graph();
     const first = circle.addNewVertex();
+    first.label.fontSize = labelFontSize;   // label font size from settings
     let prev=first, next;
     for (let i=1;i<n;i++)
     {
         next = circle.addNewVertex();
+        next.label.fontSize = labelFontSize;   // label font size from settings
         circle.addEdge(prev,next,false);
         prev = next;
     }
@@ -44,10 +48,11 @@ function newCircle(n: number)
     return circle;
 }
 
-function newBinaryTree(h: number, xDiff: number = 10, yDiff: number = 50)
+function newBinaryTree(h: number, labelFontSize: number = 14, xDiff: number = 10, yDiff: number = 50)
 {
     const tree: Graph = new Graph();
     const root: Vertex = tree.addNewVertex(0,0);
+    root.label.fontSize = labelFontSize;   // label font size from settings
     let child1, child2: Vertex;
     let prevLayer: Vertex[] = [], newLayer: Vertex[] = [];
     prevLayer.push(root);
@@ -59,6 +64,8 @@ function newBinaryTree(h: number, xDiff: number = 10, yDiff: number = 50)
             // create children of each vertex
             child1 = tree.addNewVertex(v.x - xDiff*2**(h-i), v.y + yDiff);
             child2 = tree.addNewVertex(v.x + xDiff*2**(h-i), v.y + yDiff);
+            child1.label.fontSize = labelFontSize;   // label font size from settings
+            child2.label.fontSize = labelFontSize;   // label font size from settings
             // connect the children to the parent
             tree.addEdge(v,child1,false);
             tree.addEdge(v,child2,false);

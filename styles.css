@@ -196,9 +196,11 @@ body {
   }
   
   .palette-row label {
-    margin-right: 8px;
+    /* margin-right: 8px; */
     white-space: nowrap;
     flex: 1;
+    font-size: 13px;
+    width: 40%;
   }
   
   .palette-row input,
@@ -206,6 +208,7 @@ body {
     flex: 2;
     padding: 2px 4px;
     font-size: 12px;
+    /* width: 30%; */
   }
 
 .palette-header {
@@ -418,27 +421,47 @@ label[for="vertex-show-labels"] {
 
 .show-label-checkbox {
   display: flex;
-  align-items: center; /* keeps checkbox and label aligned vertically */
+  /* align-items: baseline; /* keeps checkbox and label aligned vertically */
   gap: 5px;            /* optional spacing */
   white-space: nowrap;
-  flex-grow: 1;
+  /* flex-grow: 1; */
+}
+
+.show-label-checkbox input[type="checkbox"]
+{
+    width: 10%;
+    vertical-align: middle;
+    margin: 0; /* reset default browser margins */
+    /* align-items: center;    /* Vertically align items in the center */
+}
+
+.show-label-checkbox label {
+    /* flex-grow: 1; /* Allow the label to take up remaining space */
+    /* align-items: center;    /* Vertically align items in the center */
+    width: 90%;
+    font-size: 13px;
 }
 
 .tickbox-label-pair {
     display: flex;
-    align-items: center; /* Vertically align items in the center */
+    gap: 5px;
+    /* align-items: center; /* Vertically align items in the center */
 }
 
 .tickbox-label-pair input[type="checkbox"] {
-    margin-right: 5px; /* Add some space between checkbox and label */
+    /* margin-right: 5px; /* Add some space between checkbox and label */
+    width: 10%;
+    vertical-align: middle;
+    margin: 0;
     /* margin-top: 7px;
     /* flex-shrink: 0; /* Prevent checkbox from shrinking */
 }
 
 .tickbox-label-pair label {
-    flex-grow: 1; /* Allow the label to take up remaining space */
+    /* flex-grow: 1; /* Allow the label to take up remaining space */
     white-space: nowrap; /* Still a good idea to prevent wrapping */
-    font-size: 12px;
+    font-size: 13px;
+    width: 90%;
 }
 
 .context-menu {

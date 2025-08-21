@@ -94,13 +94,19 @@ export class PaletteHandler {
         });
         // Show label checkbox
         (_b = this.showVertexLabels) === null || _b === void 0 ? void 0 : _b.addEventListener("change", () => {
-            this.selector.vertices.forEach(vertex => vertex.label.showLabel = this.showVertexLabels.checked);
-            this.myCanvasHandler.redraw();
+            if (this.selector.vertices.length > 0) {
+                this.stateHandler.saveState();
+                this.selector.vertices.forEach(vertex => vertex.label.showLabel = this.showVertexLabels.checked);
+                this.myCanvasHandler.redraw();
+            }
         });
         // Show label checkbox
         (_c = this.showEdgeLabels) === null || _c === void 0 ? void 0 : _c.addEventListener("change", () => {
-            this.selector.edges.forEach(edge => edge.label.showLabel = this.showEdgeLabels.checked);
-            this.myCanvasHandler.redraw();
+            if (this.selector.edges.length > 0) {
+                this.stateHandler.saveState();
+                this.selector.edges.forEach(edge => edge.label.showLabel = this.showEdgeLabels.checked);
+                this.myCanvasHandler.redraw();
+            }
         });
         // bend color
         this.bendColor.addEventListener("change", () => {
@@ -258,6 +264,7 @@ export class PaletteHandler {
             const v = this.selector.vertices[this.selector.vertices.length - 1]; // use last selected
             vertexColorPicker.value = v.color;
             this.vertexSize.value = v.size.toString();
+            this.showVertexLabels.checked = v.label.showLabel;
             // Enable shape buttons
             this.vertexShapeButtons.forEach(btn => {
                 btn.removeAttribute("disabled");
@@ -296,6 +303,8 @@ export class PaletteHandler {
             const e = this.selector.edges[this.selector.edges.length - 1];
             edgeColorPicker.value = e.color;
             this.edgeThickness.value = e.thickness.toString();
+            // show label checkbox
+            this.showEdgeLabels.checked = e.label.showLabel;
             // update dashed edge buttons
             if (e.dashed) {
                 toggleContinuousButton === null || toggleContinuousButton === void 0 ? void 0 : toggleContinuousButton.classList.remove("active");

@@ -32,12 +32,6 @@ export class Label {
     }
 }
 export class Point {
-    /*private _labelContent: string;
-    private _showLabel: boolean = false;
-    labelOffsetX: number = 0;
-    labelOffsetY: number = 5;  // remember that positive is down in canvas
-    labelColor: string = "#000";
-    labelFont: number = 14;*/
     constructor(id, x_pos, y_pos) {
         this._x = 10;
         this._y = 10;

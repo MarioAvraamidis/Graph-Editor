@@ -132,7 +132,7 @@ export class ModalsHandler {
             // console.log("Creating new graph:", graphType, param);
             // 👉 Call your backend function here:
             stateHandler.saveState();
-            const newGraph = graph.merge(createGraph(graphType === null || graphType === void 0 ? void 0 : graphType.toString(), param));
+            const newGraph = graph.merge(createGraph(graphType === null || graphType === void 0 ? void 0 : graphType.toString(), param, this.settingsOptions.defaultLabelFontSize));
             selector.selectGraph(newGraph);
             myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
             // myCanvasHandler?.fixView(graph,selector);

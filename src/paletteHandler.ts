@@ -119,14 +119,22 @@ export class PaletteHandler
 
         // Show label checkbox
         this.showVertexLabels?.addEventListener("change", () => {
-            this.selector.vertices.forEach(vertex => vertex.label.showLabel = this.showVertexLabels.checked);
-            this.myCanvasHandler.redraw();
+            if (this.selector.vertices.length > 0)
+            {
+                this.stateHandler.saveState();
+                this.selector.vertices.forEach(vertex => vertex.label.showLabel = this.showVertexLabels.checked);
+                this.myCanvasHandler.redraw();
+            }
         })
         
         // Show label checkbox
         this.showEdgeLabels?.addEventListener("change", () => {
-            this.selector.edges.forEach(edge => edge.label.showLabel = this.showEdgeLabels.checked);
-            this.myCanvasHandler.redraw();
+            if (this.selector.edges.length > 0)
+            {
+                this.stateHandler.saveState();
+                this.selector.edges.forEach(edge => edge.label.showLabel = this.showEdgeLabels.checked);
+                this.myCanvasHandler.redraw();
+            }
         })
 
         // bend color
@@ -304,6 +312,7 @@ export class PaletteHandler
             const v = this.selector.vertices[this.selector.vertices.length - 1]; // use last selected
             vertexColorPicker.value = v.color;
             this.vertexSize.value = v.size.toString();
+            this.showVertexLabels.checked = v.label.showLabel;
             // Enable shape buttons
             this.vertexShapeButtons.forEach(btn => {
                 btn.removeAttribute("disabled");
@@ -346,6 +355,8 @@ export class PaletteHandler
             const e = this.selector.edges[this.selector.edges.length-1]
             edgeColorPicker.value = e.color;
             this.edgeThickness.value = e.thickness.toString();
+            // show label checkbox
+            this.showEdgeLabels.checked = e.label.showLabel;
             // update dashed edge buttons
             if (e.dashed)
             {
