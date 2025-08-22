@@ -2,6 +2,7 @@ import { Vertex } from "./graph.js";
 import { createGraph } from "./graphCreator.js";
 export class ModalsHandler {
     constructor(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector) {
+        this.editLabelChanges = false;
         this.settingsCrossingsColorInput = []; // crossings colors
         this.settingsCrossingEdgesColorInput = []; // crossing edges colors
         // new graph modal
@@ -33,7 +34,7 @@ export class ModalsHandler {
         this.hideAllModals();
     }
     addEventListeners(graph, myCanvasHandler, stateHandler, hover, selector) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f, _g;
         // listener for settings button
         (_a = document.getElementById('settingsBtn')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', () => this.showSettingsModal(this.settingsOptions));
         // listener for new graph button
@@ -52,12 +53,16 @@ export class ModalsHandler {
             //hideSettingsModal();
             this.hideAllModals();
         });
-        // save button listener
-        (_d = this.saveLabelButton) === null || _d === void 0 ? void 0 : _d.addEventListener('click', () => {
-            if (this.labelContentInput && this.labelFontSizeInput && hover.labelPoint) {
+        (_d = this.labelContentInput) === null || _d === void 0 ? void 0 : _d.addEventListener('change', () => { this.editLabelChanges = true; console.log("label content change"); });
+        (_e = this.labelFontSizeInput) === null || _e === void 0 ? void 0 : _e.addEventListener('change', () => { this.editLabelChanges = true; console.log("label size change"); });
+        // save button listener for label modal
+        (_f = this.saveLabelButton) === null || _f === void 0 ? void 0 : _f.addEventListener('click', () => {
+            if (this.labelContentInput && this.labelFontSizeInput && hover.labelPoint && this.editLabelChanges) {
+                console.log("label save button");
                 stateHandler.saveState();
                 hover.labelPoint.label.content = this.labelContentInput.value;
                 hover.labelPoint.label.fontSize = parseInt(this.labelFontSizeInput.value);
+                this.editLabelChanges = false;
                 // checkHovered();
                 myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
             }
@@ -109,7 +114,7 @@ export class ModalsHandler {
             });
         });
         // Handle form submission
-        (_e = document.getElementById("newGraphForm")) === null || _e === void 0 ? void 0 : _e.addEventListener("submit", (e) => {
+        (_g = document.getElementById("newGraphForm")) === null || _g === void 0 ? void 0 : _g.addEventListener("submit", (e) => {
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);

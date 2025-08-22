@@ -6,6 +6,7 @@ import { PaletteHandler } from "./paletteHandler.js";
 import { Hover, Selector } from "./selector.js";
 import { StateHandler } from "./stateHandler.js";
 import { SettingsOptions } from "./settings.js";
+import { RubbishBin } from "./rubbishBin.js";
 
 export class MouseHandler
 {
@@ -19,7 +20,7 @@ export class MouseHandler
     // private _startingVertex: Vertex | null = null;   // the vertex from which an edge starts
     private canClick: boolean = true;               // is activated a click after an edge creation is done
     // private edgeCreated: Edge | null = null;        // the new edge that is being created during edge creation
-    private _rubbishBinRadius: number = 50;
+    // private _rubbishBinRadius: number = 50;
     // new Vertex
     private canAddVertex: boolean = true;
     // mousedown
@@ -40,14 +41,14 @@ export class MouseHandler
     // get creatingEdge() {return this._creatingEdge; }
     // get startingVertex() { return this._startingVertex; }
     get mouse() { return this._mouse; }
-    get rubbishBinRadius() { return this._rubbishBinRadius; }
+    // get rubbishBinRadius() { return this._rubbishBinRadius; }
 
-    constructor(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator)
+    constructor(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
     {
-        this.addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator);
+        this.addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
     }
 
-    private addEventListeners(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator)
+    private addEventListeners(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
     {
         const draggingPoints: Point[] = [];
         // detect vertex/bend selection
@@ -214,8 +215,7 @@ export class MouseHandler
 
             if (bendedEdgeCreator.startingVertex && bendedEdgeCreator.creatingEdge)
             {
-                const rect = canvas.getBoundingClientRect();
-                const binPos = scaler.screenToWorld(rect.left+this.rubbishBinRadius,rect.top+this.rubbishBinRadius);
+                rubbishBin.updatePos(canvas,scaler);
                 if (hover.vertex)  // add a straight edge
                 {
                     const edge = graph.addEdgeAdvanced(bendedEdgeCreator.startingVertex,hover.vertex);
@@ -232,7 +232,7 @@ export class MouseHandler
                         // edgeCreated = edge;
                     }
                 }
-                else if (binPos && this.isMouseNear(worldCoords, binPos.x,binPos.y,this.rubbishBinRadius/scaler.scale)) // stop creating vertex if clicked on the up-left corner (a bin should be drawn to show the option)
+                else if (this.isMouseNear(worldCoords, rubbishBin.pos,rubbishBin.radius/scaler.scale)) // stop creating vertex if clicked on the up-left corner (a bin should be drawn to show the option)
                 {
                     if (bendedEdgeCreator.edgeCreated !== null)   // delete the edge created
                         graph.deleteEdgee(bendedEdgeCreator.edgeCreated);
@@ -405,10 +405,10 @@ export class MouseHandler
         });
     }
 
-    private isMouseNear(worldCoords: Coords, x: number, y: number, dist: number)
+    private isMouseNear(worldCoords: Coords, pos: {x: number, y: number}, dist: number)
     {
         // return Math.hypot(mouse.x-x,mouse.y-y)<dist;
-        return Math.hypot(worldCoords.x-x,worldCoords.y-y)<dist;
+        return Math.hypot(worldCoords.x-pos.x,worldCoords.y-pos.y)<dist;
     }
         
     // check if the given number is in [-limit, limit]. If not, return the nearest endpoint

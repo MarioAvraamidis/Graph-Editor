@@ -128,7 +128,7 @@ export class Cmenu {
                         myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
                         break;
                     case "showLabel":
-                        if (hover.edge) {
+                        if (hover.edge && !hover.edge.label.showLabel) {
                             stateHandler.saveState();
                             hover.edge.label.showLabel = true;
                             hover.check(myCanvasHandler.getScale());
@@ -136,7 +136,7 @@ export class Cmenu {
                         }
                         break;
                     case "hideLabel":
-                        if (hover.edge) {
+                        if (hover.edge && hover.edge.label.showLabel) {
                             stateHandler.saveState();
                             hover.edge.label.showLabel = false;
                             hover.check(myCanvasHandler.getScale());
@@ -202,7 +202,7 @@ export class Cmenu {
                 this.hideContextMenu(); // Hide menu after selection
                 switch (action) {
                     case "showLabel":
-                        if (hover.point) // no need to check, as this.pointMenu is triggered only when hover.point is not null
+                        if (hover.point && !hover.point.label.showLabel) // no need to check, as this.pointMenu is triggered only when hover.point is not null
                          {
                             stateHandler.saveState();
                             hover.point.label.showLabel = true;
@@ -211,7 +211,7 @@ export class Cmenu {
                         }
                         break;
                     case "hideLabel":
-                        if (hover.point) {
+                        if (hover.point && hover.point.label.showLabel) {
                             stateHandler.saveState();
                             hover.point.label.showLabel = false;
                             hover.check(myCanvasHandler.getScale());

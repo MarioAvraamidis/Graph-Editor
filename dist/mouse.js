@@ -3,8 +3,8 @@ export class MouseHandler {
     // get creatingEdge() {return this._creatingEdge; }
     // get startingVertex() { return this._startingVertex; }
     get mouse() { return this._mouse; }
-    get rubbishBinRadius() { return this._rubbishBinRadius; }
-    constructor(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator) {
+    // get rubbishBinRadius() { return this._rubbishBinRadius; }
+    constructor(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin) {
         // mouse
         this._mouse = { x: 0, y: 0 };
         // dragging
@@ -15,7 +15,7 @@ export class MouseHandler {
         // private _startingVertex: Vertex | null = null;   // the vertex from which an edge starts
         this.canClick = true; // is activated a click after an edge creation is done
         // private edgeCreated: Edge | null = null;        // the new edge that is being created during edge creation
-        this._rubbishBinRadius = 50;
+        // private _rubbishBinRadius: number = 50;
         // new Vertex
         this.canAddVertex = true;
         // mousedown
@@ -32,9 +32,9 @@ export class MouseHandler {
         this.showVertexLabel = document.getElementById("vertex-show-labels");
         this.showEdgeLabel = document.getElementById("edge-show-labels");
         this.showBendLabel = document.getElementById("bend-show-labels");
-        this.addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator);
+        this.addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
     }
-    addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator) {
+    addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin) {
         const draggingPoints = [];
         // detect vertex/bend selection
         canvas.addEventListener("mousedown", (e) => {
@@ -176,8 +176,7 @@ export class MouseHandler {
             // check hovering
             hover.check(scaler.scale);
             if (bendedEdgeCreator.startingVertex && bendedEdgeCreator.creatingEdge) {
-                const rect = canvas.getBoundingClientRect();
-                const binPos = scaler.screenToWorld(rect.left + this.rubbishBinRadius, rect.top + this.rubbishBinRadius);
+                rubbishBin.updatePos(canvas, scaler);
                 if (hover.vertex) // add a straight edge
                  {
                     const edge = graph.addEdgeAdvanced(bendedEdgeCreator.startingVertex, hover.vertex);
@@ -194,7 +193,7 @@ export class MouseHandler {
                         // edgeCreated = edge;
                     }
                 }
-                else if (binPos && this.isMouseNear(worldCoords, binPos.x, binPos.y, this.rubbishBinRadius / scaler.scale)) // stop creating vertex if clicked on the up-left corner (a bin should be drawn to show the option)
+                else if (this.isMouseNear(worldCoords, rubbishBin.pos, rubbishBin.radius / scaler.scale)) // stop creating vertex if clicked on the up-left corner (a bin should be drawn to show the option)
                  {
                     if (bendedEdgeCreator.edgeCreated !== null) // delete the edge created
                         graph.deleteEdgee(bendedEdgeCreator.edgeCreated);
@@ -346,9 +345,9 @@ export class MouseHandler {
             paletteHandler.updatePaletteState();
         });
     }
-    isMouseNear(worldCoords, x, y, dist) {
+    isMouseNear(worldCoords, pos, dist) {
         // return Math.hypot(mouse.x-x,mouse.y-y)<dist;
-        return Math.hypot(worldCoords.x - x, worldCoords.y - y) < dist;
+        return Math.hypot(worldCoords.x - pos.x, worldCoords.y - pos.y) < dist;
     }
     // check if the given number is in [-limit, limit]. If not, return the nearest endpoint
     // limit must be non negative

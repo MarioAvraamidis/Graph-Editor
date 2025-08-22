@@ -11,6 +11,8 @@ import { Cmenu } from "./contextMenu.js";
 import { MouseHandler } from "./mouse.js";
 import { Drawer } from "./draw.js";
 import { SettingsOptions } from "./settings.js";
+import { setOverlayCanvas } from "./overlayCanvas.js";
+import { RubbishBin } from "./rubbishBin.js";
 
 let graph = new Graph();        // Create a graph instance
 let stateHandler: StateHandler; // undo/redo utilities
@@ -21,6 +23,7 @@ let btnHandler: BtnHandler;     // buttons handler
 let cmenu: Cmenu;               // context menus
 let drawer: Drawer;             // drawing
 let scaler: Scaler;             // zoom
+let rubbishBin: RubbishBin      // rubbish bin when creating bended edge
 let worldCoords: Coords         // graph coordinates of cursor (used when transforming during zoom)
 let mouseHandler: MouseHandler; // handle mouse events (mousedown, mouseup, mousemove, click)
 let settingsOptions: SettingsOptions;       // settings/default options
@@ -38,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx = canvas.getContext("2d");
         if (!ctx)
             throw new Error("Could not get canvas rendering context");
+        setOverlayCanvas();
         worldCoords = new Coords();
         stateHandler = new StateHandler(graph);
         selector = new Selector();
@@ -46,13 +50,14 @@ document.addEventListener('DOMContentLoaded', () => {
         copier = new Copier();
         bendedEdgeCreator = new BendedEdgeCreator();
         scaler = new Scaler(canvas);
-        drawer = new Drawer(selector,settingsOptions,hover,worldCoords,scaler,bendedEdgeCreator);
+        rubbishBin = new RubbishBin(50,{x:0, y:0});  // initial pos is not valid. It's update when drawing
+        drawer = new Drawer(selector,settingsOptions,hover,worldCoords,scaler,bendedEdgeCreator,rubbishBin);
         myCanvasHandler = new CanvasHandler('graphCanvas',drawer,graph);
         paletteHandler = new PaletteHandler(selector,myCanvasHandler,stateHandler,graph,settingsOptions);
         modalsHandler = new ModalsHandler(graph,myCanvasHandler,stateHandler,hover,settingsOptions,selector);
         btnHandler = new BtnHandler(graph,myCanvasHandler,selector,stateHandler,copier,settingsOptions);
         cmenu = new Cmenu(graph,worldCoords,canvas,copier,selector,stateHandler,myCanvasHandler,modalsHandler,hover);
-        mouseHandler = new MouseHandler(graph,canvas,worldCoords,cmenu,hover,selector,stateHandler,paletteHandler,settingsOptions,scaler,myCanvasHandler,bendedEdgeCreator);
+        mouseHandler = new MouseHandler(graph,canvas,worldCoords,cmenu,hover,selector,stateHandler,paletteHandler,settingsOptions,scaler,myCanvasHandler,bendedEdgeCreator, rubbishBin);
         myCanvasHandler.redraw();
 
         // Example: If your graph data changes later (not due to zoom/pan),

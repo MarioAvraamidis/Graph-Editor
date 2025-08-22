@@ -155,7 +155,7 @@ export class Cmenu
                         myCanvasHandler?.redraw(); 
                         break;
                     case "showLabel":
-                        if (hover.edge)
+                        if (hover.edge && !hover.edge.label.showLabel)
                         {
                             stateHandler.saveState();
                             hover.edge.label.showLabel = true;
@@ -164,7 +164,7 @@ export class Cmenu
                         }
                         break;
                     case "hideLabel":
-                        if (hover.edge)
+                        if (hover.edge && hover.edge.label.showLabel)
                         {
                             stateHandler.saveState();
                             hover.edge.label.showLabel = false;
@@ -239,7 +239,7 @@ export class Cmenu
 
                 switch (action) {
                     case "showLabel":
-                        if (hover.point)   // no need to check, as this.pointMenu is triggered only when hover.point is not null
+                        if (hover.point && !hover.point.label.showLabel)   // no need to check, as this.pointMenu is triggered only when hover.point is not null
                         {
                             stateHandler.saveState();
                             hover.point.label.showLabel = true;
@@ -248,7 +248,7 @@ export class Cmenu
                         }
                         break;
                     case "hideLabel":
-                        if (hover.point)
+                        if (hover.point && hover.point.label.showLabel)
                         {
                             stateHandler.saveState();
                             hover.point.label.showLabel = false;

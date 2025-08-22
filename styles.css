@@ -28,6 +28,24 @@ h1 {
     height: 100%; /* Make it take 100% of its parent's height */
     /* background-color: #f9f9f9; */
 }
+
+.overlay-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 150px;
+  display: inline-block;
+  resize: both;            /* enables resize */
+  overflow: hidden;        /* needed for resize */
+  border: 2px solid black;
+}
+
+#overlayCanvas{
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* <--- makes it display-only */
+}
 /* Basic styling for the entire page */
 body {
     margin: 0;
@@ -60,7 +78,7 @@ body {
     /* height: 500px; */
 
     position: relative; /* Useful for positioning elements inside if needed later */
-    display: flex; /* Using flex to help center the canvas within this container */
+    display: inline-block; /*flex; /* Using flex to help center the canvas within this container */
     justify-content: center;
     align-items: center;
 }

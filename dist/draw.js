@@ -2,18 +2,19 @@
 import { InfoBoxHandler } from "./infoBoxes.js";
 export class Drawer {
     getScaler() { return this.scaler; }
-    constructor(/* paletteHandler: PaletteHandler,*/ selector, settingsOptions, hover, worldCoords, scaler, bendedEdgeCreator) {
+    constructor(/* paletteHandler: PaletteHandler,*/ selector, settingsOptions, hover, worldCoords, scaler, bendedEdgeCreator, rubbishBin) {
         this.output = document.getElementById("output");
         // this.paletteHandler = paletteHandler;
         this.selector = selector;
         this.settingsOptions = settingsOptions;
         this.hover = hover;
         this.worldCoords = worldCoords;
+        this.rubbishBin = rubbishBin;
         // this.mouseHandler = mouseHandler;
         this.scaler = scaler;
         this.bendedEdgeCreator = bendedEdgeCreator;
         // rubbish bin radius
-        this.rubbishBinRadius = 50;
+        // this.rubbishBinRadius = 50;
         // infoBoxes
         this.infoBoxHandler = new InfoBoxHandler(/*this.selector,*/ this.hover, this.scaler, this.bendedEdgeCreator, this.worldCoords);
     }
@@ -117,10 +118,12 @@ export class Drawer {
             ctx.lineWidth = 2 / this.scaler.scale;
             // draw the rubbish bin
             if (this.bendedEdgeCreator.creatingEdge) {
-                const rect = canvas.getBoundingClientRect();
-                const binPos = this.scaler.screenToWorld(rect.left + this.rubbishBinRadius, rect.top + this.rubbishBinRadius);
-                if (binPos)
-                    this.drawRubbishBin(ctx, binPos.x, binPos.y);
+                // const rect = canvas.getBoundingClientRect();
+                // const binPos = this.scaler.screenToWorld(rect.right-this.rubbishBin.radius,rect.top+this.rubbishBin.radius);
+                // this.rubbishBin.pos = this.scaler.screenToWorld(rect.right-this.rubbishBin.radius,rect.top+this.rubbishBin.radius);
+                // if (binPos)
+                this.rubbishBin.updatePos(canvas, this.scaler);
+                this.drawRubbishBin(ctx, this.rubbishBin.pos.x, this.rubbishBin.pos.y);
             }
         }
         // Draw crossings
@@ -421,7 +424,7 @@ export class Drawer {
     // draw a rubbish bin (when creating a new edge)
     drawRubbishBin(ctx, x, y) {
         ctx.save();
-        if (this.isMouseNear(x, y, this.rubbishBinRadius / this.scaler.scale))
+        if (this.isMouseNear(x, y, this.rubbishBin.radius / this.scaler.scale))
             ctx.strokeStyle = "red";
         else
             ctx.strokeStyle = "black";

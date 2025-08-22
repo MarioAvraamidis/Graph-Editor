@@ -13,6 +13,7 @@ export class ModalsHandler
     private labelContentInput: HTMLInputElement;
     private labelFontSizeInput: HTMLInputElement;
     private saveLabelButton: HTMLButtonElement;
+    private editLabelChanges: boolean = false;
     // settings modal
     private settingsModal: HTMLElement;
     private settingsCloseButton: HTMLElement; // HTMLButtonElement
@@ -77,13 +78,18 @@ export class ModalsHandler
             this.hideAllModals();
         });
 
-        // save button listener
+        this.labelContentInput?.addEventListener('change', () => { this.editLabelChanges = true; console.log("label content change") })
+        this.labelFontSizeInput?.addEventListener('change', () => {this.editLabelChanges = true; console.log("label size change") } )
+
+        // save button listener for label modal
         this.saveLabelButton?.addEventListener('click', () => {
-            if (this.labelContentInput && this.labelFontSizeInput && hover.labelPoint)
+            if (this.labelContentInput && this.labelFontSizeInput && hover.labelPoint && this.editLabelChanges)
             {
+                console.log("label save button");
                 stateHandler.saveState();
                 hover.labelPoint.label.content = this.labelContentInput.value;
                 hover.labelPoint.label.fontSize = parseInt(this.labelFontSizeInput.value);
+                this.editLabelChanges = false;
                 // checkHovered();
                 myCanvasHandler?.redraw();
             }

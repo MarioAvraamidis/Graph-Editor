@@ -35,7 +35,7 @@
         <div id="controls">
           
           <button id="settingsBtn"> Settings</button>
-          <button id='newGraphBtn'> New Graph </button>
+          <button id='newGraphBtn'> Add New Graph </button>
           <div class="info">
               Zoom: <span id="currentZoomSpan">100%</span>
           </div>
@@ -96,6 +96,9 @@
 
 
         <div id="canvas-container">
+            <div class="overlay-wrapper">
+              <canvas id="overlayCanvas"></canvas>
+            </div>
             <canvas id="graphCanvas"></canvas> 
         </div>
 

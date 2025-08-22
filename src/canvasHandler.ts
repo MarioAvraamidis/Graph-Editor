@@ -12,17 +12,10 @@ export class CanvasHandler {
     private scaler: Scaler;
     private drawer: Drawer;
     private graph: Graph;
-    // private translateX: number = 0;
-    // private translateY: number = 0;
-    // private drawCallback: DrawGraphCallback;
     private zoomDisplaySpan: HTMLElement | null = null;
 
-    // private readonly ZOOM_FACTOR: number = 1.1;
-    // private readonly MIN_SCALE: number = 0.1;
-    // private readonly MAX_SCALE: number = 10.0;
-    // private readonly PAN_STEP: number = 20;
 
-    constructor(canvasId: string, /* drawCallback: DrawGraphCallback,*/ drawer: Drawer, graph: Graph) {
+    constructor(canvasId: string, drawer: Drawer, graph: Graph) {
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
         if (!this.canvas) {
             throw new Error(`Canvas with ID '${canvasId}' not found.`);
