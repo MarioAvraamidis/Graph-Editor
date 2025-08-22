@@ -35,7 +35,7 @@ export class MouseHandler
     // showing labels
     private showVertexLabel = document.getElementById("vertex-show-labels") as HTMLInputElement;
     private showEdgeLabel = document.getElementById("edge-show-labels") as HTMLInputElement;
-    private showBendLabel = document.getElementById("bend-show-label") as HTMLInputElement;
+    private showBendLabel = document.getElementById("bend-show-labels") as HTMLInputElement;
 
     // get creatingEdge() {return this._creatingEdge; }
     // get startingVertex() { return this._startingVertex; }
@@ -227,7 +227,7 @@ export class MouseHandler
                         edge.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
                         edge.label.fontSize = settingsOptions.defaultLabelFontSize; // edge's label font size
                         edge.label.showLabel = this.showEdgeLabel.checked;
-                        edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size/*, this.showBendLabel.checked*/ );
+                        edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size, this.showBendLabel.checked );
                         // hasDragged = true;  // to not select the hover.vertex
                         // edgeCreated = edge;
                     }
@@ -256,7 +256,7 @@ export class MouseHandler
                     {
                         bendedEdgeCreator.edgeCreated.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
                         bendedEdgeCreator.edgeCreated.label.fontSize = settingsOptions.defaultLabelFontSize; // edge's label font size
-                        bendedEdgeCreator.edgeCreated.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size, this.showBendLabel.checked);
+                        bendedEdgeCreator.edgeCreated.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size /*, this.showBendLabel.checked*/ );
                     }
                 }
             }

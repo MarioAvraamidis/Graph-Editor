@@ -31,7 +31,7 @@ export class MouseHandler {
         // showing labels
         this.showVertexLabel = document.getElementById("vertex-show-labels");
         this.showEdgeLabel = document.getElementById("edge-show-labels");
-        this.showBendLabel = document.getElementById("bend-show-label");
+        this.showBendLabel = document.getElementById("bend-show-labels");
         this.addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator);
     }
     addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator) {
@@ -189,7 +189,7 @@ export class MouseHandler {
                         edge.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
                         edge.label.fontSize = settingsOptions.defaultLabelFontSize; // edge's label font size
                         edge.label.showLabel = this.showEdgeLabel.checked;
-                        edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size /*, this.showBendLabel.checked*/);
+                        edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size, this.showBendLabel.checked);
                         // hasDragged = true;  // to not select the hover.vertex
                         // edgeCreated = edge;
                     }
@@ -217,7 +217,7 @@ export class MouseHandler {
                     if (bendedEdgeCreator.edgeCreated) {
                         bendedEdgeCreator.edgeCreated.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
                         bendedEdgeCreator.edgeCreated.label.fontSize = settingsOptions.defaultLabelFontSize; // edge's label font size
-                        bendedEdgeCreator.edgeCreated.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size, this.showBendLabel.checked);
+                        bendedEdgeCreator.edgeCreated.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size /*, this.showBendLabel.checked*/);
                     }
                 }
             }
