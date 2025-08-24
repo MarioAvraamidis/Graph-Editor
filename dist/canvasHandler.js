@@ -1,10 +1,12 @@
+import { Drawer } from "./draw.js";
 // export type DrawGraphCallback = (ctx: CanvasRenderingContext2D, scale: number) => void;
 export class CanvasHandler {
-    constructor(canvasId, drawer, graph) {
+    constructor(canvas, drawer, graph) {
         this.zoomDisplaySpan = null;
-        this.canvas = document.getElementById(canvasId);
+        this.canvas = canvas;
         if (!this.canvas) {
-            throw new Error(`Canvas with ID '${canvasId}' not found.`);
+            // throw new Error(`Canvas with ID '${canvasId}' not found.`);
+            throw new Error(`Canvas not found.`);
         }
         const ctx = this.canvas.getContext('2d');
         if (!ctx) {
@@ -44,31 +46,10 @@ export class CanvasHandler {
         this.canvas.height = this.canvas.clientHeight * dpr;
         // console.log("canvas (width,height)=("+this.canvas.width+","+this.canvas.height+")    dpr="+dpr);
     }
-    /*private applyTransform(): void {
-        const dpr = window.devicePixelRatio || 1;
-
-        // Reset transformation to identity
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-        // Apply DPI scaling first to work with physical pixels
-        // All subsequent drawing operations will be implicitly scaled by DPR
-        this.ctx.scale(dpr, dpr);
-
-        // Apply pan (translate) in CSS pixels
-        this.ctx.translate(this.translateX, this.translateY);
-
-        // Apply zoom (scale) in CSS pixels
-        this.ctx.scale(this.scale, this.scale);
-    }*/
     // --- FIX START ---
     // drawContent now handles both clearing and applying transforms
     drawContent() {
         const dpr = window.devicePixelRatio || 1;
-        // TEMPORARY DEBUG LINE (remove later)
-        // this.ctx.fillStyle = 'purple';
-        // this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        // Then, the clearRect should wipe this purple out.
-        // If you still see purple, clearRect isn't working.
         // 1. Reset the entire transformation matrix to identity
         // This is crucial to ensure clearRect operates on the full physical canvas
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -84,7 +65,8 @@ export class CanvasHandler {
         // 6. Call the external drawing function with the now transformed context
         // this.drawCallback(this.ctx, this.scaler.scale);
         this.drawer.renderGraph(this.graph, this.canvas);
-        this.updateZoomDisplay();
+        if (this.drawer instanceof Drawer)
+            this.updateZoomDisplay();
         // Optional debug info: World origin (0,0) marker
         /*const crossArmLength = 10; // Length of each arm of the cross in world units at scale 1
         const halfCrossArmLength = crossArmLength / 2;
@@ -107,38 +89,6 @@ export class CanvasHandler {
         this.ctx.lineTo(0, halfCrossArmLength);
         this.ctx.stroke();*/
     }
-    // The applyTransform method is no longer strictly needed as a separate method
-    // because drawContent now handles the full sequence.
-    // You can remove applyTransform or keep it as a private helper if other methods
-    // need to apply the transform without drawing content (unlikely for this use case).
-    // Let's remove it for simplicity.
-    // --- FIX END ---
-    // In CanvasHandler.ts
-    /*public screenToWorld(clientX: number, clientY: number) {
-        const canvasRect = this.canvas.getBoundingClientRect();
-        // const dpr = window.devicePixelRatio || 1; // Not needed here, as it cancels out in the formula
-
-        // 1. Get mouse position relative to the canvas element (in CSS pixels)
-        const canvasX_css = clientX - canvasRect.left;
-        const canvasY_css = clientY - canvasRect.top;
-
-        // 2. Invert the combined transformations (Translate then Zoom, then DPR scaling for output)
-        // The simplified formula based on the derivation above is:
-        const worldX = (canvasX_css - this.scaler.translateX) / this.scaler.scale;
-        const worldY = (canvasY_css - this.scaler.translateY) / this.scaler.scale;
-
-        return { x: worldX, y: worldY };
-    }
-
-    public worldToCanvas(worldX: number, worldY: number): { x: number, y: number } {
-        // const dpr = window.devicePixelRatio || 1; // Not needed as it cancels out, and translateX/Y are in CSS pixels
-
-        // Apply zoom (scale), then pan (translate)
-        const canvasX_css = (worldX * this.scaler.scale) + this.scaler.translateX;
-        const canvasY_css = (worldY * this.scaler.scale) + this.scaler.translateY;
-
-        return { x: canvasX_css, y: canvasY_css };
-    }*/
     zoom(scaleFactor, mouseX, mouseY) {
         const oldScale = this.scaler.scale;
         let newScale = this.scaler.scale * scaleFactor;
@@ -183,22 +133,24 @@ export class CanvasHandler {
         this.scaler.translateY = this.canvas.clientHeight / 2;
         this.drawContent();
     }
-    fixView(graph, selector) {
+    fixView(/* graph: Graph,*/ selector = null) {
         // check if there are selected points
         let points = [];
-        if (selector.points.length > 0)
+        if (selector && selector.points.length > 0)
             points = selector.points;
         else {
-            points = points.concat(graph.vertices);
-            points = points.concat(graph.getBends());
+            points = points.concat(this.graph.vertices);
+            points = points.concat(this.graph.getBends());
         }
         if (points.length === 0) {
             this.resetView();
             return;
         }
+        // console.log("NEW");
+        // points.forEach(p => console.log(p.id));
         this.fixViewRect(this.findMaxY(points), this.findMinY(points), this.findMinX(points), this.findMaxX(points));
     }
-    fixViewRect(top, bottom, left, right, paddingFactor = 0.8) {
+    fixViewRect(top, bottom, left, right, paddingFactor = 0.75) {
         const worldWidth = right - left;
         const worldHeight = top - bottom;
         const canvasWidth = this.canvas.clientWidth; // CSS pixels
@@ -331,6 +283,11 @@ export class CanvasHandler {
         for (let i = 1; i < points.length; i++)
             if (points[i].y > maxY)
                 maxY = points[i].y;
+        /*if (this.drawer instanceof SimpleDrawer)
+        {
+            console.log("maxY:",maxY);
+            console.log("canvasHeight:",this.canvas.height);
+        }*/
         return maxY;
     }
     // find the min y-coordinate of the given points
@@ -341,6 +298,11 @@ export class CanvasHandler {
         for (let i = 1; i < points.length; i++)
             if (points[i].y < minY)
                 minY = points[i].y;
+        /*if (this.drawer instanceof SimpleDrawer)
+        {
+            console.log("minY:",minY);
+            console.log("canvasHeight:",this.canvas.height);
+        }*/
         return minY;
     }
 }

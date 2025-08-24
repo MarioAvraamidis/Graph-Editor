@@ -102,7 +102,7 @@ export class BtnHandler {
             if (this.myCanvasHandler.ctx)
                 graph.makeCircle(0, 0, Math.min(this.myCanvasHandler.ctx.canvas.height, this.myCanvasHandler.ctx.canvas.width) / 3, this.selector.vertices);
             // renderGraph();
-            this.myCanvasHandler.fixView(graph, this.selector);
+            this.myCanvasHandler.fixView(this.selector);
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });
         // make the graph (or the group of selected vertices) clique
@@ -129,7 +129,7 @@ export class BtnHandler {
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });
         // set up listener for fix view
-        (_f = document.getElementById('fix-view')) === null || _f === void 0 ? void 0 : _f.addEventListener('click', () => this.myCanvasHandler.fixView(graph, this.selector));
+        (_f = document.getElementById('fix-view')) === null || _f === void 0 ? void 0 : _f.addEventListener('click', () => this.myCanvasHandler.fixView(this.selector));
         // listener for reset view in CanvasHandler.ts
         (_g = document.getElementById("export-json-btn")) === null || _g === void 0 ? void 0 : _g.addEventListener("click", () => {
             exportJSON(graph);
@@ -160,7 +160,7 @@ export class BtnHandler {
                 // graph = restoreGraphFromJSON(data);
                 // renderGraph();
                 (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
-                this.myCanvasHandler.fixView(graph, this.selector);
+                this.myCanvasHandler.fixView(this.selector);
             }
             catch (err) {
                 alert("Failed to load graph: Invalid format");

@@ -22,7 +22,7 @@ export class Scaler
     public scale: number = 1.0;
     public translateX: number = 0;
     public translateY: number = 0;
-    private canvas: HTMLCanvasElement;
+    public canvas: HTMLCanvasElement;
     private readonly _ZOOM_FACTOR: number = 1.1;
     private readonly _MIN_SCALE: number = 0.1;
     private readonly _MAX_SCALE: number = 10.0;

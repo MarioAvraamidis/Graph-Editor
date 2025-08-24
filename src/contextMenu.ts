@@ -107,7 +107,7 @@ export class Cmenu
                         graph.replace(new Graph());
                         hover.check(myCanvasHandler.getScale());
                         // renderGraph();
-                        myCanvasHandler?.fixView(graph,selector);
+                        myCanvasHandler?.fixView(selector);
                         //myCanvasHandler?.redraw();
                         break;
                     // Add more cases for other actions

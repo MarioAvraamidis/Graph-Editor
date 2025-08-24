@@ -1495,6 +1495,10 @@ export class Graph {
         return newSubGraph;
     }
 
+    /** Replace this graph with the given graph, i.e. copy the characteristics of the given graph to this one
+     * 
+     * @param newGraph 
+     */
     replace(newGraph: Graph)
     {
         this._vertices = newGraph.vertices;

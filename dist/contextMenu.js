@@ -84,7 +84,7 @@ export class Cmenu {
                         graph.replace(new Graph());
                         hover.check(myCanvasHandler.getScale());
                         // renderGraph();
-                        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.fixView(graph, selector);
+                        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.fixView(selector);
                         //myCanvasHandler?.redraw();
                         break;
                     // Add more cases for other actions

@@ -120,7 +120,7 @@ export class BtnHandler
             if (this.myCanvasHandler.ctx)
                 graph.makeCircle(0,0,Math.min(this.myCanvasHandler.ctx.canvas.height,this.myCanvasHandler.ctx.canvas.width)/3,this.selector.vertices);
             // renderGraph();
-            this.myCanvasHandler.fixView(graph,this.selector);
+            this.myCanvasHandler.fixView(this.selector);
             this.myCanvasHandler?.redraw();
         })
     
@@ -149,7 +149,7 @@ export class BtnHandler
         })
     
         // set up listener for fix view
-        document.getElementById('fix-view')?.addEventListener('click', () => this.myCanvasHandler.fixView(graph,this.selector));
+        document.getElementById('fix-view')?.addEventListener('click', () => this.myCanvasHandler.fixView(this.selector));
     
         // listener for reset view in CanvasHandler.ts
     
@@ -187,7 +187,7 @@ export class BtnHandler
                 // graph = restoreGraphFromJSON(data);
                 // renderGraph();
                 this.myCanvasHandler?.redraw();
-                this.myCanvasHandler.fixView(graph,this.selector);
+                this.myCanvasHandler.fixView(this.selector);
             } catch (err) {
                 alert("Failed to load graph: Invalid format");
                 console.error(err);

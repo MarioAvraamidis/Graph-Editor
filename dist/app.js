@@ -36,21 +36,24 @@ let myCanvasHandler = null; // handle zoom in canvas
 document.addEventListener('DOMContentLoaded', () => {
     try {
         canvas = document.getElementById("graphCanvas");
+        if (!canvas) {
+            throw new Error(`Canvas not found.`);
+        }
         ctx = canvas.getContext("2d");
         if (!ctx)
             throw new Error("Could not get canvas rendering context");
-        setOverlayCanvas();
         worldCoords = new Coords();
         stateHandler = new StateHandler(graph);
         selector = new Selector();
         hover = new Hover(graph, worldCoords, selector);
         settingsOptions = new SettingsOptions();
+        setOverlayCanvas(graph, settingsOptions);
         copier = new Copier();
         bendedEdgeCreator = new BendedEdgeCreator();
         scaler = new Scaler(canvas);
-        rubbishBin = new RubbishBin(50, { x: 0, y: 0 }); // initial pos is not valid. It's update when drawing
+        rubbishBin = new RubbishBin(50, { x: 0, y: 0 }); // initial pos is not valid. It's updated when drawing
         drawer = new Drawer(selector, settingsOptions, hover, worldCoords, scaler, bendedEdgeCreator, rubbishBin);
-        myCanvasHandler = new CanvasHandler('graphCanvas', drawer, graph);
+        myCanvasHandler = new CanvasHandler(canvas, drawer, graph);
         paletteHandler = new PaletteHandler(selector, myCanvasHandler, stateHandler, graph, settingsOptions);
         modalsHandler = new ModalsHandler(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector);
         btnHandler = new BtnHandler(graph, myCanvasHandler, selector, stateHandler, copier, settingsOptions);
