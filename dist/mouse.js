@@ -38,6 +38,7 @@ export class MouseHandler {
         const draggingPoints = [];
         // detect vertex/bend selection
         canvas.addEventListener("mousedown", (e) => {
+            canvas.focus(); // on click → ensures when you interact with the graph area, the canvas grabs focus again.
             // set mouse position
             // mouse = getMousePos(canvas, e);
             // worldCoords = myCanvasHandler!.screenToWorld(e.clientX, e.clientY);

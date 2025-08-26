@@ -192,11 +192,13 @@ export class CanvasHandler {
     }
 
     private fixViewRect(top: number, bottom: number, left: number, right: number, paddingFactor: number = 0.75): void {
+        // console.log("top:",top,"\nbottom:",bottom,"\nleft:",left,"\nright:",right);
         const worldWidth = right - left;
         const worldHeight = top - bottom;
 
         const canvasWidth = this.canvas.clientWidth;  // CSS pixels
         const canvasHeight = this.canvas.clientHeight; // CSS pixels
+        // console.log("canvasWidth:",canvasWidth,"canvasHeight:",canvasHeight);
 
         // Calculate world center regardless, as it's used in both cases
         const worldCenterX = left + (worldWidth / 2);
@@ -261,7 +263,7 @@ export class CanvasHandler {
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
         document.getElementById('zoomInButton')?.addEventListener('click', () => this.zoom(this.scaler.ZOOM_FACTOR));
         document.getElementById('zoomOutButton')?.addEventListener('click', () => this.zoom(1 / this.scaler.ZOOM_FACTOR));
-        document.getElementById('resetViewButton')?.addEventListener('click', () => this.resetView());
+        // document.getElementById('resetViewButton')?.addEventListener('click', () => this.resetView());
         // document.getElementById('fix-view')?.addEventListener('click', () => this.fixView());
     }
 

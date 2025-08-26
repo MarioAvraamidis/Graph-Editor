@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { exportCanvasAsImage, exportCanvasAsPdf, exportJSON, restoreGraphFromJSON } from "./exporting.js";
 export class BtnHandler {
-    constructor(graph, canvasHandler, selector, stateHandler, copier, settingsOptions) {
+    constructor(canvas, graph, canvasHandler, selector, stateHandler, copier, settingsOptions) {
         // this.graph = graph;
         this.myCanvasHandler = canvasHandler;
         this.selector = selector;
@@ -17,14 +17,15 @@ export class BtnHandler {
         this.copier = copier;
         this.settingsOptions = settingsOptions;
         // activate event listeners
-        this.activateEventListeners(graph);
+        this.activateEventListeners(canvas, graph);
     }
-    activateEventListeners(graph) {
+    activateEventListeners(canvas, graph) {
         this.addButtonsEventListeners(graph);
-        this.addKeydownEventListeners(graph);
+        this.addKeydownEventListeners(canvas, graph);
         this.addCheckBoxesEventListeners();
     }
-    addKeydownEventListeners(graph) {
+    addKeydownEventListeners(canvas, graph) {
+        canvas.tabIndex = 0; // make the canvas focusable
         // console.log("addKeyDownEventListeners");
         document.addEventListener('keydown', (e) => {
             var _a, _b, _c, _d, _e;
@@ -79,7 +80,7 @@ export class BtnHandler {
         });
     }
     addButtonsEventListeners(graph) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         // Undo button
         (_a = document.getElementById("undo-button")) === null || _a === void 0 ? void 0 : _a.addEventListener("click", () => {
             var _a;
@@ -131,10 +132,11 @@ export class BtnHandler {
         // set up listener for fix view
         (_f = document.getElementById('fix-view')) === null || _f === void 0 ? void 0 : _f.addEventListener('click', () => this.myCanvasHandler.fixView(this.selector));
         // listener for reset view in CanvasHandler.ts
-        (_g = document.getElementById("export-json-btn")) === null || _g === void 0 ? void 0 : _g.addEventListener("click", () => {
+        (_g = document.getElementById('resetViewButton')) === null || _g === void 0 ? void 0 : _g.addEventListener('click', () => this.myCanvasHandler.resetView());
+        (_h = document.getElementById("export-json-btn")) === null || _h === void 0 ? void 0 : _h.addEventListener("click", () => {
             exportJSON(graph);
         });
-        (_h = document.getElementById("export-image")) === null || _h === void 0 ? void 0 : _h.addEventListener("click", () => {
+        (_j = document.getElementById("export-image")) === null || _j === void 0 ? void 0 : _j.addEventListener("click", () => {
             if (this.myCanvasHandler.ctx) {
                 // drawGraph(this.myCanvasHandler.ctx,this.graph,true,false);
                 exportCanvasAsImage();

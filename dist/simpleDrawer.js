@@ -7,7 +7,7 @@ export class SimpleDrawer {
         return this.scaler;
     }
     renderGraph(graph, canvas) {
-        this.drawGraph(canvas, graph, true, this.scaler.scale);
+        this.drawGraph(canvas, graph, true, 1 /* this.scaler.scale*/);
     }
     /** Draw the given graph on the given canvas with the given scale.
      * If labels===true, also draw labels.

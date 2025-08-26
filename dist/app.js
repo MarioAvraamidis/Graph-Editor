@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         myCanvasHandler = new CanvasHandler(canvas, drawer, graph);
         paletteHandler = new PaletteHandler(selector, myCanvasHandler, stateHandler, graph, settingsOptions);
         modalsHandler = new ModalsHandler(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector);
-        btnHandler = new BtnHandler(graph, myCanvasHandler, selector, stateHandler, copier, settingsOptions);
+        btnHandler = new BtnHandler(canvas, graph, myCanvasHandler, selector, stateHandler, copier, settingsOptions);
         cmenu = new Cmenu(graph, worldCoords, canvas, copier, selector, stateHandler, myCanvasHandler, modalsHandler, hover);
         mouseHandler = new MouseHandler(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
         myCanvasHandler.redraw();

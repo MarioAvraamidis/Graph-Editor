@@ -151,10 +151,12 @@ export class CanvasHandler {
         this.fixViewRect(this.findMaxY(points), this.findMinY(points), this.findMinX(points), this.findMaxX(points));
     }
     fixViewRect(top, bottom, left, right, paddingFactor = 0.75) {
+        // console.log("top:",top,"\nbottom:",bottom,"\nleft:",left,"\nright:",right);
         const worldWidth = right - left;
         const worldHeight = top - bottom;
         const canvasWidth = this.canvas.clientWidth; // CSS pixels
         const canvasHeight = this.canvas.clientHeight; // CSS pixels
+        // console.log("canvasWidth:",canvasWidth,"canvasHeight:",canvasHeight);
         // Calculate world center regardless, as it's used in both cases
         const worldCenterX = left + (worldWidth / 2);
         const worldCenterY = bottom + (worldHeight / 2); // Assuming Y increases upwards in world coords
@@ -200,12 +202,12 @@ export class CanvasHandler {
         this.drawContent(); // Redraw the canvas with the new view
     }
     addEventListeners() {
-        var _a, _b, _c;
+        var _a, _b;
         this.canvas.addEventListener('wheel', this.handleMouseWheel.bind(this));
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
         (_a = document.getElementById('zoomInButton')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', () => this.zoom(this.scaler.ZOOM_FACTOR));
         (_b = document.getElementById('zoomOutButton')) === null || _b === void 0 ? void 0 : _b.addEventListener('click', () => this.zoom(1 / this.scaler.ZOOM_FACTOR));
-        (_c = document.getElementById('resetViewButton')) === null || _c === void 0 ? void 0 : _c.addEventListener('click', () => this.resetView());
+        // document.getElementById('resetViewButton')?.addEventListener('click', () => this.resetView());
         // document.getElementById('fix-view')?.addEventListener('click', () => this.fixView());
     }
     handleMouseWheel(event) {

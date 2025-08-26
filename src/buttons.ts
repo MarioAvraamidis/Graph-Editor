@@ -14,7 +14,7 @@ export class BtnHandler
     private copier: Copier;
     private settingsOptions: SettingsOptions;
 
-    constructor(graph: Graph, canvasHandler: CanvasHandler, selector: Selector, stateHandler: StateHandler, copier: Copier, settingsOptions: SettingsOptions)
+    constructor(canvas: HTMLCanvasElement,graph: Graph, canvasHandler: CanvasHandler, selector: Selector, stateHandler: StateHandler, copier: Copier, settingsOptions: SettingsOptions)
     {
         // this.graph = graph;
         this.myCanvasHandler = canvasHandler;
@@ -23,18 +23,19 @@ export class BtnHandler
         this.copier = copier;
         this.settingsOptions = settingsOptions;
         // activate event listeners
-        this.activateEventListeners(graph);
+        this.activateEventListeners(canvas,graph);
     }
 
-    private activateEventListeners(graph: Graph)
+    private activateEventListeners(canvas: HTMLCanvasElement,graph: Graph)
     {
         this.addButtonsEventListeners(graph);
-        this.addKeydownEventListeners(graph);
+        this.addKeydownEventListeners(canvas,graph);
         this.addCheckBoxesEventListeners();
     }
 
-    private addKeydownEventListeners(graph: Graph)
+    private addKeydownEventListeners(canvas: HTMLCanvasElement, graph: Graph)
     {
+        canvas.tabIndex = 0; // make the canvas focusable
         // console.log("addKeyDownEventListeners");
         document.addEventListener('keydown', (e) => {
             // Get the element that triggered the event
@@ -152,6 +153,7 @@ export class BtnHandler
         document.getElementById('fix-view')?.addEventListener('click', () => this.myCanvasHandler.fixView(this.selector));
     
         // listener for reset view in CanvasHandler.ts
+        document.getElementById('resetViewButton')?.addEventListener('click', () => this.myCanvasHandler.resetView());
     
         document.getElementById("export-json-btn")?.addEventListener("click", () => {
             exportJSON(graph);

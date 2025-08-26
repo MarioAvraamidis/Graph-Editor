@@ -20,7 +20,7 @@ export class SimpleDrawer
 
     public renderGraph(graph: Graph, canvas: HTMLCanvasElement)
     {
-        this.drawGraph(canvas,graph,true,this.scaler.scale);
+        this.drawGraph(canvas,graph,true,1/* this.scaler.scale*/);
     }
 
     /** Draw the given graph on the given canvas with the given scale.
