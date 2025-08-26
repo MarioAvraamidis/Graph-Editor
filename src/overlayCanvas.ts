@@ -24,6 +24,16 @@ export function setOverlayCanvas(graph: Graph, settingsOptions: SettingsOptions)
         // console.log("overlay vertices:",overlayGraph.vertices.length);
     })
 
+    /* wrapper.addEventListener('mouseenter', () => {
+        setOverlayResolution(overlayCanvas, overlayCanvas.clientWidth, overlayCanvas.clientHeight, 3);
+    });
+
+    wrapper.addEventListener('mouseleave', () => {
+        setOverlayResolution(overlayCanvas, overlayCanvas.clientWidth, overlayCanvas.clientHeight, 1);
+    });*/
+
+    // initOverlayCanvasHiDPI(overlayCanvas,overlayCanvas.clientWidth,overlayCanvas.clientHeight);
+
 
     new ResizeObserver(() => {
 
@@ -52,6 +62,18 @@ export function setOverlayCanvas(graph: Graph, settingsOptions: SettingsOptions)
     }).observe(wrapper);
 }
 
+function setOverlayResolution(canvas: HTMLCanvasElement, cssW: number, cssH: number, factor: number) {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = Math.floor(cssW * factor * dpr);
+  canvas.height = Math.floor(cssH * factor * dpr);
+  canvas.style.width  = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  const ctx = canvas.getContext('2d')!;
+  ctx.setTransform(factor * dpr, 0, 0, factor * dpr, 0, 0);
+  // redraw overlay
+  // drawOverlay(ctx);
+}
+
 function resizeOverlayCanvas(canvas: HTMLCanvasElement) {
   const scale = window.devicePixelRatio || 1;
   canvas.width = canvas.clientWidth * scale;
@@ -59,4 +81,22 @@ function resizeOverlayCanvas(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d");
   if (ctx)
     ctx.setTransform(scale, 0, 0, scale, 0, 0); // reset transform for scaling
+}
+
+// Call this once after you know the CSS size (300x200 here).
+function initOverlayCanvasHiDPI(canvas: HTMLCanvasElement, cssW = 300, cssH = 200, superScale = 3) {
+  const dpr = window.devicePixelRatio || 1;
+  // Backing store is 3× (or whatever factor you want)
+  canvas.width  = Math.floor(cssW * superScale * dpr);
+  canvas.height = Math.floor(cssH * superScale * dpr);
+
+  // Keep CSS size the small one
+  canvas.style.width  = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+
+  const ctx = canvas.getContext('2d')!;
+  ctx.setTransform(superScale * dpr, 0, 0, superScale * dpr, 0, 0);
+
+  // draw your overlay content here at logical units
+  // e.g., drawOverlay(ctx);
 }

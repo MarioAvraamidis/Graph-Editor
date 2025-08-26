@@ -35,13 +35,19 @@ h1 {
   top: 0;
   left: 0; 
   z-index: 10;  /* higher than the main canvas */
-  width: 100% /*  238px */;
+  width: 105% /*  238px */;
   height: 150px;
   /* display: inline-block; */
   /* resize: both;            /* enables resize */
   /* overflow: hidden;        /* needed for resize */
   /* border: 2px solid black; */
   contain: layout paint;
+    transition: transform 0.2s ease-in-out;
+  transform-origin: top left;
+}
+
+.overlay-wrapper:hover{
+    transform: scale(3);
 }
 
 #overlayCanvas{
@@ -50,11 +56,6 @@ h1 {
     pointer-events: none; /* <--- makes it display-only */
     background-color: #f9f9f9;
     border: 2px solid black;
-}
-
-#overlayCanvas:hover{
-    width: 196%;
-    height: 168%;
 }
 
 .overlay-btn {
@@ -71,6 +72,7 @@ h1 {
   cursor: pointer;
   z-index: 20; /* even above the canvas */
 }
+
 /* Basic styling for the entire page */
 body {
     margin: 0;
