@@ -32,20 +32,24 @@
 
       <div id="left-column" >
 
+        <div class="overlay-wrapper">
+          <button id="overlayBtn" class="overlay-btn">Update</button>
+          <canvas id="overlayCanvas"></canvas>
+        </div>
+
         <div id="controls">
-          
-          <button id="settingsBtn"> Settings</button>
-          <button id='newGraphBtn'> Add New Graph </button>
-          <div class="info">
-              Zoom: <span id="currentZoomSpan">100%</span>
-          </div>
+          <button id="settingsBtn">Settings</button>
+          <button id='newGraphBtn'>AddGraph</button>
+
           <button id="undo-button">Undo</button>
           <button id="redo-button">Redo</button>
-          <button id="circle-placement"> Circle</button>
-          <button id="make-clique"> Clique</button>
-          <button id="clear-bends"> Clear Bends</button>
-          <button id="resetViewButton"> Reset View </button>
-          <button id="fix-view"> Fix View </button>
+
+          <button id="circle-placement">Circle</button>
+          <button id="make-clique">Clique</button>
+
+          <button id="resetViewButton">ResetView</button>
+          <button id="fix-view">Fix View</button>
+
           <div class="export-dropdown">
             <button id="export-btn">Export ▼</button>
             <div class="export-menu">
@@ -53,9 +57,14 @@
               <a href="#" id="export-pdf">Export as PDF</a>
               <a href="#" id="export-image">Export as PNG</a>
             </div>
-          </div> 
+          </div>
           <input type="file" id="import-input" accept=".json">
+
+          <div class="info">
+            Zoom: <span id="currentZoomSpan">100%</span>
+          </div>
         </div>
+
 
         <div id="output">
           <h3>Report</h3>
@@ -96,10 +105,7 @@
 
 
         <div id="canvas-container">
-            <div class="overlay-wrapper">
-              <button id="overlayBtn" class="overlay-btn">Update</button>
-              <canvas id="overlayCanvas"></canvas>
-            </div>
+            
             <canvas id="graphCanvas"></canvas> 
         </div>
 
