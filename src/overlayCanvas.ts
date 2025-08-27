@@ -15,27 +15,31 @@ export function setOverlayCanvas(graph: Graph, settingsOptions: SettingsOptions)
     const overlayGraph: Graph = new Graph();
     const canvasHandler: CanvasHandler = new CanvasHandler(overlayCanvas,simpleDrawer,overlayGraph);
 
+    // Initial setup: ensure the canvas resolution matches its initial size
+    setOverlayResolution(overlayCanvas, canvasHandler/*, 1 */);
+
     // btn
     // overlayGraph.replace(graph);
     document.getElementById("overlayBtn")?.addEventListener('click', () => { 
         overlayGraph.replace(graph.clone());
-        resizeOverlayCanvas(overlayCanvas);
+        // resizeOverlayCanvas(overlayCanvas);
+        // initOverlayCanvasHiDPI(overlayCanvas,canvasHandler,overlayCanvas.clientWidth,overlayCanvas.clientHeight);
         canvasHandler.fixView();
         // console.log("overlay vertices:",overlayGraph.vertices.length);
     })
 
-    /* wrapper.addEventListener('mouseenter', () => {
-        setOverlayResolution(overlayCanvas, overlayCanvas.clientWidth, overlayCanvas.clientHeight, 3);
+    /*wrapper.addEventListener('mouseenter', () => {
+        setOverlayResolution(overlayCanvas, canvasHandler, 3);
     });
 
     wrapper.addEventListener('mouseleave', () => {
-        setOverlayResolution(overlayCanvas, overlayCanvas.clientWidth, overlayCanvas.clientHeight, 1);
+        setOverlayResolution(overlayCanvas, canvasHandler, 1);
     });*/
 
-    // initOverlayCanvasHiDPI(overlayCanvas,overlayCanvas.clientWidth,overlayCanvas.clientHeight);
+    // initOverlayCanvasHiDPI(overlayCanvas,canvasHandler,overlayCanvas.clientWidth,overlayCanvas.clientHeight);
 
 
-    new ResizeObserver(() => {
+    /* new ResizeObserver(() => {
 
         const newWidth = wrapper.clientWidth;
         const newHeight = wrapper.clientHeight;
@@ -59,20 +63,54 @@ export function setOverlayCanvas(graph: Graph, settingsOptions: SettingsOptions)
             canvasHandler.fixView();
         }
 
-    }).observe(wrapper);
+    }).observe(wrapper);*/
 }
 
-function setOverlayResolution(canvas: HTMLCanvasElement, cssW: number, cssH: number, factor: number) {
+// Modify setOverlayResolution to handle initial DPR scaling
+function setOverlayResolution(canvas: HTMLCanvasElement, canvasHandler: CanvasHandler) {
+    const cssW = canvas.clientWidth;
+    const cssH = canvas.clientHeight;
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = cssW * dpr;
+    canvas.height = cssH * dpr;
+
+    // Use CSS for the actual dimensions
+    canvas.style.width = cssW + "px";
+    canvas.style.height = cssH + "px";
+
+    const ctx = canvas.getContext("2d")!;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+
+    // Initial draw
+    canvasHandler.fixView();
+}
+
+/* function setOverlayResolution(canvas: HTMLCanvasElement, canvasHandler: CanvasHandler, factor: number) {
+  const cssW = canvas.clientWidth;   // rendered width in CSS px
+  const cssH = canvas.clientHeight;  // rendered height in CSS px
   const dpr = window.devicePixelRatio || 1;
+
+  // Increase backing store
   canvas.width  = Math.floor(cssW * factor * dpr);
   canvas.height = Math.floor(cssH * factor * dpr);
-  canvas.style.width  = cssW + 'px';
-  canvas.style.height = cssH + 'px';
-  const ctx = canvas.getContext('2d')!;
-  ctx.setTransform(factor * dpr, 0, 0, factor * dpr, 0, 0);
-  // redraw overlay
-  // drawOverlay(ctx);
-}
+
+  // Keep CSS size unchanged
+  canvas.style.width  = cssW + "px";
+  canvas.style.height = cssH + "px";
+
+  const ctx = canvas.getContext("2d")!;
+  
+   // Reset transform
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  
+  // Scale drawing space (so drawings map correctly to CSS pixels)
+  ctx.scale(factor * dpr, factor * dpr);
+
+  // now re-draw your overlay content
+  canvasHandler.fixView()
+} /* */
 
 function resizeOverlayCanvas(canvas: HTMLCanvasElement) {
   const scale = window.devicePixelRatio || 1;
@@ -84,7 +122,7 @@ function resizeOverlayCanvas(canvas: HTMLCanvasElement) {
 }
 
 // Call this once after you know the CSS size (300x200 here).
-function initOverlayCanvasHiDPI(canvas: HTMLCanvasElement, cssW = 300, cssH = 200, superScale = 3) {
+function initOverlayCanvasHiDPI(canvas: HTMLCanvasElement, canvasHandler: CanvasHandler, cssW = 300, cssH = 200, superScale = 3) {
   const dpr = window.devicePixelRatio || 1;
   // Backing store is 3× (or whatever factor you want)
   canvas.width  = Math.floor(cssW * superScale * dpr);
@@ -95,8 +133,11 @@ function initOverlayCanvasHiDPI(canvas: HTMLCanvasElement, cssW = 300, cssH = 20
   canvas.style.height = cssH + 'px';
 
   const ctx = canvas.getContext('2d')!;
-  ctx.setTransform(superScale * dpr, 0, 0, superScale * dpr, 0, 0);
+  ctx.setTransform(superScale * dpr, 0, 0, superScale * dpr,
+    (canvas.width  - cssW * dpr * superScale) / 2,
+    (canvas.height - cssH * dpr * superScale) / 2
+  );
 
   // draw your overlay content here at logical units
-  // e.g., drawOverlay(ctx);
+  canvasHandler.fixView();
 }
