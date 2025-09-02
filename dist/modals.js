@@ -28,15 +28,18 @@ export class ModalsHandler {
         this.settingsCliqueNewEdgesColorInput = document.getElementById('clique-new-edges-color');
         // default label font size settings
         this.settingsLabelDefaultFonstSizeInput = document.getElementById('labelDefaultFontSizeInput');
+        // self-loops and parallel edges
+        this.settingsAllowSelfLoops = document.getElementById('self-loops');
+        this.settingsAllowParallelEdges = document.getElementById('parallel-edges');
         // settingsOptions
         this.settingsOptions = settingsOptions;
         this.addEventListeners(graph, myCanvasHandler, stateHandler, hover, selector);
         this.hideAllModals();
     }
     addEventListeners(graph, myCanvasHandler, stateHandler, hover, selector) {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         // listener for settings button
-        (_a = document.getElementById('settingsBtn')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', () => this.showSettingsModal(this.settingsOptions));
+        (_a = document.getElementById('settingsBtn')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', () => this.showSettingsModal(this.settingsOptions, graph));
         // listener for new graph button
         (_b = document.getElementById('newGraphBtn')) === null || _b === void 0 ? void 0 : _b.addEventListener('click', () => this.showNewGraphModal());
         // listner for settings savebutton
@@ -55,8 +58,15 @@ export class ModalsHandler {
         });
         (_d = this.labelContentInput) === null || _d === void 0 ? void 0 : _d.addEventListener('change', () => { this.editLabelChanges = true; console.log("label content change"); });
         (_e = this.labelFontSizeInput) === null || _e === void 0 ? void 0 : _e.addEventListener('change', () => { this.editLabelChanges = true; console.log("label size change"); });
+        (_f = this.settingsAllowSelfLoops) === null || _f === void 0 ? void 0 : _f.addEventListener('change', () => {
+            // const v: Vertex | null = graph.checkSelfLoops();
+            // if(v)
+            // showCustomAlert("Action not implemented. Graph contains self-loop on vertex "+v.id);
+            graph.selfLoops = this.settingsAllowSelfLoops.checked;
+        });
+        (_g = this.settingsAllowParallelEdges) === null || _g === void 0 ? void 0 : _g.addEventListener('change', () => graph.parallelEdges = this.settingsAllowParallelEdges.checked);
         // save button listener for label modal
-        (_f = this.saveLabelButton) === null || _f === void 0 ? void 0 : _f.addEventListener('click', () => {
+        (_h = this.saveLabelButton) === null || _h === void 0 ? void 0 : _h.addEventListener('click', () => {
             if (this.labelContentInput && this.labelFontSizeInput && hover.labelPoint && this.editLabelChanges) {
                 console.log("label save button");
                 stateHandler.saveState();
@@ -114,7 +124,7 @@ export class ModalsHandler {
             });
         });
         // Handle form submission
-        (_g = document.getElementById("newGraphForm")) === null || _g === void 0 ? void 0 : _g.addEventListener("submit", (e) => {
+        (_j = document.getElementById("newGraphForm")) === null || _j === void 0 ? void 0 : _j.addEventListener("submit", (e) => {
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
@@ -180,7 +190,7 @@ export class ModalsHandler {
         });
     }*/
     // display the edit label modal
-    showSettingsModal(settingsOptions) {
+    showSettingsModal(settingsOptions, graph) {
         if (this.settingsModal && this.settingsCrossingsColorInput) {
             this.settingsCrossingsColorInput[0].value = settingsOptions.crossings_colors.self;
             this.settingsCrossingsColorInput[1].value = settingsOptions.crossings_colors.neighbor;
@@ -190,6 +200,8 @@ export class ModalsHandler {
             this.settingsCrossingEdgesColorInput[1].value = settingsOptions.crossing_edges_colors.nonCrossing;
             this.settingsCliqueNewEdgesColorInput.value = settingsOptions.cliqueNewEdgesColor;
             this.settingsLabelDefaultFonstSizeInput.value = settingsOptions.defaultLabelFontSize.toString();
+            // this.settingsAllowSelfLoops.checked = graph.selfLoops;
+            // this.settingsAllowParallelEdges.checked = graph.parallelEdges;
             this.settingsModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
         }
     }

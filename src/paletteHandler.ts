@@ -201,7 +201,6 @@ export class PaletteHandler
         this.deleteVertexBtn.addEventListener("click", () => {
             this.stateHandler.saveState();
             this.selector.deleteSelectedVertices(this.graph);
-            this.selector.pointsUpdate();
             // renderGraph();
             this.myCanvasHandler?.redraw();
         });
@@ -210,7 +209,6 @@ export class PaletteHandler
         this.deleteBendBtn.addEventListener("click", () => {
             this.stateHandler.saveState();
             this.selector.deleteSelectedBends(this.graph);
-            this.selector.pointsUpdate();
             // renderGraph();
             this.myCanvasHandler?.redraw();
         });
@@ -219,7 +217,6 @@ export class PaletteHandler
         this.deleteEdgeBtn.addEventListener("click", () => {
             this.stateHandler.saveState();
             this.selector.deleteSelectedEdges(this.graph);
-            this.selector.pointsUpdate();
             // renderGraph();
             this.myCanvasHandler?.redraw();
         });

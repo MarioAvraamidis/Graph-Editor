@@ -65,7 +65,7 @@ export class BtnHandler {
                     this.stateHandler.saveState();
                     this.selector.deleteSelectedObjects(graph);
                     // checkHovered();
-                    this.selector.setNothingSelected();
+                    // this.selector.setNothingSelected();
                     (_d = this.myCanvasHandler) === null || _d === void 0 ? void 0 : _d.redraw();
                 }
             }
@@ -73,7 +73,6 @@ export class BtnHandler {
             else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
                 e.preventDefault();
                 this.selector.selectAll(graph);
-                this.selector.pointsUpdate();
                 // checkHovered();
                 (_e = this.myCanvasHandler) === null || _e === void 0 ? void 0 : _e.redraw();
             }

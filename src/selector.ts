@@ -8,26 +8,32 @@ import { Coords } from "./zoomHelpers.js";
 export class Selector
 {
     // selected objects
-    public points: Point[];
-    public vertices: Vertex[];
-    public edges: Edge[];
-    public bends: Bend[];
+    private _points: Point[];
+    private _vertices: Vertex[];
+    private _edges: Edge[];
+    private _bends: Bend[];
     // selection rectangle
-    public rect: {x: number, y: number, width: number, height: number};
-    public rectStart: {x: number, y: number};
+    private _rect: {x: number, y: number, width: number, height: number};
+    private rectStart: {x: number, y: number};
     public isSelecting: boolean;
     // dragging points
     // public draggingPoints: Point[];
 
+    get points() { return this._points; }
+    get vertices() { return this._vertices; }
+    get edges() { return this._edges; }
+    get bends() { return this._bends; }
+    get rect() { return this._rect; }
+
     constructor()
     {
         // selected objects
-        this.points = [];
-        this.vertices = [];
-        this.edges= [];
-        this.bends = [];
+        this._points = [];
+        this._vertices = [];
+        this._edges= [];
+        this._bends = [];
         // selection rectangle
-        this.rect = { x: 0, y: 0, width: 0, height: 0 };
+        this._rect = { x: 0, y: 0, width: 0, height: 0 };
         this.rectStart = {x: 0, y: 0};
         this.isSelecting = false;
         // dragging points
@@ -35,7 +41,7 @@ export class Selector
     }
 
     // selected Points = selected Vertices & selected Bends
-    public pointsUpdate()
+    private pointsUpdate()
     {
         this.points.length = 0;
         for (const v of this.vertices)
@@ -76,11 +82,12 @@ export class Selector
     {
         this.vertices.forEach(v => graph.deleteVertex(v));
         // remove the corresponding edges from selectedEdges
-        this.edges = this.edges.filter(e => e.points[0] instanceof Vertex && !this.vertices.includes(e.points[0]) && e.points[1] instanceof Vertex && !this.vertices.includes(e.points[1]));
+        this._edges = this.edges.filter(e => e.points[0] instanceof Vertex && !this.vertices.includes(e.points[0]) && e.points[1] instanceof Vertex && !this.vertices.includes(e.points[1]));
         // remove the corresponding bends from selectedBends
-        this.bends = this.bends.filter(b => b.edge.points[0] instanceof Vertex && !this.vertices.includes(b.edge.points[0]) && b.edge.points[1] instanceof Vertex && !this.vertices.includes(b.edge.points[1]));
+        this._bends = this.bends.filter(b => b.edge.points[0] instanceof Vertex && !this.vertices.includes(b.edge.points[0]) && b.edge.points[1] instanceof Vertex && !this.vertices.includes(b.edge.points[1]));
         // update selectedVertices
         this.vertices.length = 0;
+        this.pointsUpdate();
     }
 
     // deletion of selected bends
@@ -88,6 +95,7 @@ export class Selector
     {
         this.bends.forEach(b => graph.removeBend(b));
         this.bends.length = 0;
+        this.pointsUpdate();
     }
 
     // deletion of selected edges
@@ -95,6 +103,7 @@ export class Selector
     {
         this.edges.forEach(e => graph.deleteEdgee(e));
         this.edges.length = 0;
+        this.pointsUpdate();
     }
 
     public deleteSelectedObjects(graph: Graph)
@@ -102,12 +111,13 @@ export class Selector
         this.deleteSelectedVertices(graph);
         this.deleteSelectedBends(graph);
         this.deleteSelectedEdges(graph);
-        this.pointsUpdate();
+        this.setNothingSelected();
+        // this.pointsUpdate();
         // checkHovered();
     }
 
     // Add the selected object (vertex, bend, edge) to the appropriate array of selected objects
-    public select(obj: Object, array: Object[], e:MouseEvent)
+    private select(obj: Object, array: Object[], e:MouseEvent)
     {
         // stateHandler.saveState();
         if (e.ctrlKey || e.metaKey)
@@ -133,7 +143,7 @@ export class Selector
 
     // not sure if necessary
     // when selecting an edge to delete it, its vertices will also be selected so they'll be deleted too (unless the user uses the delete button on the edge palette)
-    public selectPointsOfSelectedEdge(edge: Edge)
+    private selectPointsOfSelectedEdge(edge: Edge)
     {
         if (edge.points[0] instanceof Vertex && edge.points[1] instanceof Vertex)
         {
@@ -151,10 +161,73 @@ export class Selector
     public selectGraph(graph: Graph)
     {
         this.setNothingSelected();
-        this.vertices = graph.vertices;
-        this.edges = graph.edges;
-        this.bends = graph.getBends();
+        this._vertices = graph.vertices;
+        this._edges = graph.edges;
+        this._bends = graph.getBends();
         this.pointsUpdate();
+    }
+
+    /** Select the vertices, edges and bends of the graph that are included in the selection rectangle
+     */
+    public selectObjectsInRect(graph: Graph)
+    {
+        this._points = graph.pointsInRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+        this._vertices = this.points.filter(v => v instanceof Vertex);
+        this._bends = this.points.filter(v => v instanceof Bend);
+        this._edges = graph.edgesInRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+    }
+
+    /** Update the starting coordinates of the selection rectangle
+     * 
+     * @param coords 
+     */
+    public updateRectStart(coords: Coords)
+    {
+        this.rectStart.x = coords.x;
+        this.rectStart.y = coords.y;
+    }
+
+    /** Update the parameters of the selection rectangle
+     * 
+     * @param coords 
+     */
+    public updateRectangle(coords: Coords)
+    {
+        this.rect.x = Math.min(this.rectStart.x, coords.x);
+        this.rect.y = Math.min(this.rectStart.y, coords.y);
+        this.rect.width = Math.abs(coords.x - this.rectStart.x);
+        this.rect.height = Math.abs(coords.y - this.rectStart.y);
+    }
+
+    /** Add the hovered object to the selected objects if ctrlKey is down, otherwise select only the hovered object
+     * 
+     * @param hover 
+     * @param e 
+     */
+    public selectHovered(hover: Hover, e: MouseEvent)
+    {
+        if (hover.vertex)
+            this.select(hover.vertex,this.vertices,e);
+        else if (hover.bend)
+            this.select(hover.bend, this.bends, e);
+        else if (hover.edge)
+            this.select(hover.edge, this.edges, e);
+        else
+            this.setNothingSelected();
+        this.pointsUpdate();
+    }
+
+    /**
+     * 
+     * @returns true if nothing is selected. Otherwise return false
+     */
+    public nothingSelected()
+    {
+        if (this.points.length > 0)
+            return false;
+        if (this.edges.length > 0)
+            return false;
+        return true;
     }
 }
 

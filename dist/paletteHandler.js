@@ -170,7 +170,6 @@ export class PaletteHandler {
             var _a;
             this.stateHandler.saveState();
             this.selector.deleteSelectedVertices(this.graph);
-            this.selector.pointsUpdate();
             // renderGraph();
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });
@@ -179,7 +178,6 @@ export class PaletteHandler {
             var _a;
             this.stateHandler.saveState();
             this.selector.deleteSelectedBends(this.graph);
-            this.selector.pointsUpdate();
             // renderGraph();
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });
@@ -188,7 +186,6 @@ export class PaletteHandler {
             var _a;
             this.stateHandler.saveState();
             this.selector.deleteSelectedEdges(this.graph);
-            this.selector.pointsUpdate();
             // renderGraph();
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });

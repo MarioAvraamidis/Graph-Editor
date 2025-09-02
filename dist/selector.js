@@ -1,4 +1,4 @@
-import { Graph, Vertex } from "./graph.js";
+import { Graph, Vertex, Bend } from "./graph.js";
 import { showCustomAlert } from "./alert.js";
 // class Selector is responsible for handling the objects (vertices, edges, bends) that the user selects
 // It uses an array for each kind of objects and stores the selected items of that kind in the array
@@ -6,14 +6,19 @@ import { showCustomAlert } from "./alert.js";
 export class Selector {
     // dragging points
     // public draggingPoints: Point[];
+    get points() { return this._points; }
+    get vertices() { return this._vertices; }
+    get edges() { return this._edges; }
+    get bends() { return this._bends; }
+    get rect() { return this._rect; }
     constructor() {
         // selected objects
-        this.points = [];
-        this.vertices = [];
-        this.edges = [];
-        this.bends = [];
+        this._points = [];
+        this._vertices = [];
+        this._edges = [];
+        this._bends = [];
         // selection rectangle
-        this.rect = { x: 0, y: 0, width: 0, height: 0 };
+        this._rect = { x: 0, y: 0, width: 0, height: 0 };
         this.rectStart = { x: 0, y: 0 };
         this.isSelecting = false;
         // dragging points
@@ -54,27 +59,31 @@ export class Selector {
     deleteSelectedVertices(graph) {
         this.vertices.forEach(v => graph.deleteVertex(v));
         // remove the corresponding edges from selectedEdges
-        this.edges = this.edges.filter(e => e.points[0] instanceof Vertex && !this.vertices.includes(e.points[0]) && e.points[1] instanceof Vertex && !this.vertices.includes(e.points[1]));
+        this._edges = this.edges.filter(e => e.points[0] instanceof Vertex && !this.vertices.includes(e.points[0]) && e.points[1] instanceof Vertex && !this.vertices.includes(e.points[1]));
         // remove the corresponding bends from selectedBends
-        this.bends = this.bends.filter(b => b.edge.points[0] instanceof Vertex && !this.vertices.includes(b.edge.points[0]) && b.edge.points[1] instanceof Vertex && !this.vertices.includes(b.edge.points[1]));
+        this._bends = this.bends.filter(b => b.edge.points[0] instanceof Vertex && !this.vertices.includes(b.edge.points[0]) && b.edge.points[1] instanceof Vertex && !this.vertices.includes(b.edge.points[1]));
         // update selectedVertices
         this.vertices.length = 0;
+        this.pointsUpdate();
     }
     // deletion of selected bends
     deleteSelectedBends(graph) {
         this.bends.forEach(b => graph.removeBend(b));
         this.bends.length = 0;
+        this.pointsUpdate();
     }
     // deletion of selected edges
     deleteSelectedEdges(graph) {
         this.edges.forEach(e => graph.deleteEdgee(e));
         this.edges.length = 0;
+        this.pointsUpdate();
     }
     deleteSelectedObjects(graph) {
         this.deleteSelectedVertices(graph);
         this.deleteSelectedBends(graph);
         this.deleteSelectedEdges(graph);
-        this.pointsUpdate();
+        this.setNothingSelected();
+        // this.pointsUpdate();
         // checkHovered();
     }
     // Add the selected object (vertex, bend, edge) to the appropriate array of selected objects
@@ -115,10 +124,63 @@ export class Selector {
     // select the vertices and edges of the given graph
     selectGraph(graph) {
         this.setNothingSelected();
-        this.vertices = graph.vertices;
-        this.edges = graph.edges;
-        this.bends = graph.getBends();
+        this._vertices = graph.vertices;
+        this._edges = graph.edges;
+        this._bends = graph.getBends();
         this.pointsUpdate();
+    }
+    /** Select the vertices, edges and bends of the graph that are included in the selection rectangle
+     */
+    selectObjectsInRect(graph) {
+        this._points = graph.pointsInRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+        this._vertices = this.points.filter(v => v instanceof Vertex);
+        this._bends = this.points.filter(v => v instanceof Bend);
+        this._edges = graph.edgesInRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+    }
+    /** Update the starting coordinates of the selection rectangle
+     *
+     * @param coords
+     */
+    updateRectStart(coords) {
+        this.rectStart.x = coords.x;
+        this.rectStart.y = coords.y;
+    }
+    /** Update the parameters of the selection rectangle
+     *
+     * @param coords
+     */
+    updateRectangle(coords) {
+        this.rect.x = Math.min(this.rectStart.x, coords.x);
+        this.rect.y = Math.min(this.rectStart.y, coords.y);
+        this.rect.width = Math.abs(coords.x - this.rectStart.x);
+        this.rect.height = Math.abs(coords.y - this.rectStart.y);
+    }
+    /** Add the hovered object to the selected objects if ctrlKey is down, otherwise select only the hovered object
+     *
+     * @param hover
+     * @param e
+     */
+    selectHovered(hover, e) {
+        if (hover.vertex)
+            this.select(hover.vertex, this.vertices, e);
+        else if (hover.bend)
+            this.select(hover.bend, this.bends, e);
+        else if (hover.edge)
+            this.select(hover.edge, this.edges, e);
+        else
+            this.setNothingSelected();
+        this.pointsUpdate();
+    }
+    /**
+     *
+     * @returns true if nothing is selected. Otherwise return false
+     */
+    nothingSelected() {
+        if (this.points.length > 0)
+            return false;
+        if (this.edges.length > 0)
+            return false;
+        return true;
     }
 }
 export class Copier {

@@ -82,7 +82,7 @@ export class BtnHandler
                     this.stateHandler.saveState();
                     this.selector.deleteSelectedObjects(graph);
                     // checkHovered();
-                    this.selector.setNothingSelected();
+                    // this.selector.setNothingSelected();
                     this.myCanvasHandler?.redraw();
                 }
             }
@@ -91,7 +91,6 @@ export class BtnHandler
             {
                 e.preventDefault();
                 this.selector.selectAll(graph);
-                this.selector.pointsUpdate();
                 // checkHovered();
                 this.myCanvasHandler?.redraw();
             }

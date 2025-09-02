@@ -11,7 +11,7 @@ export class Cmenu {
         this.showingContextMenu = false;
         this.addMenusEventListeners(graph, worldCoords, canvas, copier, selector, stateHandler, myCanvasHandler, modalsHandler, hover);
     }
-    // Function to hide the context menu
+    // Function to hide the context menu (it's activated in mouse.ts)
     hideContextMenu() {
         /*const menus: HTMLDivElement[] = [contextMenu,this.edgeMenu,this.selectedMenu,this.pointMenu,this.labelMenu];
         for (const menu in menus)
@@ -71,6 +71,13 @@ export class Cmenu {
                 this.showContextMenu(event.clientX, event.clientY, this.contextMenu);
             this.showingContextMenu = true;
         });
+        // hide context menu if click somewhere else
+        // canvas.addEventListener('mousedown', (e) => {
+        // if (this.contextMenu && !this.contextMenu.contains(e.target as Node) && this.showingContextMenu) {
+        //   this.hideContextMenu();
+        //   this.showingContextMenu = false;
+        // }
+        // });
         // Add event listener for clicks on the context menu options
         this.contextMenu.addEventListener('click', (event) => {
             const target = event.target;
@@ -254,6 +261,18 @@ export class Cmenu {
                 }
             }
         });
+    }
+    /** If the menu is active and the click is outside the menu, close the menu and return true. Otherwise, return false.
+     *
+     * @param e MouseEvent
+     */
+    clickOutsideActiveMenu(e) {
+        if (this.contextMenu && !this.contextMenu.contains(e.target) && this.showingContextMenu) {
+            this.hideContextMenu();
+            this.showingContextMenu = false;
+            return true;
+        }
+        return false;
     }
 }
 /*

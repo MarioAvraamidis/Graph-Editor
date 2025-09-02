@@ -4,6 +4,7 @@ import { Graph, Point, Vertex } from "./graph.js";
 import { Hover, Selector } from "./selector.js";
 import { StateHandler } from "./stateHandler.js";
 import { createGraph } from "./graphCreator.js";
+import { showCustomAlert } from "./alert.js";
 
 export class ModalsHandler
 {
@@ -22,6 +23,8 @@ export class ModalsHandler
     private settingsCrossingEdgesColorInput: HTMLInputElement[] = [];   // crossing edges colors
     private settingsCliqueNewEdgesColorInput: HTMLInputElement;          // clique new edges color
     private settingsLabelDefaultFonstSizeInput: HTMLInputElement;       // default label font size settings
+    private settingsAllowSelfLoops: HTMLInputElement;                   // allow or not self loops for the graph
+    private settingsAllowParallelEdges: HTMLInputElement;               // allow or not parallel edges for the graph
     // new graph modal
     private newGraphModal: HTMLElement = document.getElementById('newGraphModal') as HTMLElement;
     private newGraphCloseButton: HTMLElement = this.newGraphModal.querySelector('.close-button') as HTMLElement;
@@ -50,6 +53,9 @@ export class ModalsHandler
         this.settingsCliqueNewEdgesColorInput = document.getElementById('clique-new-edges-color') as HTMLInputElement;
         // default label font size settings
         this.settingsLabelDefaultFonstSizeInput = document.getElementById('labelDefaultFontSizeInput') as HTMLInputElement;
+        // self-loops and parallel edges
+        this.settingsAllowSelfLoops = document.getElementById('self-loops') as HTMLInputElement;
+        this.settingsAllowParallelEdges = document.getElementById('parallel-edges') as HTMLInputElement;
         // settingsOptions
         this.settingsOptions = settingsOptions;
         this.addEventListeners(graph,myCanvasHandler,stateHandler,hover,selector);
@@ -59,7 +65,7 @@ export class ModalsHandler
     public addEventListeners(graph: Graph,myCanvasHandler: CanvasHandler, stateHandler: StateHandler, hover: Hover, selector: Selector)
     {
         // listener for settings button
-        document.getElementById('settingsBtn')?.addEventListener('click', () => this.showSettingsModal(this.settingsOptions));
+        document.getElementById('settingsBtn')?.addEventListener('click', () => this.showSettingsModal(this.settingsOptions,graph));
         // listener for new graph button
         document.getElementById('newGraphBtn')?.addEventListener('click', () => this.showNewGraphModal() );
          // listner for settings savebutton
@@ -80,6 +86,13 @@ export class ModalsHandler
 
         this.labelContentInput?.addEventListener('change', () => { this.editLabelChanges = true; console.log("label content change") })
         this.labelFontSizeInput?.addEventListener('change', () => {this.editLabelChanges = true; console.log("label size change") } )
+        this.settingsAllowSelfLoops?.addEventListener('change', () => {
+            // const v: Vertex | null = graph.checkSelfLoops();
+            // if(v)
+               // showCustomAlert("Action not implemented. Graph contains self-loop on vertex "+v.id);
+            graph.selfLoops = this.settingsAllowSelfLoops.checked;
+        })
+        this.settingsAllowParallelEdges?.addEventListener('change',() => graph.parallelEdges = this.settingsAllowParallelEdges.checked )
 
         // save button listener for label modal
         this.saveLabelButton?.addEventListener('click', () => {
@@ -220,7 +233,7 @@ export class ModalsHandler
     }*/
 
     // display the edit label modal
-    public showSettingsModal(settingsOptions: SettingsOptions) {
+    public showSettingsModal(settingsOptions: SettingsOptions, graph: Graph) {
         if (this.settingsModal && this.settingsCrossingsColorInput) {
             this.settingsCrossingsColorInput[0].value = settingsOptions.crossings_colors.self;
             this.settingsCrossingsColorInput[1].value = settingsOptions.crossings_colors.neighbor;
@@ -230,6 +243,8 @@ export class ModalsHandler
             this.settingsCrossingEdgesColorInput[1].value = settingsOptions.crossing_edges_colors.nonCrossing;
             this.settingsCliqueNewEdgesColorInput.value = settingsOptions.cliqueNewEdgesColor;
             this.settingsLabelDefaultFonstSizeInput.value = settingsOptions.defaultLabelFontSize.toString();
+            // this.settingsAllowSelfLoops.checked = graph.selfLoops;
+            // this.settingsAllowParallelEdges.checked = graph.parallelEdges;
             this.settingsModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
         }
     }

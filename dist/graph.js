@@ -412,17 +412,21 @@ export class Graph {
     get crossings() { return this._crossings; }
     get curve_complexity() { return this._curve_complexity; }
     get effective_crossing_update() { return this._effective_crossing_update; }
+    get selfLoops() { return this._self_loops; }
+    get parallelEdges() { return this._parallel_edges; }
     // will be used in the cloning (Undo/Redo)
     set vertices(vert) { this._vertices = vert; }
     set edges(e) { this._edges = e; }
     set effective_crossing_update(update) { this._effective_crossing_update = update; }
+    set selfLoops(self_loops) { this._self_loops = self_loops; }
+    set parallelEdges(parallel) { this._parallel_edges = parallel; }
     constructor(vertices = [], edges = [], updateCrossings = true) {
         this._vertices = [];
         this._edges = [];
         // characteristics of the graph
         this.directed = false;
-        this.self_loops = false;
-        this.simple = true;
+        this._self_loops = false;
+        this._parallel_edges = false;
         // store all the crossing points between edges of the graph
         this._crossings = [];
         // store the curve complexity of the graph
@@ -653,24 +657,24 @@ export class Graph {
         let edge_id1 = v1.id + '-' + v2.id;
         // if the graph is undirected, check reversed edge
         let edge_id2 = v2.id + '-' + v1.id;
-        if (v1 === v2 && !this.self_loops) {
+        if (v1 === v2 && !this.selfLoops) {
             // console.log("WARNING: Self loops are not allowed in this graph");
             if (showWarnings)
                 showCustomAlert("WARNING: Self loops are not allowed in this graph");
             return false;
         }
         //check that the edge does not already exits
-        else if (extractIds(this._edges).includes(edge_id1) && this.simple) {
+        else if (extractIds(this._edges).includes(edge_id1) && !this.parallelEdges) {
             // console.log("WARNING: Edge " + edge_id1 + " already exists and the graph is simple");
             if (showWarnings)
-                showCustomAlert("WARNING: Edge " + edge_id1 + " already exists and the graph is simple");
+                showCustomAlert("WARNING: Edge " + edge_id1 + " already exists" /* and the graph is simple"*/);
             return false;
         }
         // if the graph is undirected and simple, check reversed edge
-        else if (!this.directed && this.simple && extractIds(this._edges).includes(edge_id2)) {
+        else if (!this.directed && !this.parallelEdges && extractIds(this._edges).includes(edge_id2)) {
             // console.log("WARNING: Edge " + edge_id2 + " already exists");
             if (showWarnings)
-                showCustomAlert("WARNING: Edge " + edge_id2 + " already exists and the graph is simple");
+                showCustomAlert("WARNING: Edge " + edge_id2 + " already exists" /*and the graph is simple"*/);
             return false;
         }
         return true;
@@ -709,6 +713,29 @@ export class Graph {
         // update curve complexity
         if (e && e.bends.length === this.curve_complexity)
             this.updateCurveComplexity();
+    }
+    /**Check if the graph contains self-loops
+     *
+     * @returns a point on which there's self-loop. If there are not self-loops in the graph, return null
+     */
+    checkSelfLoops() {
+        this.edges.forEach(e => { if (e.points[0] === e.points[1])
+            return e.points[0]; });
+        return null;
+    }
+    /**Check if the graph contains parallel edges
+     *
+     * @returns one of a set of parallel edges, or null if the graph does not contain parallel edges
+     */
+    checkParallelEdges() {
+        for (const e1 of this.edges)
+            for (const e2 of this.edges) {
+                if (e1 === e2)
+                    break;
+                if (e1.points[0] === e2.points[0] && e1.points[1] === e2.points[1] || e1.points[0] === e2.points[1] && e1.points[1] === e2.points[0])
+                    return e1;
+            }
+        return null;
     }
     // check if two STRAIGHT edges cross each other (return the crossing point) or not (return null)
     // source: https://www.youtube.com/watch?v=bvlIYX9cgls&t=155s
@@ -1220,8 +1247,8 @@ export class Graph {
         this._vertices = newGraph.vertices;
         this._edges = newGraph.edges;
         this.directed = newGraph.directed;
-        this.self_loops = newGraph.self_loops;
-        this.simple = newGraph.simple;
+        this._self_loops = newGraph.selfLoops;
+        this._parallel_edges = newGraph.parallelEdges;
         this._crossings = newGraph.crossings;
         this._curve_complexity = newGraph.curve_complexity;
         this.tempCount = newGraph.tempCount;

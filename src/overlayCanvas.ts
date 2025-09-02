@@ -4,9 +4,11 @@ import { SettingsOptions } from "./settings.js";
 import { SimpleDrawer } from "./simpleDrawer.js";
 import { Scaler } from "./zoomHelpers.js";
 
+
+const overlayCanvas = document.getElementById("overlayCanvas") as HTMLCanvasElement;
+
 export function setOverlayCanvas(graph: Graph, settingsOptions: SettingsOptions)
 {
-    const overlayCanvas = document.getElementById("overlayCanvas") as HTMLCanvasElement;
     const wrapper = document.querySelector(".overlay-wrapper") as HTMLDivElement;
     wrapper.style.display = 'inline-block'; // make the wrapper visible
     const overlayCtx = overlayCanvas.getContext("2d")!;
@@ -17,6 +19,7 @@ export function setOverlayCanvas(graph: Graph, settingsOptions: SettingsOptions)
 
     // Initial setup: ensure the canvas resolution matches its initial size
     setOverlayResolution(overlayCanvas, canvasHandler/*, 1 */);
+    // initOverlayCanvasHiDPI(canvasHandler);
 
     // btn
     // overlayGraph.replace(graph);
@@ -122,22 +125,33 @@ function resizeOverlayCanvas(canvas: HTMLCanvasElement) {
 }
 
 // Call this once after you know the CSS size (300x200 here).
-function initOverlayCanvasHiDPI(canvas: HTMLCanvasElement, canvasHandler: CanvasHandler, cssW = 300, cssH = 200, superScale = 3) {
-  const dpr = window.devicePixelRatio || 1;
-  // Backing store is 3× (or whatever factor you want)
-  canvas.width  = Math.floor(cssW * superScale * dpr);
-  canvas.height = Math.floor(cssH * superScale * dpr);
+function initOverlayCanvasHiDPI(canvasHandler: CanvasHandler, superScale = 3) {
+    const cssW = overlayCanvas.clientWidth;   // rendered width in CSS px
+    const cssH = overlayCanvas.clientHeight;  // rendered height in CSS px
 
-  // Keep CSS size the small one
-  canvas.style.width  = cssW + 'px';
-  canvas.style.height = cssH + 'px';
+    const dpr = window.devicePixelRatio || 1;
+    // Backing store is 3× (or whatever factor you want)
+    overlayCanvas.width  = Math.floor(cssW * superScale * dpr);
+    overlayCanvas.height = Math.floor(cssH * superScale * dpr);
+    // canvas.width = cssW * dpr;
+    // canvas.height = cssH * dpr;
 
-  const ctx = canvas.getContext('2d')!;
-  ctx.setTransform(superScale * dpr, 0, 0, superScale * dpr,
-    (canvas.width  - cssW * dpr * superScale) / 2,
-    (canvas.height - cssH * dpr * superScale) / 2
-  );
+    // Keep CSS size the small one
+    overlayCanvas.style.width  = cssW + 'px';
+    overlayCanvas.style.height = cssH + 'px';
 
-  // draw your overlay content here at logical units
-  canvasHandler.fixView();
+    const ctx = overlayCanvas.getContext('2d')!;
+    //ctx.setTransform(superScale * dpr, 0, 0, superScale * dpr, 0, 0);
+    ctx.setTransform(superScale * dpr, 0, 0, superScale * dpr, 0, 0);
+
+    console.log("--- initOverlayCanvasHiDPI ---");
+    console.log("CSS Dimensions:", cssW, "x", cssH);
+    console.log("DPR:", dpr);
+    console.log("SuperScale:", superScale);
+    console.log("Calculated Canvas Width:", overlayCanvas.width);
+    console.log("Calculated Canvas Height:", overlayCanvas.height);
+    console.log("----------------------------");
+
+    // draw your overlay content here at logical units
+    canvasHandler.fixView();
 }

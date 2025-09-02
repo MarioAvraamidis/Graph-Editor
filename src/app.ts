@@ -13,7 +13,6 @@ import { Drawer } from "./draw.js";
 import { SettingsOptions } from "./settings.js";
 import { setOverlayCanvas } from "./overlayCanvas.js";
 import { RubbishBin } from "./rubbishBin.js";
-import { SimpleDrawer } from "./simpleDrawer.js";
 
 let graph = new Graph();        // Create a graph instance
 let stateHandler: StateHandler; // undo/redo utilities

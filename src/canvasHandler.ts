@@ -198,6 +198,10 @@ export class CanvasHandler {
 
         const canvasWidth = this.canvas.clientWidth;  // CSS pixels
         const canvasHeight = this.canvas.clientHeight; // CSS pixels
+
+        // console.log("--- fixViewRect ---");
+        // console.log("Client Dimensions:", this.canvas.clientWidth, "x", this.canvas.clientHeight);
+        // console.log("Internal Dimensions:", this.canvas.width, "x", this.canvas.height);
         // console.log("canvasWidth:",canvasWidth,"canvasHeight:",canvasHeight);
 
         // Calculate world center regardless, as it's used in both cases
@@ -248,6 +252,10 @@ export class CanvasHandler {
 
         // Clamp the new scale within the defined min/max limits
         newScale = Math.max(this.scaler.MIN_SCALE, Math.min(this.scaler.MAX_SCALE, newScale));
+
+        
+        // console.log("Calculated newScale:", newScale);
+        // console.log("-------------------");
 
         this.scaler.scale = newScale;
 
