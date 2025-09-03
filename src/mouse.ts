@@ -1,12 +1,13 @@
 import { CanvasHandler } from "./canvasHandler.js";
 import { Coords, Scaler } from "./zoomHelpers.js";
 import { Cmenu } from "./contextMenu.js";
-import { Bend, BendedEdgeCreator, Graph, Point} from "./graph.js";
+import { BendedEdgeCreator, Graph, Point} from "./graph.js";
 import { PaletteHandler } from "./paletteHandler.js";
 import { Hover, Selector } from "./selector.js";
 import { StateHandler } from "./stateHandler.js";
 import { SettingsOptions } from "./settings.js";
 import { RubbishBin } from "./rubbishBin.js";
+import { MouseTool, EdgeCreator, MouseDragger, RectangleSelector } from "./mouseTools.js";
 
 export class MouseHandler
 {
@@ -36,6 +37,7 @@ export class MouseHandler
     constructor(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
     {
         this.addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
+        // this.addEventListeners2(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
     }
 
     private addEventListeners(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
@@ -43,15 +45,16 @@ export class MouseHandler
         // mousedown
         canvas.addEventListener("mousedown", (e) => {
 
+            // first updates
             canvas.focus(); // on click → ensures when you interact with the graph area, the canvas grabs focus again.
             worldCoords.update(scaler.screenToWorld(e.clientX, e.clientY));         // update worldCoords
             hover.check(scaler.scale);                                              // update hovered objects
+
             this.updateDraggingPoints(hover,selector,stateHandler);                 // update dragging points
+            this.draggingLabelPointUpdate(bendedEdgeCreator,hover,stateHandler);    // label move detection
             if (selector.nothingSelected() && !bendedEdgeCreator.creatingEdge)      // starting vertex for edge creation
                 bendedEdgeCreator.startingVertex = hover.vertex;
-            this.draggingLabelPointUpdate(bendedEdgeCreator,hover,stateHandler);    // label move detection
 
-            // this.canAddVertex = !cmenu.showingContextMenu;                          // update canAddVertex value
             this.showingCtxMenu = cmenu.clickOutsideActiveMenu(e);                  // update showingCtxMenu value here. If updated somewhere else, cmenu.showingContextMenu will get false and we will not be able to know if it was true before
             this.hasDragged = false;
             this.mousedown = true;
@@ -112,7 +115,7 @@ export class MouseHandler
             // if dragging cursor, don't consider it a click
             if (this.hasDragged || !this.canClick)
                 return;
-            
+        
             // worldCoords = myCanvasHandler.screenToWorld(e.clientX, e.clientY);
             worldCoords.update(scaler.screenToWorld(e.clientX, e.clientY));
             // console.log("Clicked at screen ",e.clientX,e.clientY);
@@ -120,11 +123,98 @@ export class MouseHandler
 
             // if nothing hovered or selected, add a new vertex at the clicked position
             this.createNewVertex(graph,hover,selector,stateHandler,settingsOptions,worldCoords);
+            // select the hovered object
+            selector.selectHovered(hover,e);
 
-            selector.selectHovered(hover,e);        // select the hovered object
             myCanvasHandler?.redraw();              // redraw content
             paletteHandler.updatePaletteState();    // update palette state
         });
+    }
+
+    private addEventListeners2(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
+    {
+        const mouseDragger = new MouseDragger(graph,hover,selector,stateHandler,worldCoords,scaler);
+        const rectangleSelector = new RectangleSelector(graph,selector,worldCoords);
+        const edgeCreator = new EdgeCreator(canvas,graph,bendedEdgeCreator,selector,hover,scaler,stateHandler,settingsOptions,rubbishBin,worldCoords);
+        let currentTool: MouseTool = rectangleSelector;     // set as rectangleSelector first
+
+        // mousedown
+        canvas.addEventListener('mousedown', (e) => {
+            this.mainUpdates(canvas,hover,worldCoords,scaler,e);
+            this.hasDragged = false;
+            this.mousedown = true;
+            // check cases to select currentTool
+            if (this.checkDragging(hover,selector))
+                currentTool = mouseDragger;
+            else if (this.checkEdgeCreation(hover,selector,bendedEdgeCreator))
+                currentTool = edgeCreator;
+            else
+                currentTool = rectangleSelector;
+            currentTool.onMouseDown(e);
+            // update palette state
+            paletteHandler.updatePaletteState();
+            // redraw
+            myCanvasHandler?.redraw();
+        });
+        // mousemove
+        canvas.addEventListener('mousemove', (e) => {
+            this.mainUpdates(canvas,hover,worldCoords,scaler,e);
+            // update hasDragged value
+            if (this.mousedown && Math.hypot(this.offsetX,this.offsetY) > 3)
+                this.hasDragged = true;
+            currentTool.onMouseMove(e,this.hasDragged);
+            // redraw
+            myCanvasHandler?.redraw();
+        })
+        // mouseup
+        canvas.addEventListener('mouseup', (e) => {
+            this.mainUpdates(canvas,hover,worldCoords,scaler,e);    // main updates (update hover, worldCoords etc)
+            currentTool.onMouseUp(e);                               // activate listner for mouseup in the current tool
+            this.mousedown = false;                                 // update mousedown value
+            myCanvasHandler?.redraw();                              // redraw
+            paletteHandler.updatePaletteState();                    // update palette state
+        })
+        // click
+        canvas.addEventListener("click", (e: MouseEvent) => {
+
+            // if dragging cursor, don't consider it a click
+            if (this.hasDragged /*|| !this.canClick*/)
+                return;
+        
+            // worldCoords = myCanvasHandler.screenToWorld(e.clientX, e.clientY);
+            worldCoords.update(scaler.screenToWorld(e.clientX, e.clientY));
+            // console.log("Clicked at screen ",e.clientX,e.clientY);
+            hover.check(scaler.scale);
+
+            // if nothing hovered or selected, add a new vertex at the clicked position
+            this.createNewVertex(graph,hover,selector,stateHandler,settingsOptions,worldCoords);
+            // select the hovered object
+            selector.selectHovered(hover,e);
+
+            myCanvasHandler?.redraw();              // redraw content
+            paletteHandler.updatePaletteState();    // update palette state
+        });
+    }
+
+    private mainUpdates(canvas: HTMLCanvasElement, hover: Hover, worldCoords: Coords, scaler: Scaler, e: MouseEvent)
+    {
+        canvas.focus(); // on click → ensures when you interact with the graph area, the canvas grabs focus again.
+        worldCoords.update(scaler.screenToWorld(e.clientX, e.clientY));         // update worldCoords
+        hover.check(scaler.scale);                                              // update hovered objects
+    }
+
+    private checkDragging(hover: Hover, selector: Selector)
+    {
+        if (hover.point && selector.points.includes(hover.point) || hover.edge && selector.edges.includes(hover.edge) || hover.labelPoint)
+            return true;
+        return false;
+    }
+
+    private checkEdgeCreation(hover: Hover, selector: Selector, bendedEdgeCreator: BendedEdgeCreator)
+    {
+        if (selector.nothingSelected() && !bendedEdgeCreator.creatingEdge && hover.vertex)
+            return true;
+        return false;
     }
 
     // check if the clicked point belongs to the selected ones
@@ -180,7 +270,7 @@ export class MouseHandler
      */
     private dragLabel(worldCoords: Coords, scale: number)
     {
-        if (this.draggingLabelPoint && this.hasDragged)
+        if (this.draggingLabelPoint /* && this.hasDragged*/ )
         {
             // make sure dragging label is not moved far away from the point
             const limit = Math.max(2*this.draggingLabelPoint.size+this.draggingLabelPoint.label.fontSize,40);
