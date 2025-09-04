@@ -1,5 +1,5 @@
-import { Vertex } from "./graph.js";
 import { createGraph } from "./graphCreator.js";
+import { Vertex } from "./graphElements.js";
 export class ModalsHandler {
     constructor(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector) {
         this.editLabelChanges = false;

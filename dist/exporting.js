@@ -7,7 +7,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Graph, Vertex } from "./graph.js";
+import { Graph } from "./graph.js";
+import { Vertex } from "./graphElements.js";
 function serializeLabel(label) {
     return {
         showLabel: label.showLabel,

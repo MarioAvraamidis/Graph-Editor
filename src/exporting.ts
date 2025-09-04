@@ -1,4 +1,6 @@
-import { Graph, Vertex, Label} from "./graph.js";
+import { Graph } from "./graph.js";
+import { Vertex } from "./graphElements.js";
+import { Label } from "./labels.js";
 
 function serializeLabel(label: Label) {
   return {
@@ -55,7 +57,7 @@ export function restoreGraphFromJSON(data: any): Graph {
 
     // Reconstruct vertices
     for (const v of data.vertices) {
-        const vertex = new Vertex(v.id, v.x, v.y);
+        const vertex: Vertex = new Vertex(v.id, v.x, v.y);
         // Object.assign(vertex, v); // Copy extra fields like label, color, shape, etc.
         if (v.color)
             vertex.color = v.color;

@@ -1,5 +1,5 @@
 // src/app.ts
-import { Graph, BendedEdgeCreator } from "./graph.js";
+import { Graph } from "./graph.js";
 import { CanvasHandler } from './canvasHandler.js'; 
 import { Coords, Scaler } from "./zoomHelpers.js";
 import { ModalsHandler } from "./modals.js";
@@ -13,6 +13,7 @@ import { Drawer } from "./draw.js";
 import { SettingsOptions } from "./settings.js";
 import { setOverlayCanvas } from "./overlayCanvas.js";
 import { RubbishBin } from "./rubbishBin.js";
+import { BendedEdgeCreator } from "./edgeCreator.js";
 
 let graph = new Graph();        // Create a graph instance
 let stateHandler: StateHandler; // undo/redo utilities

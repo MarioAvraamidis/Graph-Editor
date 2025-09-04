@@ -1,4 +1,5 @@
-import { Graph, Vertex } from "./graph.js";
+import { Graph } from "./graph.js";
+import { Vertex } from "./graphElements.js";
 
 export function createGraph(type: string, param: number, labelFontSize: number = 14)
 {

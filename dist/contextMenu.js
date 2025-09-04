@@ -1,5 +1,6 @@
 // contextMenu.ts
-import { Graph, Vertex } from "./graph.js";
+import { Graph } from "./graph.js";
+import { Vertex } from "./graphElements.js";
 export class Cmenu {
     constructor(graph, worldCoords, canvas, copier, selector, stateHandler, myCanvasHandler, modalsHandler, hover) {
         // context menus

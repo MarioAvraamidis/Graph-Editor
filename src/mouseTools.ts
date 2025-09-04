@@ -1,9 +1,11 @@
-import { BendedEdgeCreator, Graph, Point } from "./graph.js";
+import { Graph } from "./graph.js";
 import { RubbishBin } from "./rubbishBin.js";
 import { Hover, Selector } from "./selector.js";
 import { SettingsOptions } from "./settings.js";
 import { StateHandler } from "./stateHandler.js";
 import { Coords, Scaler } from "./zoomHelpers.js";
+import { BendedEdgeCreator } from "./edgeCreator.js";
+import { Point, Edge } from "./graphElements.js";
 
 // Tool.ts
 export interface MouseTool {
@@ -68,6 +70,7 @@ export class MouseDragger implements MouseTool
         if (this.hover.point && this.selector.points.includes(this.hover.point) || this.hover.edge && this.selector.edges.includes(this.hover.edge))
         {
             this.stateHandler.saveState();
+            // console.log("draggingPoints saveState()");
             // selector.draggingPoints = selector.points;
             for (const point of this.selector.points)
                 this.draggingPoints.push(point);
@@ -91,8 +94,10 @@ export class MouseDragger implements MouseTool
     private draggingLabelPointUpdate()
     {
         this.draggingLabelPoint = this.hover.labelPoint;
-        if (this.draggingLabelPoint)
+        if (this.draggingLabelPoint){
             this.stateHandler.saveState();
+            // console.log("draggingLabel saveState()");
+        }
     }
 
     /** Move the dragging points of the graph
@@ -146,9 +151,11 @@ export class RectangleSelector implements MouseTool
     }
 
     onMouseDown(e: MouseEvent): void {
+        // console.log("onMouseDown");
         this.selector.updateRectStart(this.worldCoords);
     }
     onMouseMove(e: MouseEvent, hasDragged: boolean): void {
+        // console.log("onMouseMove");
         this.updateSelectionRect(this.selector,this.worldCoords,e,hasDragged)
     }
     onMouseUp(e: MouseEvent): void {
@@ -156,13 +163,16 @@ export class RectangleSelector implements MouseTool
             this.selector.selectObjectsInRect(this.graph);
         // update values
         this.selector.isSelecting = false;
+        // console.log("selection onMouseUp");
     }
 
     private updateSelectionRect(selector: Selector, worldCoords: Coords, e: MouseEvent, hasDragged: boolean)
     {
         // check that necessary conditions hold before activating selection rectangle
-        if (/* this.mousedown &&*/ hasDragged && !e.ctrlKey && !e.metaKey)
+        if (/* this.mousedown &&*/ hasDragged && !e.ctrlKey && !e.metaKey){
+            // console.log("selecting");
             selector.isSelecting = true;
+        }
         // update rectangle position and dimensions
         if (selector.isSelecting)
             selector.updateRectangle(worldCoords);
@@ -174,7 +184,6 @@ export class EdgeCreator implements MouseTool
     private canvas: HTMLCanvasElement;
     private graph: Graph;
     private bendedEdgeCreator: BendedEdgeCreator;
-    private selector: Selector;
     private hover: Hover;
     private scaler: Scaler;
     private stateHandler: StateHandler;
@@ -182,19 +191,19 @@ export class EdgeCreator implements MouseTool
     private rubbishBin: RubbishBin;
     private worldCoords: Coords;
 
-    constructor(canvas: HTMLCanvasElement, graph: Graph, bendedEdgeCreator: BendedEdgeCreator, selector: Selector, hover: Hover, scaler: Scaler, stateHandler: StateHandler, settingsOptions: SettingsOptions, rubbishBin: RubbishBin, worldCoords: Coords)
+    constructor(canvas: HTMLCanvasElement, graph: Graph, bendedEdgeCreator: BendedEdgeCreator, hover: Hover, scaler: Scaler, stateHandler: StateHandler, settingsOptions: SettingsOptions, rubbishBin: RubbishBin, worldCoords: Coords)
     {
-        this.canvas = canvas; this.graph = graph; this.bendedEdgeCreator = bendedEdgeCreator; this.selector = selector; this.hover = hover;
+        this.canvas = canvas; this.graph = graph; this.bendedEdgeCreator = bendedEdgeCreator; this.hover = hover;
         this.scaler = scaler; this.stateHandler = stateHandler; this.settingsOptions = settingsOptions; this.rubbishBin = rubbishBin;
         this.worldCoords = worldCoords;
     }
 
     onMouseDown(e: MouseEvent): void {
-        if (this.selector.nothingSelected() && !this.bendedEdgeCreator.creatingEdge)      // starting vertex for edge creation
+        if (!this.bendedEdgeCreator.creatingEdge)      // starting vertex for edge creation
                 this.bendedEdgeCreator.startingVertex = this.hover.vertex;
     }
     onMouseMove(e: MouseEvent, hasDragged: boolean): void {
-        this.startEdgeCreation(this.bendedEdgeCreator,this.selector,this.stateHandler,hasDragged);    // start edge creation (if necessary conditions hold)
+        this.startEdgeCreation(this.bendedEdgeCreator,this.stateHandler,hasDragged);    // start edge creation (if necessary conditions hold)
     }
     onMouseUp(e: MouseEvent): void {
         this.continueEdgeCreation(this.canvas,this.graph,this.bendedEdgeCreator,this.hover,this.scaler,this.settingsOptions,this.stateHandler,this.worldCoords,this.rubbishBin)
@@ -206,35 +215,34 @@ export class EdgeCreator implements MouseTool
      * @param selector 
      * @param stateHandler 
      */
-    private startEdgeCreation(bendedEdgeCreator: BendedEdgeCreator, selector: Selector, stateHandler: StateHandler, hasDragged: boolean)
+    private startEdgeCreation(bendedEdgeCreator: BendedEdgeCreator, stateHandler: StateHandler, hasDragged: boolean)
     {
-        if (/*this.mousedown && */hasDragged && bendedEdgeCreator.startingVertex && selector.nothingSelected() && !bendedEdgeCreator.creatingEdge)    // creatingEdge is activated only if we have a starting vertex and no selected points
+        // creatingEdge is activated only if we have a starting vertex and the mouse is dragged
+        if (hasDragged && bendedEdgeCreator.startingVertex && !bendedEdgeCreator.creatingEdge)
         {
             bendedEdgeCreator.creatingEdge = true;
-            // this.canClick = false;
             stateHandler.saveState();
+            // console.log("edge creation started. state saved()");
         }
     }
 
     private continueEdgeCreation(canvas: HTMLCanvasElement, graph: Graph, bendedEdgeCreator: BendedEdgeCreator, hover: Hover, scaler: Scaler, settingsOptions: SettingsOptions, stateHandler: StateHandler, worldCoords: Coords, rubbishBin: RubbishBin)
-        {
+    {
         if (bendedEdgeCreator.startingVertex && bendedEdgeCreator.creatingEdge)
         {
             rubbishBin.updatePos(canvas,scaler);
             if (hover.vertex)  // add a straight edge
             {
-                const edge = graph.addEdgeAdvanced(bendedEdgeCreator.startingVertex,hover.vertex);
+                // const edge = graph.addEdgeAdvanced(bendedEdgeCreator.startingVertex,hover.vertex);
+                const edge = bendedEdgeCreator.addEdgeAdvanced(graph,bendedEdgeCreator.startingVertex,hover.vertex);
                 if (edge)   // check if the edge can be created, based on the restrictions for self loops, simple graph etc
                 {
-                    bendedEdgeCreator.startingVertex = null;
-                    bendedEdgeCreator.creatingEdge = false;
+                    // reset bendedEdgeCreator
+                    bendedEdgeCreator.reset();
+                    // bendedEdgeCreator.startingVertex = null;
+                    // bendedEdgeCreator.creatingEdge = false;
                     // set characteristics for the new edge
-                    edge.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
-                    edge.label.fontSize = settingsOptions.defaultLabelFontSize; // edge's label font size
-                    edge.label.showLabel = (document.getElementById("edge-show-labels") as HTMLInputElement)?.checked;
-                    edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size, (document.getElementById("bend-show-labels") as HTMLInputElement)?.checked );
-                    // hasDragged = true;  // to not select the hover.vertex
-                    // edgeCreated = edge;
+                    this.updateEdgeCharacteristics(edge,settingsOptions);
                 }
             }
             else if (this.isMouseNear(worldCoords, rubbishBin.pos,rubbishBin.radius/scaler.scale)) // stop creating vertex if clicked on the up-left corner (a bin should be drawn to show the option)
@@ -243,35 +251,47 @@ export class EdgeCreator implements MouseTool
                     graph.deleteEdgee(bendedEdgeCreator.edgeCreated);
                 if (bendedEdgeCreator.startingVertex !== null && bendedEdgeCreator.startingVertex.temporary)    // if startingVertex is temporary, delete it
                     graph.deleteVertex(bendedEdgeCreator.startingVertex);
-                bendedEdgeCreator.edgeCreated = null;
-                bendedEdgeCreator.startingVertex = null;
-                bendedEdgeCreator.creatingEdge = false;
-                stateHandler.pop();     // don't save state if no edge created (state saved when mousedown)
-                // hasDragged = true;  // to not create a new edge when rubbish bin is clicked
+                bendedEdgeCreator.reset();  // set bendedEdgeCreator values to none
+                stateHandler.pop();         // don't save state if no edge created (state saved when mousedown)
             }
             else // continue creating a bended edge
             {
-                // stateHandler.saveState();
-                // let combo = graph.extendEdge(startingVertex,mouse.x,mouse.y);
-                let combo = graph.extendEdge(bendedEdgeCreator.startingVertex,worldCoords.x,worldCoords.y);
+                // let combo = graph.extendEdge(bendedEdgeCreator.startingVertex,worldCoords.x,worldCoords.y);
+                let combo = bendedEdgeCreator.extendEdge(graph,bendedEdgeCreator.startingVertex,worldCoords.x,worldCoords.y);
                 bendedEdgeCreator.startingVertex = combo.vertex;
                 bendedEdgeCreator.edgeCreated = combo.edge;
                 // set characteristics for the new edge
                 if(bendedEdgeCreator.edgeCreated)
-                {
-                    bendedEdgeCreator.edgeCreated.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
-                    bendedEdgeCreator.edgeCreated.label.fontSize = settingsOptions.defaultLabelFontSize; // edge's label font size
-                    bendedEdgeCreator.edgeCreated.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size /*, this.showBendLabel.checked*/ );
-                }
+                    this.updateEdgeCharacteristics(bendedEdgeCreator.edgeCreated,settingsOptions,true);
             }
         }
         // else
-           // this.canClick = true;
+            // this.canClick = true;
     }
 
     private isMouseNear(worldCoords: Coords, pos: {x: number, y: number}, dist: number)
     {
         // return Math.hypot(mouse.x-x,mouse.y-y)<dist;
         return Math.hypot(worldCoords.x-pos.x,worldCoords.y-pos.y)<dist;
+    }
+
+    /**Assign characteristics to the new edge according to settings
+     * 
+     * @param edge 
+     * @param settingsOptions 
+     */
+    private updateEdgeCharacteristics(edge: Edge, settingsOptions: SettingsOptions, temporaryEdge: boolean = false)
+    {
+        // edge characteristics
+        edge.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
+        // bend characteristics
+        if (!temporaryEdge)
+            edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size, (document.getElementById("bend-show-labels") as HTMLInputElement)?.checked );
+        else
+            edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size);
+        // label characteristics
+        edge.label.fontSize = settingsOptions.defaultLabelFontSize;
+        if (!temporaryEdge)
+            edge.label.showLabel = (document.getElementById("edge-show-labels") as HTMLInputElement)?.checked;
     }
 }

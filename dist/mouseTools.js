@@ -43,6 +43,7 @@ export class MouseDragger {
     updateDraggingPoints() {
         if (this.hover.point && this.selector.points.includes(this.hover.point) || this.hover.edge && this.selector.edges.includes(this.hover.edge)) {
             this.stateHandler.saveState();
+            // console.log("draggingPoints saveState()");
             // selector.draggingPoints = selector.points;
             for (const point of this.selector.points)
                 this.draggingPoints.push(point);
@@ -63,8 +64,10 @@ export class MouseDragger {
     }
     draggingLabelPointUpdate() {
         this.draggingLabelPoint = this.hover.labelPoint;
-        if (this.draggingLabelPoint)
+        if (this.draggingLabelPoint) {
             this.stateHandler.saveState();
+            // console.log("draggingLabel saveState()");
+        }
     }
     /** Move the dragging points of the graph
      *
@@ -105,9 +108,11 @@ export class RectangleSelector {
         this.worldCoords = worldCoords;
     }
     onMouseDown(e) {
+        // console.log("onMouseDown");
         this.selector.updateRectStart(this.worldCoords);
     }
     onMouseMove(e, hasDragged) {
+        // console.log("onMouseMove");
         this.updateSelectionRect(this.selector, this.worldCoords, e, hasDragged);
     }
     onMouseUp(e) {
@@ -115,22 +120,24 @@ export class RectangleSelector {
             this.selector.selectObjectsInRect(this.graph);
         // update values
         this.selector.isSelecting = false;
+        // console.log("selection onMouseUp");
     }
     updateSelectionRect(selector, worldCoords, e, hasDragged) {
         // check that necessary conditions hold before activating selection rectangle
-        if ( /* this.mousedown &&*/hasDragged && !e.ctrlKey && !e.metaKey)
+        if ( /* this.mousedown &&*/hasDragged && !e.ctrlKey && !e.metaKey) {
+            // console.log("selecting");
             selector.isSelecting = true;
+        }
         // update rectangle position and dimensions
         if (selector.isSelecting)
             selector.updateRectangle(worldCoords);
     }
 }
 export class EdgeCreator {
-    constructor(canvas, graph, bendedEdgeCreator, selector, hover, scaler, stateHandler, settingsOptions, rubbishBin, worldCoords) {
+    constructor(canvas, graph, bendedEdgeCreator, hover, scaler, stateHandler, settingsOptions, rubbishBin, worldCoords) {
         this.canvas = canvas;
         this.graph = graph;
         this.bendedEdgeCreator = bendedEdgeCreator;
-        this.selector = selector;
         this.hover = hover;
         this.scaler = scaler;
         this.stateHandler = stateHandler;
@@ -139,11 +146,11 @@ export class EdgeCreator {
         this.worldCoords = worldCoords;
     }
     onMouseDown(e) {
-        if (this.selector.nothingSelected() && !this.bendedEdgeCreator.creatingEdge) // starting vertex for edge creation
+        if (!this.bendedEdgeCreator.creatingEdge) // starting vertex for edge creation
             this.bendedEdgeCreator.startingVertex = this.hover.vertex;
     }
     onMouseMove(e, hasDragged) {
-        this.startEdgeCreation(this.bendedEdgeCreator, this.selector, this.stateHandler, hasDragged); // start edge creation (if necessary conditions hold)
+        this.startEdgeCreation(this.bendedEdgeCreator, this.stateHandler, hasDragged); // start edge creation (if necessary conditions hold)
     }
     onMouseUp(e) {
         this.continueEdgeCreation(this.canvas, this.graph, this.bendedEdgeCreator, this.hover, this.scaler, this.settingsOptions, this.stateHandler, this.worldCoords, this.rubbishBin);
@@ -154,32 +161,29 @@ export class EdgeCreator {
      * @param selector
      * @param stateHandler
      */
-    startEdgeCreation(bendedEdgeCreator, selector, stateHandler, hasDragged) {
-        if ( /*this.mousedown && */hasDragged && bendedEdgeCreator.startingVertex && selector.nothingSelected() && !bendedEdgeCreator.creatingEdge) // creatingEdge is activated only if we have a starting vertex and no selected points
-         {
+    startEdgeCreation(bendedEdgeCreator, stateHandler, hasDragged) {
+        // creatingEdge is activated only if we have a starting vertex and the mouse is dragged
+        if (hasDragged && bendedEdgeCreator.startingVertex && !bendedEdgeCreator.creatingEdge) {
             bendedEdgeCreator.creatingEdge = true;
-            // this.canClick = false;
             stateHandler.saveState();
+            // console.log("edge creation started. state saved()");
         }
     }
     continueEdgeCreation(canvas, graph, bendedEdgeCreator, hover, scaler, settingsOptions, stateHandler, worldCoords, rubbishBin) {
-        var _a, _b;
         if (bendedEdgeCreator.startingVertex && bendedEdgeCreator.creatingEdge) {
             rubbishBin.updatePos(canvas, scaler);
             if (hover.vertex) // add a straight edge
              {
-                const edge = graph.addEdgeAdvanced(bendedEdgeCreator.startingVertex, hover.vertex);
+                // const edge = graph.addEdgeAdvanced(bendedEdgeCreator.startingVertex,hover.vertex);
+                const edge = bendedEdgeCreator.addEdgeAdvanced(graph, bendedEdgeCreator.startingVertex, hover.vertex);
                 if (edge) // check if the edge can be created, based on the restrictions for self loops, simple graph etc
                  {
-                    bendedEdgeCreator.startingVertex = null;
-                    bendedEdgeCreator.creatingEdge = false;
+                    // reset bendedEdgeCreator
+                    bendedEdgeCreator.reset();
+                    // bendedEdgeCreator.startingVertex = null;
+                    // bendedEdgeCreator.creatingEdge = false;
                     // set characteristics for the new edge
-                    edge.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
-                    edge.label.fontSize = settingsOptions.defaultLabelFontSize; // edge's label font size
-                    edge.label.showLabel = (_a = document.getElementById("edge-show-labels")) === null || _a === void 0 ? void 0 : _a.checked;
-                    edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size, (_b = document.getElementById("bend-show-labels")) === null || _b === void 0 ? void 0 : _b.checked);
-                    // hasDragged = true;  // to not select the hover.vertex
-                    // edgeCreated = edge;
+                    this.updateEdgeCharacteristics(edge, settingsOptions);
                 }
             }
             else if (this.isMouseNear(worldCoords, rubbishBin.pos, rubbishBin.radius / scaler.scale)) // stop creating vertex if clicked on the up-left corner (a bin should be drawn to show the option)
@@ -188,25 +192,18 @@ export class EdgeCreator {
                     graph.deleteEdgee(bendedEdgeCreator.edgeCreated);
                 if (bendedEdgeCreator.startingVertex !== null && bendedEdgeCreator.startingVertex.temporary) // if startingVertex is temporary, delete it
                     graph.deleteVertex(bendedEdgeCreator.startingVertex);
-                bendedEdgeCreator.edgeCreated = null;
-                bendedEdgeCreator.startingVertex = null;
-                bendedEdgeCreator.creatingEdge = false;
+                bendedEdgeCreator.reset(); // set bendedEdgeCreator values to none
                 stateHandler.pop(); // don't save state if no edge created (state saved when mousedown)
-                // hasDragged = true;  // to not create a new edge when rubbish bin is clicked
             }
             else // continue creating a bended edge
              {
-                // stateHandler.saveState();
-                // let combo = graph.extendEdge(startingVertex,mouse.x,mouse.y);
-                let combo = graph.extendEdge(bendedEdgeCreator.startingVertex, worldCoords.x, worldCoords.y);
+                // let combo = graph.extendEdge(bendedEdgeCreator.startingVertex,worldCoords.x,worldCoords.y);
+                let combo = bendedEdgeCreator.extendEdge(graph, bendedEdgeCreator.startingVertex, worldCoords.x, worldCoords.y);
                 bendedEdgeCreator.startingVertex = combo.vertex;
                 bendedEdgeCreator.edgeCreated = combo.edge;
                 // set characteristics for the new edge
-                if (bendedEdgeCreator.edgeCreated) {
-                    bendedEdgeCreator.edgeCreated.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
-                    bendedEdgeCreator.edgeCreated.label.fontSize = settingsOptions.defaultLabelFontSize; // edge's label font size
-                    bendedEdgeCreator.edgeCreated.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size /*, this.showBendLabel.checked*/);
-                }
+                if (bendedEdgeCreator.edgeCreated)
+                    this.updateEdgeCharacteristics(bendedEdgeCreator.edgeCreated, settingsOptions, true);
             }
         }
         // else
@@ -215,5 +212,24 @@ export class EdgeCreator {
     isMouseNear(worldCoords, pos, dist) {
         // return Math.hypot(mouse.x-x,mouse.y-y)<dist;
         return Math.hypot(worldCoords.x - pos.x, worldCoords.y - pos.y) < dist;
+    }
+    /**Assign characteristics to the new edge according to settings
+     *
+     * @param edge
+     * @param settingsOptions
+     */
+    updateEdgeCharacteristics(edge, settingsOptions, temporaryEdge = false) {
+        var _a, _b;
+        // edge characteristics
+        edge.assignCharacteristics(settingsOptions.edgeChars.color, settingsOptions.edgeChars.dashed, settingsOptions.edgeChars.thickness);
+        // bend characteristics
+        if (!temporaryEdge)
+            edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size, (_a = document.getElementById("bend-show-labels")) === null || _a === void 0 ? void 0 : _a.checked);
+        else
+            edge.assignBendCharacteristics(settingsOptions.bendChars.color, settingsOptions.bendChars.size);
+        // label characteristics
+        edge.label.fontSize = settingsOptions.defaultLabelFontSize;
+        if (!temporaryEdge)
+            edge.label.showLabel = (_b = document.getElementById("edge-show-labels")) === null || _b === void 0 ? void 0 : _b.checked;
     }
 }

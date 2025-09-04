@@ -2,10 +2,11 @@
 
 import { CanvasHandler } from "./canvasHandler.js";
 import { Coords } from "./zoomHelpers.js";
-import { Graph, Vertex } from "./graph.js";
+import { Graph } from "./graph.js";
 import { ModalsHandler } from "./modals.js";
 import { Copier, Hover, Selector } from "./selector.js";
 import { StateHandler } from "./stateHandler.js";
+import { Vertex } from "./graphElements.js";
 
 export class Cmenu
 {

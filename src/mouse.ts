@@ -1,13 +1,15 @@
 import { CanvasHandler } from "./canvasHandler.js";
 import { Coords, Scaler } from "./zoomHelpers.js";
 import { Cmenu } from "./contextMenu.js";
-import { BendedEdgeCreator, Graph, Point} from "./graph.js";
+import { Graph } from "./graph.js";
+import { Point, Vertex } from "./graphElements.js";
 import { PaletteHandler } from "./paletteHandler.js";
 import { Hover, Selector } from "./selector.js";
 import { StateHandler } from "./stateHandler.js";
 import { SettingsOptions } from "./settings.js";
 import { RubbishBin } from "./rubbishBin.js";
 import { MouseTool, EdgeCreator, MouseDragger, RectangleSelector } from "./mouseTools.js";
+import { BendedEdgeCreator } from "./edgeCreator.js";
 
 export class MouseHandler
 {
@@ -36,8 +38,8 @@ export class MouseHandler
 
     constructor(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
     {
-        this.addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
-        // this.addEventListeners2(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
+        // this.addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
+        this.addEventListeners2(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
     }
 
     private addEventListeners(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
@@ -135,19 +137,21 @@ export class MouseHandler
     {
         const mouseDragger = new MouseDragger(graph,hover,selector,stateHandler,worldCoords,scaler);
         const rectangleSelector = new RectangleSelector(graph,selector,worldCoords);
-        const edgeCreator = new EdgeCreator(canvas,graph,bendedEdgeCreator,selector,hover,scaler,stateHandler,settingsOptions,rubbishBin,worldCoords);
-        let currentTool: MouseTool = rectangleSelector;     // set as rectangleSelector first
+        const edgeCreator = new EdgeCreator(canvas,graph,bendedEdgeCreator,hover,scaler,stateHandler,settingsOptions,rubbishBin,worldCoords);
+        let currentTool: MouseTool = rectangleSelector;     // set as currentTool = rectangleSelector first, as the graph is empty
 
         // mousedown
         canvas.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return; // only left click (ignore right click and wheel click)
             this.mainUpdates(canvas,hover,worldCoords,scaler,e);
-            this.hasDragged = false;
+            // this.hasDragged = false;
             this.mousedown = true;
+            this.showingCtxMenu = cmenu.clickOutsideActiveMenu(e);                  // update showingCtxMenu value here. If updated somewhere else, cmenu.showingContextMenu will get false and we will not be able to know if it was true before
             // check cases to select currentTool
-            if (this.checkDragging(hover,selector))
-                currentTool = mouseDragger;
-            else if (this.checkEdgeCreation(hover,selector,bendedEdgeCreator))
+            if (bendedEdgeCreator.creatingEdge || this.checkEdgeCreation(hover,selector,bendedEdgeCreator))
                 currentTool = edgeCreator;
+            else if (this.checkDragging(hover,selector))
+                currentTool = mouseDragger;
             else
                 currentTool = rectangleSelector;
             currentTool.onMouseDown(e);
@@ -158,7 +162,13 @@ export class MouseHandler
         });
         // mousemove
         canvas.addEventListener('mousemove', (e) => {
+            // console.log("currentTool:",currentTool);
             this.mainUpdates(canvas,hover,worldCoords,scaler,e);
+            // update mouse position
+            this._mouse = this.getMousePos(canvas, e);
+            //update offset values
+            this.offsetX = worldCoords.x - this.clickedX;
+            this.offsetY = worldCoords.y - this.clickedY;
             // update hasDragged value
             if (this.mousedown && Math.hypot(this.offsetX,this.offsetY) > 3)
                 this.hasDragged = true;
@@ -168,32 +178,16 @@ export class MouseHandler
         })
         // mouseup
         canvas.addEventListener('mouseup', (e) => {
+            if (e.button !== 0) return; // only left click (ignore right click and wheel click)
             this.mainUpdates(canvas,hover,worldCoords,scaler,e);    // main updates (update hover, worldCoords etc)
+            if (!this.hasDragged && !bendedEdgeCreator.creatingEdge)   // it's a click
+                this.onClick(graph,hover,selector,stateHandler,settingsOptions,worldCoords,e);
             currentTool.onMouseUp(e);                               // activate listner for mouseup in the current tool
             this.mousedown = false;                                 // update mousedown value
+            this.hasDragged = false;                                // update hasDragged value
             myCanvasHandler?.redraw();                              // redraw
             paletteHandler.updatePaletteState();                    // update palette state
         })
-        // click
-        canvas.addEventListener("click", (e: MouseEvent) => {
-
-            // if dragging cursor, don't consider it a click
-            if (this.hasDragged /*|| !this.canClick*/)
-                return;
-        
-            // worldCoords = myCanvasHandler.screenToWorld(e.clientX, e.clientY);
-            worldCoords.update(scaler.screenToWorld(e.clientX, e.clientY));
-            // console.log("Clicked at screen ",e.clientX,e.clientY);
-            hover.check(scaler.scale);
-
-            // if nothing hovered or selected, add a new vertex at the clicked position
-            this.createNewVertex(graph,hover,selector,stateHandler,settingsOptions,worldCoords);
-            // select the hovered object
-            selector.selectHovered(hover,e);
-
-            myCanvasHandler?.redraw();              // redraw content
-            paletteHandler.updatePaletteState();    // update palette state
-        });
     }
 
     private mainUpdates(canvas: HTMLCanvasElement, hover: Hover, worldCoords: Coords, scaler: Scaler, e: MouseEvent)
@@ -201,6 +195,14 @@ export class MouseHandler
         canvas.focus(); // on click → ensures when you interact with the graph area, the canvas grabs focus again.
         worldCoords.update(scaler.screenToWorld(e.clientX, e.clientY));         // update worldCoords
         hover.check(scaler.scale);                                              // update hovered objects
+    }
+
+    private onClick(graph: Graph, hover: Hover, selector: Selector, stateHandler: StateHandler, settingsOptions: SettingsOptions, worldCoords: Coords, e: MouseEvent)
+    {
+        // if nothing hovered or selected, add a new vertex at the clicked position
+        this.createNewVertex(graph,hover,selector,stateHandler,settingsOptions,worldCoords);
+        // select the hovered object
+        selector.selectHovered(hover,e);
     }
 
     private checkDragging(hover: Hover, selector: Selector)
@@ -212,7 +214,7 @@ export class MouseHandler
 
     private checkEdgeCreation(hover: Hover, selector: Selector, bendedEdgeCreator: BendedEdgeCreator)
     {
-        if (selector.nothingSelected() && !bendedEdgeCreator.creatingEdge && hover.vertex)
+        if (selector.nothingSelected() && hover.vertex && !bendedEdgeCreator.creatingEdge)
             return true;
         return false;
     }
@@ -332,7 +334,8 @@ export class MouseHandler
             rubbishBin.updatePos(canvas,scaler);
             if (hover.vertex)  // add a straight edge
             {
-                const edge = graph.addEdgeAdvanced(bendedEdgeCreator.startingVertex,hover.vertex);
+                // const edge = graph.addEdgeAdvanced(bendedEdgeCreator.startingVertex,hover.vertex);
+                const edge = bendedEdgeCreator.addEdgeAdvanced(graph,bendedEdgeCreator.startingVertex,hover.vertex);
                 if (edge)   // check if the edge can be created, based on the restrictions for self loops, simple graph etc
                 {
                     bendedEdgeCreator.startingVertex = null;
@@ -362,7 +365,8 @@ export class MouseHandler
             {
                 // stateHandler.saveState();
                 // let combo = graph.extendEdge(startingVertex,mouse.x,mouse.y);
-                let combo = graph.extendEdge(bendedEdgeCreator.startingVertex,worldCoords.x,worldCoords.y);
+                // let combo = graph.extendEdge(bendedEdgeCreator.startingVertex,worldCoords.x,worldCoords.y);
+                let combo = bendedEdgeCreator.extendEdge(graph,bendedEdgeCreator.startingVertex,worldCoords.x,worldCoords.y);
                 bendedEdgeCreator.startingVertex = combo.vertex;
                 bendedEdgeCreator.edgeCreated = combo.edge;
                 // set characteristics for the new edge
@@ -397,16 +401,18 @@ export class MouseHandler
         if (!hover.vertex && !hover.bend && !hover.edge && selector.nothingSelected() && !this.showingCtxMenu /*&& !this.draggingLabelPoint*/)
         {
             stateHandler.saveState();
-            // const vertex = graph.addNewVertex(mouse.x,mouse.y);
             const vertex = graph.addNewVertex(worldCoords.x,worldCoords.y);
-            // console.log("new vertex at ",worldCoords.x, worldCoords.y);
-            vertex.size = settingsOptions.vertexChars.size;
-            vertex.shape = settingsOptions.vertexChars.shape;
-            vertex.color = settingsOptions.vertexChars.color;
-            vertex.label.fontSize = settingsOptions.defaultLabelFontSize;
-            vertex.label.showLabel = (document.getElementById("vertex-show-labels") as HTMLInputElement)?.checked;
-            // hover.vertex = vertex;
+            this.updateVertexCharacteristics(vertex,settingsOptions);
         }
+    }
+
+    private updateVertexCharacteristics(vertex: Vertex, settingsOptions: SettingsOptions)
+    {
+        vertex.size = settingsOptions.vertexChars.size;
+        vertex.shape = settingsOptions.vertexChars.shape;
+        vertex.color = settingsOptions.vertexChars.color;
+        vertex.label.fontSize = settingsOptions.defaultLabelFontSize;
+        vertex.label.showLabel = (document.getElementById("vertex-show-labels") as HTMLInputElement)?.checked;
     }
 
     private isMouseNear(worldCoords: Coords, pos: {x: number, y: number}, dist: number)

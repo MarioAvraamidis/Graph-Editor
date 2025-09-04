@@ -1,4 +1,5 @@
-import { Graph, Point, Vertex, Edge, Bend, Crossing} from "./graph.js"
+import { Graph } from "./graph.js"
+import { Point, Vertex, Edge, Bend, Crossing } from "./graphElements.js"
 import { showCustomAlert } from "./alert.js";
 import { Coords } from "./zoomHelpers.js";
 

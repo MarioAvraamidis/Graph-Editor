@@ -1,10 +1,10 @@
 import { CanvasHandler } from "./canvasHandler.js";
 import { SettingsOptions } from "./settings.js";
-import { Graph, Point, Vertex } from "./graph.js";
+import { Graph } from "./graph.js";
 import { Hover, Selector } from "./selector.js";
 import { StateHandler } from "./stateHandler.js";
 import { createGraph } from "./graphCreator.js";
-import { showCustomAlert } from "./alert.js";
+import { Point, Vertex } from "./graphElements.js";
 
 export class ModalsHandler
 {

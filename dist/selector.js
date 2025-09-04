@@ -1,4 +1,5 @@
-import { Graph, Vertex, Bend } from "./graph.js";
+import { Graph } from "./graph.js";
+import { Vertex, Bend } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
 // class Selector is responsible for handling the objects (vertices, edges, bends) that the user selects
 // It uses an array for each kind of objects and stores the selected items of that kind in the array

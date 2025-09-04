@@ -1,5 +1,6 @@
 import { Drawer } from "./draw.js";
-import { Graph, Point } from "./graph.js";
+import { Graph } from "./graph.js";
+import { Point } from "./graphElements.js";
 import { Selector } from "./selector.js";
 import { SimpleDrawer } from "./simpleDrawer.js";
 import { Scaler } from "./zoomHelpers.js";

@@ -1,4 +1,4 @@
-import { Graph, Vertex, Edge, Bend, Crossing, Point, BendedEdgeCreator } from "./graph.js";
+import { Graph } from "./graph.js";
 // import { PaletteHandler } from "./paletteHandler.js";
 import { Selector } from "./selector.js";
 import { Hover } from "./selector.js"; 
@@ -7,6 +7,8 @@ import { Coords, Scaler } from "./zoomHelpers.js";
 import { InfoBoxHandler } from "./infoBoxes.js";
 import { SettingsOptions } from "./settings.js";
 import { RubbishBin } from "./rubbishBin.js";
+import { BendedEdgeCreator } from "./edgeCreator.js";
+import { Bend, Crossing, Edge, Point, Vertex } from "./graphElements.js";
 
 export class Drawer
 {

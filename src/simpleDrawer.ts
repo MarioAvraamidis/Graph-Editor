@@ -1,6 +1,7 @@
-import { Graph, Vertex, Edge, Bend, Point} from "graph.js";
+import { Graph } from "graph.js";
 import { SettingsOptions } from "./settings.js";
 import { Scaler } from "./zoomHelpers.js";
+import { Bend, Edge, Point, Vertex } from "./graphElements.js";
 
 export class SimpleDrawer
 {

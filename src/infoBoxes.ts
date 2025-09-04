@@ -1,6 +1,7 @@
 import { Coords, Scaler } from "./zoomHelpers.js";
-import { BendedEdgeCreator, Crossing, Edge, Vertex } from "./graph.js";
+import { Crossing, Edge, Vertex } from "./graphElements.js";
 import { Hover, Selector } from "./selector.js";
+import { BendedEdgeCreator } from "./edgeCreator.js";
 
 export class InfoBoxHandler
 {
