@@ -729,11 +729,13 @@ export class Graph {
         // clone vertices
         for (const v of this._vertices) {
             cloned.addVertex(v.clone());
+            // console.log("cloned vertex id:",v.id);
         }
         // clone edges and their characteristics
         for (const e of this.edges) {
             const newEdge = cloned.addEdgeId(e.points[0].id, e.points[1].id);
-            newEdge.cloneCharacteristics(e);
+            if (newEdge)
+                newEdge.cloneCharacteristics(e);
         }
         // update crossings - consider cloning the crossings
         cloned.updateCrossings();
@@ -780,4 +782,16 @@ export class Graph {
         this._crossings = newGraph.crossings;
         this._curve_complexity = newGraph.curve_complexity;
     }
+    /** Clear the graph (make it empty)
+     */
+    clear() {
+        this._vertices.length = 0;
+        this._edges.length = 0;
+        this._crossings.length = 0;
+        this._curve_complexity = 0;
+    }
+    /**
+     * @returns true if the graph is empty (i.e. there are no vertices)
+     */
+    isEmpty() { return this.vertices.length === 0; }
 }

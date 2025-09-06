@@ -1,4 +1,4 @@
-export class MouseDragger {
+export class MouseDraggingTool {
     constructor(graph, hover, selector, stateHandler, worldCoords, scaler) {
         // dragging Points
         this.draggingPoints = [];
@@ -101,7 +101,7 @@ export class MouseDragger {
         return x;
     }
 }
-export class RectangleSelector {
+export class SelectionRectangleTool {
     constructor(graph, selector, worldCoords) {
         this.graph = graph;
         this.selector = selector;
@@ -133,7 +133,7 @@ export class RectangleSelector {
             selector.updateRectangle(worldCoords);
     }
 }
-export class EdgeCreator {
+export class EdgeCreationTool {
     constructor(canvas, graph, bendedEdgeCreator, hover, scaler, stateHandler, settingsOptions, rubbishBin, worldCoords) {
         this.canvas = canvas;
         this.graph = graph;
@@ -162,35 +162,32 @@ export class EdgeCreator {
      * @param stateHandler
      */
     startEdgeCreation(bendedEdgeCreator, stateHandler, hasDragged) {
-        // creatingEdge is activated only if we have a starting vertex and the mouse is dragged
+        // creatingEdge is activated only if the mouse is dragged, we have a starting vertex and there isn't edge creation in action
         if (hasDragged && bendedEdgeCreator.startingVertex && !bendedEdgeCreator.creatingEdge) {
             bendedEdgeCreator.creatingEdge = true;
             stateHandler.saveState();
             // console.log("edge creation started. state saved()");
+            // stateHandler.graph.vertices.forEach(v => console.log(v.id));
         }
     }
     continueEdgeCreation(canvas, graph, bendedEdgeCreator, hover, scaler, settingsOptions, stateHandler, worldCoords, rubbishBin) {
         if (bendedEdgeCreator.startingVertex && bendedEdgeCreator.creatingEdge) {
+            // console.log("starting vertex:",bendedEdgeCreator.startingVertex.id);
             rubbishBin.updatePos(canvas, scaler);
             if (hover.vertex) // add a straight edge
              {
-                // const edge = graph.addEdgeAdvanced(bendedEdgeCreator.startingVertex,hover.vertex);
                 const edge = bendedEdgeCreator.addEdgeAdvanced(graph, bendedEdgeCreator.startingVertex, hover.vertex);
                 if (edge) // check if the edge can be created, based on the restrictions for self loops, simple graph etc
                  {
-                    // reset bendedEdgeCreator
-                    bendedEdgeCreator.reset();
-                    // bendedEdgeCreator.startingVertex = null;
-                    // bendedEdgeCreator.creatingEdge = false;
-                    // set characteristics for the new edge
-                    this.updateEdgeCharacteristics(edge, settingsOptions);
+                    bendedEdgeCreator.reset(); // reset bendedEdgeCreator
+                    this.updateEdgeCharacteristics(edge, settingsOptions); // set characteristics for the new edge
                 }
             }
             else if (this.isMouseNear(worldCoords, rubbishBin.pos, rubbishBin.radius / scaler.scale)) // stop creating vertex if clicked on the up-left corner (a bin should be drawn to show the option)
              {
-                if (bendedEdgeCreator.edgeCreated !== null) // delete the edge created
+                if (bendedEdgeCreator.edgeCreated) // delete the edge created
                     graph.deleteEdgee(bendedEdgeCreator.edgeCreated);
-                if (bendedEdgeCreator.startingVertex !== null && bendedEdgeCreator.startingVertex.temporary) // if startingVertex is temporary, delete it
+                if (bendedEdgeCreator.startingVertex && bendedEdgeCreator.startingVertex.temporary) // if startingVertex is temporary, delete it
                     graph.deleteVertex(bendedEdgeCreator.startingVertex);
                 bendedEdgeCreator.reset(); // set bendedEdgeCreator values to none
                 stateHandler.pop(); // don't save state if no edge created (state saved when mousedown)

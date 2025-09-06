@@ -113,12 +113,15 @@ export class Cmenu
 
                 switch (action) {
                     case "clear-canvas":
-                        stateHandler.saveState();
-                        graph.replace(new Graph());
-                        hover.check(myCanvasHandler.getScale());
-                        // renderGraph();
-                        myCanvasHandler?.fixView(selector);
-                        //myCanvasHandler?.redraw();
+                        if (!graph.isEmpty())
+                        {
+                            stateHandler.saveState();
+                            // graph.replace(new Graph());
+                            graph.clear();
+                            hover.check(myCanvasHandler.getScale());
+                            myCanvasHandler?.fixView(selector);
+                            //myCanvasHandler?.redraw();
+                        }
                         break;
                     // Add more cases for other actions
                     case "paste":

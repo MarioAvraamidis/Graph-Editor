@@ -49,16 +49,13 @@ export class BtnHandler
             if ((e.ctrlKey || e.metaKey) && e.key==='z')
             {
                 e.preventDefault(); // prevent the browser's default undo behavior
-                this.selector.setNothingSelected();
-                graph.replace(this.stateHandler.undo());
-                this.myCanvasHandler?.redraw();
+                this.undo(graph);
             }
             // redo
             else if ((e.ctrlKey || e.metaKey) && e.key==='y' || e.shiftKey && (e.ctrlKey || e.metaKey) && e.key==='z')
             {
                 e.preventDefault();
-                graph.replace(this.stateHandler.redo());
-                this.myCanvasHandler?.redraw();
+                this.redo(graph);
             }
             // copy
             else if ((e.ctrlKey || e.metaKey) && e.key=='c')
@@ -102,15 +99,12 @@ export class BtnHandler
         // Undo button
         document.getElementById("undo-button")?.addEventListener("click", () => {
             // console.log("Undo Btn");
-            this.selector.setNothingSelected();
-            graph.replace(this.stateHandler.undo());
-            this.myCanvasHandler?.redraw();
+            this.undo(graph);
         });
     
         // Redo button
         document.getElementById("redo-button")?.addEventListener("click", () => {
-            graph.replace(this.stateHandler.redo());
-            this.myCanvasHandler?.redraw();
+            this.redo(graph);
         });
     
         // Place vertices in a circle (also remove all the bends)
@@ -217,5 +211,18 @@ export class BtnHandler
                     this.myCanvasHandler?.redraw();
             })
         }
+    }
+
+    private undo(graph: Graph)
+    {
+        this.selector.setNothingSelected();
+        graph.replace(this.stateHandler.undo());
+        this.myCanvasHandler?.redraw();
+    }
+
+    private redo(graph: Graph)
+    {
+        graph.replace(this.stateHandler.redo());
+        this.myCanvasHandler?.redraw();
     }
 }

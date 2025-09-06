@@ -1,5 +1,4 @@
 // contextMenu.ts
-import { Graph } from "./graph.js";
 import { Vertex } from "./graphElements.js";
 export class Cmenu {
     constructor(graph, worldCoords, canvas, copier, selector, stateHandler, myCanvasHandler, modalsHandler, hover) {
@@ -88,12 +87,14 @@ export class Cmenu {
                 this.hideContextMenu(); // Hide menu after selection
                 switch (action) {
                     case "clear-canvas":
-                        stateHandler.saveState();
-                        graph.replace(new Graph());
-                        hover.check(myCanvasHandler.getScale());
-                        // renderGraph();
-                        myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.fixView(selector);
-                        //myCanvasHandler?.redraw();
+                        if (!graph.isEmpty()) {
+                            stateHandler.saveState();
+                            // graph.replace(new Graph());
+                            graph.clear();
+                            hover.check(myCanvasHandler.getScale());
+                            myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.fixView(selector);
+                            //myCanvasHandler?.redraw();
+                        }
                         break;
                     // Add more cases for other actions
                     case "paste":

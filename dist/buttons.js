@@ -28,7 +28,7 @@ export class BtnHandler {
         canvas.tabIndex = 0; // make the canvas focusable
         // console.log("addKeyDownEventListeners");
         document.addEventListener('keydown', (e) => {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c;
             // Get the element that triggered the event
             const targetElement = e.target;
             // Don't activate shortcuts if something else is selected
@@ -37,15 +37,12 @@ export class BtnHandler {
             // undo
             if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
                 e.preventDefault(); // prevent the browser's default undo behavior
-                this.selector.setNothingSelected();
-                graph.replace(this.stateHandler.undo());
-                (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
+                this.undo(graph);
             }
             // redo
             else if ((e.ctrlKey || e.metaKey) && e.key === 'y' || e.shiftKey && (e.ctrlKey || e.metaKey) && e.key === 'z') {
                 e.preventDefault();
-                graph.replace(this.stateHandler.redo());
-                (_b = this.myCanvasHandler) === null || _b === void 0 ? void 0 : _b.redraw();
+                this.redo(graph);
             }
             // copy
             else if ((e.ctrlKey || e.metaKey) && e.key == 'c')
@@ -55,7 +52,7 @@ export class BtnHandler {
                 if (this.copier.canPaste()) {
                     this.stateHandler.saveState();
                     this.copier.pasteSelected(graph, this.selector, true);
-                    (_c = this.myCanvasHandler) === null || _c === void 0 ? void 0 : _c.redraw();
+                    (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
                 }
             }
             // delete
@@ -66,7 +63,7 @@ export class BtnHandler {
                     this.selector.deleteSelectedObjects(graph);
                     // checkHovered();
                     // this.selector.setNothingSelected();
-                    (_d = this.myCanvasHandler) === null || _d === void 0 ? void 0 : _d.redraw();
+                    (_b = this.myCanvasHandler) === null || _b === void 0 ? void 0 : _b.redraw();
                 }
             }
             // select all
@@ -74,7 +71,7 @@ export class BtnHandler {
                 e.preventDefault();
                 this.selector.selectAll(graph);
                 // checkHovered();
-                (_e = this.myCanvasHandler) === null || _e === void 0 ? void 0 : _e.redraw();
+                (_c = this.myCanvasHandler) === null || _c === void 0 ? void 0 : _c.redraw();
             }
         });
     }
@@ -82,17 +79,12 @@ export class BtnHandler {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         // Undo button
         (_a = document.getElementById("undo-button")) === null || _a === void 0 ? void 0 : _a.addEventListener("click", () => {
-            var _a;
             // console.log("Undo Btn");
-            this.selector.setNothingSelected();
-            graph.replace(this.stateHandler.undo());
-            (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
+            this.undo(graph);
         });
         // Redo button
         (_b = document.getElementById("redo-button")) === null || _b === void 0 ? void 0 : _b.addEventListener("click", () => {
-            var _a;
-            graph.replace(this.stateHandler.redo());
-            (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
+            this.redo(graph);
         });
         // Place vertices in a circle (also remove all the bends)
         (_c = document.getElementById("circle-placement")) === null || _c === void 0 ? void 0 : _c.addEventListener("click", () => {
@@ -190,5 +182,16 @@ export class BtnHandler {
                     (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
             });
         }
+    }
+    undo(graph) {
+        var _a;
+        this.selector.setNothingSelected();
+        graph.replace(this.stateHandler.undo());
+        (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
+    }
+    redo(graph) {
+        var _a;
+        graph.replace(this.stateHandler.redo());
+        (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
     }
 }

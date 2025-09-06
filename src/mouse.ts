@@ -8,7 +8,7 @@ import { Hover, Selector } from "./selector.js";
 import { StateHandler } from "./stateHandler.js";
 import { SettingsOptions } from "./settings.js";
 import { RubbishBin } from "./rubbishBin.js";
-import { MouseTool, EdgeCreator, MouseDragger, RectangleSelector } from "./mouseTools.js";
+import { MouseTool, EdgeCreationTool, MouseDraggingTool, SelectionRectangleTool } from "./mouseTools.js";
 import { BendedEdgeCreator } from "./edgeCreator.js";
 
 export class MouseHandler
@@ -135,9 +135,9 @@ export class MouseHandler
 
     private addEventListeners2(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
     {
-        const mouseDragger = new MouseDragger(graph,hover,selector,stateHandler,worldCoords,scaler);
-        const rectangleSelector = new RectangleSelector(graph,selector,worldCoords);
-        const edgeCreator = new EdgeCreator(canvas,graph,bendedEdgeCreator,hover,scaler,stateHandler,settingsOptions,rubbishBin,worldCoords);
+        const mouseDragger = new MouseDraggingTool(graph,hover,selector,stateHandler,worldCoords,scaler);
+        const rectangleSelector = new SelectionRectangleTool(graph,selector,worldCoords);
+        const edgeCreator = new EdgeCreationTool(canvas,graph,bendedEdgeCreator,hover,scaler,stateHandler,settingsOptions,rubbishBin,worldCoords);
         let currentTool: MouseTool = rectangleSelector;     // set as currentTool = rectangleSelector first, as the graph is empty
 
         // mousedown

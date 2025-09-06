@@ -19,35 +19,37 @@ export class BendedEdgeCreator {
         this.creatingEdge = false;
     }
     // this function is used when the user creates a new edge, starting from a (probably temporary) vertex
-    // given a vertex and a point(x,y), extend the edge from vertex to (x,y)
+    // given the graph, a vertex and a point(x,y), extend the edge from vertex to (x,y)
     // return the new vertex and the edge created
     extendEdge(graph, v, x, y) {
         // create a temporary vertex to be able to create the edge
         const temp = new Vertex("t" + this.tempCount.toString(), x, y);
         temp.temporary = true;
+        // console.log("new temporary vertex:",temp.id);
         graph.addVertex(temp);
         this.tempCount++;
         // this.extendEdgeToVertex(v,temp);
         // return the vertex
         return { vertex: temp, edge: this.extendEdgeToVertex(graph, v, temp) };
     }
-    // extend an unfinished edge (whose start is a real vertex) to meet a newVertex
+    // extend an unfinished edge (whose start is a real vertex and whose end may be temporary) to meet a newVertex
     extendEdgeToVertex(graph, vertex, newVertex) {
-        // check if the vertex is a temporary vertex
+        // check if the starting vertex is a temporary vertex
         if (vertex.temporary) {
-            const neighbor = vertex.neighbors[0]; // if temporary, it has only one neighbor    
+            const neighbor = vertex.neighbors[0]; // if temporary, it has only one neighbor, a real vertex  
             const edge = graph.addEdge(neighbor, newVertex); // create a new edge with the new temporary vertex
             if (!edge)
                 return null;
             // update bends
             const prevEdge = graph.getEdgeByVertices(neighbor, vertex);
-            edge === null || edge === void 0 ? void 0 : edge.addBends(prevEdge.bends);
-            edge === null || edge === void 0 ? void 0 : edge.addBend(vertex.x, vertex.y, false); // the previous temporary vertex now becomes the last bend of the new edge
+            edge.addBends(prevEdge.bends);
+            edge.addBend(vertex.x, vertex.y, false); // the previous temporary vertex now becomes the last bend of the new edge
             // remove temporary vertex from vertices
-            graph.deleteVertex(vertex);
+            graph.deleteVertex(vertex); // console.log("vertex",vertex.id,"deleted");
+            // remove prevEdge from the graph
+            graph.deleteEdgee(prevEdge, false); // console.log("edge",prevEdge.id,"deleted")
             // update crossings
             graph.updateCrossingsByEdge(edge);
-            // printPointArray(edge!.bends);
             return edge;
         }
         else
