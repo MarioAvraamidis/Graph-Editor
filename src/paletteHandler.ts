@@ -8,7 +8,7 @@ export class PaletteHandler
 {
 
     // Palette for vertices
-    private vertexColor = document.getElementById("vertex-color") as HTMLSelectElement
+    private vertexColor = document.getElementById("vertex-color") as HTMLSelectElement;
     private vertexShapeButtons = document.querySelectorAll(".shape-button");
     private vertexSize = document.getElementById("vertex-size") as HTMLInputElement;
     private deleteVertexBtn = document.getElementById("delete-vertex-palette") as HTMLButtonElement;

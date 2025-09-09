@@ -23,10 +23,11 @@ export class StateHandler
             // console.log("undo INSIDE");
             const current = this.graph.clone();
             this.redoStack.push(current);
-            console.log("PUSH in redoStack:",current);
-            current.vertices.forEach(v => console.log(v.id));
+            // console.log("PUSH in redoStack:",current);
+            // current.vertices.forEach(v => console.log(v.id));
             const prev = this.historyStack.pop()!;
-            this._graph = prev;
+            // this._graph = prev;
+            this.graph.replace(prev);
         }
         return this.graph;
     }
@@ -40,9 +41,10 @@ export class StateHandler
             const current = this.graph.clone();
             this.historyStack.push(current);
             const next = this.redoStack.pop()!;
-            console.log("POP from redoStack:",next);
-            next.vertices.forEach(v => console.log(v.id));
-            this._graph = next;
+            // console.log("POP from redoStack:",next);
+            // next.vertices.forEach(v => console.log(v.id));
+            // this._graph = next;
+            this.graph.replace(next);
         }
         return this.graph;
     }
