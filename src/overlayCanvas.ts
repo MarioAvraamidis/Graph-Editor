@@ -4,38 +4,20 @@ import { SettingsOptions } from "./settings.js";
 import { SimpleDrawer } from "./simpleDrawer.js";
 import { Scaler } from "./zoomHelpers.js";
 
-
-const overlayCanvas = document.getElementById("overlayCanvas") as HTMLCanvasElement;
-let overlayCanvasClientWidth: number;
-let overlayCanvasClientHeight: number;
-
 export function setOverlayCanvas(graph: Graph, settingsOptions: SettingsOptions)
 {
+    const overlayCanvas = document.getElementById("overlayCanvas") as HTMLCanvasElement;
     const wrapper = document.querySelector(".overlay-wrapper") as HTMLDivElement;
-    const overlayContainer = document.querySelector(".overlay-canvas-container") as HTMLDivElement;
     wrapper.style.display = 'inline-block'; // make the wrapper visible
-    const overlayCtx = overlayCanvas.getContext("2d")!;
     const scaler = new Scaler(overlayCanvas);
     const simpleDrawer = new SimpleDrawer(scaler,settingsOptions);
     const overlayGraph: Graph = new Graph();
     const canvasHandler: CanvasHandler = new CanvasHandler(overlayCanvas,simpleDrawer,overlayGraph);
-    // set values
-    overlayCanvasClientWidth = overlayCanvas.clientWidth;
-    overlayCanvasClientHeight = overlayCanvas.clientHeight;
-    const zoom: number = 3;
-
-    // Initial setup: ensure the canvas resolution matches its initial size
-    // setOverlayResolution(overlayCanvas, canvasHandler,1);
-    // initOverlayCanvasHiDPI(canvasHandler);
 
     // btn
-    // overlayGraph.replace(graph);
     document.getElementById("overlayBtn")?.addEventListener('click', () => { 
         overlayGraph.replace(graph.clone());
-        // resizeOverlayCanvas(overlayCanvas);
-        // initOverlayCanvasHiDPI(overlayCanvas,canvasHandler,overlayCanvas.clientWidth,overlayCanvas.clientHeight);
         canvasHandler.fixView();
-        // console.log("overlay vertices:",overlayGraph.vertices.length);
     })
 
     overlayCanvas.addEventListener("mouseenter", () => {

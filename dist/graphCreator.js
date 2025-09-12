@@ -38,7 +38,7 @@ function newCircle(n, labelFontSize = 14) {
     circle.makeCircle(0, 0, 100);
     return circle;
 }
-function newBinaryTree(h, labelFontSize = 14, xDiff = 10, yDiff = 50) {
+function newBinaryTree(h, labelFontSize = 14, xDiff = 20, yDiff = 50) {
     const tree = new Graph();
     const root = tree.addNewVertex(0, 0);
     root.label.fontSize = labelFontSize; // label font size from settings
@@ -46,7 +46,7 @@ function newBinaryTree(h, labelFontSize = 14, xDiff = 10, yDiff = 50) {
     let prevLayer = [], newLayer = [];
     prevLayer.push(root);
     // create complete binary tree
-    for (let i = 1; i < h; i++) {
+    for (let i = 1; i <= h; i++) {
         newLayer = [];
         prevLayer.forEach(v => {
             // create children of each vertex

@@ -49,7 +49,7 @@ function newCircle(n: number, labelFontSize: number = 14)
     return circle;
 }
 
-function newBinaryTree(h: number, labelFontSize: number = 14, xDiff: number = 10, yDiff: number = 50)
+function newBinaryTree(h: number, labelFontSize: number = 14, xDiff: number = 20, yDiff: number = 50)
 {
     const tree: Graph = new Graph();
     const root: Vertex = tree.addNewVertex(0,0);
@@ -58,7 +58,7 @@ function newBinaryTree(h: number, labelFontSize: number = 14, xDiff: number = 10
     let prevLayer: Vertex[] = [], newLayer: Vertex[] = [];
     prevLayer.push(root);
     // create complete binary tree
-    for(let i=1;i<h;i++)
+    for(let i=1;i<=h;i++)
     {
         newLayer = [];
         prevLayer.forEach( v => {
