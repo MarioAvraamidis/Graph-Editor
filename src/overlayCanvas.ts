@@ -4,7 +4,7 @@ import { SettingsOptions } from "./settings.js";
 import { SimpleDrawer } from "./simpleDrawer.js";
 import { Scaler } from "./zoomHelpers.js";
 
-export function setOverlayCanvas(graph: Graph, settingsOptions: SettingsOptions)
+export function setOverlayCanvas(graph: Graph, settingsOptions: SettingsOptions, mainCanvasHandler: CanvasHandler)
 {
     const overlayCanvas = document.getElementById("overlayCanvas") as HTMLCanvasElement;
     const wrapper = document.querySelector(".overlay-wrapper") as HTMLDivElement;
@@ -14,10 +14,17 @@ export function setOverlayCanvas(graph: Graph, settingsOptions: SettingsOptions)
     const overlayGraph: Graph = new Graph();
     const canvasHandler: CanvasHandler = new CanvasHandler(overlayCanvas,simpleDrawer,overlayGraph);
 
-    // btn
-    document.getElementById("overlayBtn")?.addEventListener('click', () => { 
+    // btns
+    document.getElementById("overlayUpdateBtn")?.addEventListener('click', () => { 
         overlayGraph.replace(graph.clone());
         canvasHandler.fixView();
+    })
+    document.getElementById("overlaySwitchBtn")?.addEventListener('click', () => {
+        const initial = overlayGraph.clone();
+        overlayGraph.replace(graph.clone());
+        graph.replace(initial);
+        canvasHandler.fixView();
+        mainCanvasHandler.fixView();
     })
 
     overlayCanvas.addEventListener("mouseenter", () => {

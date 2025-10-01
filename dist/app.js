@@ -48,13 +48,13 @@ document.addEventListener('DOMContentLoaded', () => {
         selector = new Selector();
         hover = new Hover(graph, worldCoords, selector);
         settingsOptions = new SettingsOptions();
-        setOverlayCanvas(graph, settingsOptions);
         copier = new Copier();
         bendedEdgeCreator = new BendedEdgeCreator();
         scaler = new Scaler(canvas);
         rubbishBin = new RubbishBin(50, { x: 0, y: 0 }); // initial pos is not valid. It's updated when drawing
         drawer = new Drawer(selector, settingsOptions, hover, worldCoords, scaler, bendedEdgeCreator, rubbishBin);
         myCanvasHandler = new CanvasHandler(canvas, drawer, graph);
+        setOverlayCanvas(graph, settingsOptions, myCanvasHandler);
         modalsHandler = new ModalsHandler(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector);
         paletteHandler = new PaletteHandler(selector, myCanvasHandler, stateHandler, graph, settingsOptions, modalsHandler);
         btnHandler = new BtnHandler(canvas, graph, myCanvasHandler, selector, stateHandler, copier, settingsOptions);

@@ -2,8 +2,8 @@ import { CanvasHandler } from "./canvasHandler.js";
 import { Graph } from "./graph.js";
 import { SimpleDrawer } from "./simpleDrawer.js";
 import { Scaler } from "./zoomHelpers.js";
-export function setOverlayCanvas(graph, settingsOptions) {
-    var _a;
+export function setOverlayCanvas(graph, settingsOptions, mainCanvasHandler) {
+    var _a, _b;
     const overlayCanvas = document.getElementById("overlayCanvas");
     const wrapper = document.querySelector(".overlay-wrapper");
     wrapper.style.display = 'inline-block'; // make the wrapper visible
@@ -11,10 +11,17 @@ export function setOverlayCanvas(graph, settingsOptions) {
     const simpleDrawer = new SimpleDrawer(scaler, settingsOptions);
     const overlayGraph = new Graph();
     const canvasHandler = new CanvasHandler(overlayCanvas, simpleDrawer, overlayGraph);
-    // btn
-    (_a = document.getElementById("overlayBtn")) === null || _a === void 0 ? void 0 : _a.addEventListener('click', () => {
+    // btns
+    (_a = document.getElementById("overlayUpdateBtn")) === null || _a === void 0 ? void 0 : _a.addEventListener('click', () => {
         overlayGraph.replace(graph.clone());
         canvasHandler.fixView();
+    });
+    (_b = document.getElementById("overlaySwitchBtn")) === null || _b === void 0 ? void 0 : _b.addEventListener('click', () => {
+        const initial = overlayGraph.clone();
+        overlayGraph.replace(graph.clone());
+        graph.replace(initial);
+        canvasHandler.fixView();
+        mainCanvasHandler.fixView();
     });
     overlayCanvas.addEventListener("mouseenter", () => {
         wrapper.classList.add("grow");
