@@ -170,7 +170,7 @@ export class ModalsHandler {
         if (points.length > 0)
             firstPoint = points[0];
         else
-            showCustomAlert("No point selected,");
+            showCustomAlert("No point selected.");
         if (this.editLabelModal && firstPoint) {
             // console.log("showEditLabelModal");
             this.labelContentInput.value = firstPoint.label.content;

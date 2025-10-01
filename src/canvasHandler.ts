@@ -95,7 +95,7 @@ export class CanvasHandler {
         // this.drawCallback(this.ctx, this.scaler.scale);
         this.drawer.renderGraph(this.graph,this.canvas);
 
-        if (this.drawer instanceof Drawer)
+        if (this.drawer instanceof Drawer)  // zoom only in the main canvas. Not overlay canvas
             this.updateZoomDisplay();
 
         // Optional debug info: World origin (0,0) marker
@@ -291,6 +291,9 @@ export class CanvasHandler {
         let moved = false;
         // Pan speed is independent of current zoom, as it's added to translateX/Y in CSS pixels
         const actualPanStep = this.scaler.PAN_STEP; // This value is already in CSS pixels
+
+        if (this.drawer instanceof SimpleDrawer)      // pan only for the main canvas. Not the overlay canvas
+            return;
 
         switch (event.key) {
             case 'ArrowLeft':

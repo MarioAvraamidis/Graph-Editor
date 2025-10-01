@@ -1,4 +1,5 @@
 import { Drawer } from "./draw.js";
+import { SimpleDrawer } from "./simpleDrawer.js";
 // export type DrawGraphCallback = (ctx: CanvasRenderingContext2D, scale: number) => void;
 export class CanvasHandler {
     constructor(canvas, drawer, graph) {
@@ -65,7 +66,7 @@ export class CanvasHandler {
         // 6. Call the external drawing function with the now transformed context
         // this.drawCallback(this.ctx, this.scaler.scale);
         this.drawer.renderGraph(this.graph, this.canvas);
-        if (this.drawer instanceof Drawer)
+        if (this.drawer instanceof Drawer) // zoom only in the main canvas. Not overlay canvas
             this.updateZoomDisplay();
         // Optional debug info: World origin (0,0) marker
         /*const crossArmLength = 10; // Length of each arm of the cross in world units at scale 1
@@ -230,6 +231,8 @@ export class CanvasHandler {
         let moved = false;
         // Pan speed is independent of current zoom, as it's added to translateX/Y in CSS pixels
         const actualPanStep = this.scaler.PAN_STEP; // This value is already in CSS pixels
+        if (this.drawer instanceof SimpleDrawer) // pan only for the main canvas. Not the overlay canvas
+            return;
         switch (event.key) {
             case 'ArrowLeft':
                 this.pan(actualPanStep, 0); // Move view right (graph moves left)
