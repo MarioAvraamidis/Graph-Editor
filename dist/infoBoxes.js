@@ -1,10 +1,12 @@
 export class InfoBoxHandler {
-    constructor(/* selector: Selector, */ hover, scaler, bendedEdgeCreator, worldCoords) {
+    constructor(/* selector: Selector, */ hover, scaler, bendedEdgeCreator, worldCoords, settingsOptions) {
+        this.showInfoSettings = document.getElementById("show-info-boxes");
         // this.selector = selector;
         this.hover = hover;
         this.scaler = scaler;
         this.bendedEdgeCreator = bendedEdgeCreator;
         this.worldCoords = worldCoords;
+        this.settingsOptions = settingsOptions;
     }
     showHoveredInfo(canvas) {
         if (this.bendedEdgeCreator.creatingEdge /*|| this.selector.draggingPoints.length>0 */) {
@@ -13,6 +15,8 @@ export class InfoBoxHandler {
             this.hideCrossingInfo();
             return;
         }
+        if (!this.showInfoSettings.checked)
+            return;
         // show vertex info of hover.vertex
         if (this.hover.vertex)
             this.showVertexInfo(canvas, this.hover.vertex);

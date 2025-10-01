@@ -12,6 +12,8 @@ export class SettingsOptions
     public vertexChars: { color: string, size: number, shape: string }      // palette settings for Vertices
     public edgeChars: {color: string, thickness: number, dashed: boolean}   // palette settings for Edges
     public bendChars: {size: number, color: string}                         // palette settings for Bends
+    // show hovered object info boxes
+    public showInfoBoxes: boolean;
 
     constructor()
     {
@@ -22,6 +24,7 @@ export class SettingsOptions
         this.vertexChars = { color: "#000000", size: 7, shape: "circle" }
         this.edgeChars = {color: "#898989", thickness: 2, dashed: false}
         this.bendChars = {size: 5, color: "#0000FF"}
+        this.showInfoBoxes = true;
     }
 
     public edit_crossings_colors(input: any)

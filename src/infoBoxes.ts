@@ -2,6 +2,7 @@ import { Coords, Scaler } from "./zoomHelpers.js";
 import { Crossing, Edge, Vertex } from "./graphElements.js";
 import { Hover, Selector } from "./selector.js";
 import { BendedEdgeCreator } from "./edgeCreator.js";
+import { SettingsOptions } from "./settings.js";
 
 export class InfoBoxHandler
 {
@@ -10,14 +11,17 @@ export class InfoBoxHandler
     private scaler: Scaler;
     private bendedEdgeCreator: BendedEdgeCreator;
     private worldCoords: Coords;
+    private settingsOptions: SettingsOptions;
+    private showInfoSettings = document.getElementById("show-info-boxes") as HTMLInputElement;
 
-    constructor(/* selector: Selector, */hover: Hover, scaler: Scaler, bendedEdgeCreator: BendedEdgeCreator, worldCoords: Coords)
+    constructor(/* selector: Selector, */hover: Hover, scaler: Scaler, bendedEdgeCreator: BendedEdgeCreator, worldCoords: Coords, settingsOptions: SettingsOptions)
     {
         // this.selector = selector;
         this.hover = hover;
         this.scaler = scaler;
         this.bendedEdgeCreator = bendedEdgeCreator;
         this.worldCoords = worldCoords;
+        this.settingsOptions = settingsOptions;
     }
 
     public showHoveredInfo(canvas: HTMLCanvasElement)
@@ -29,6 +33,8 @@ export class InfoBoxHandler
             this.hideCrossingInfo();
             return;
         }
+        if (!this.showInfoSettings.checked)
+            return;
         // show vertex info of hover.vertex
         if (this.hover.vertex)
             this.showVertexInfo(canvas, this.hover.vertex);

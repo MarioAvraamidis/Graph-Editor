@@ -7,6 +7,7 @@ export class SettingsOptions {
         this.vertexChars = { color: "#000000", size: 7, shape: "circle" };
         this.edgeChars = { color: "#898989", thickness: 2, dashed: false };
         this.bendChars = { size: 5, color: "#0000FF" };
+        this.showInfoBoxes = true;
     }
     edit_crossings_colors(input) {
         this.crossings_colors.self = input[0].value;

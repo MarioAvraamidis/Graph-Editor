@@ -76,7 +76,7 @@ function newBinaryTree(h: number, labelFontSize: number = 14, xDiff: number = 20
         })
         prevLayer = newLayer;   // update prevLayer
     }
-    tree.updateCrossings();
-    tree.updateCurveComplexity();
+    // tree.updateCrossings();
+    // tree.updateCurveComplexity();
     return tree;
 }
