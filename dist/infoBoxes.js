@@ -1,12 +1,11 @@
 export class InfoBoxHandler {
-    constructor(/* selector: Selector, */ hover, scaler, bendedEdgeCreator, worldCoords, settingsOptions) {
+    constructor(/* selector: Selector, */ hover, scaler, bendedEdgeCreator, worldCoords) {
         this.showInfoSettings = document.getElementById("show-info-boxes");
         // this.selector = selector;
         this.hover = hover;
         this.scaler = scaler;
         this.bendedEdgeCreator = bendedEdgeCreator;
         this.worldCoords = worldCoords;
-        this.settingsOptions = settingsOptions;
     }
     showHoveredInfo(canvas) {
         if (this.bendedEdgeCreator.creatingEdge /*|| this.selector.draggingPoints.length>0 */) {

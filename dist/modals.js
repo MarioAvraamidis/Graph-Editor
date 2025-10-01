@@ -1,5 +1,6 @@
 import { createGraph } from "./graphCreator.js";
 import { Vertex } from "./graphElements.js";
+import { showCustomAlert } from "./alert.js";
 export class ModalsHandler {
     constructor(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector) {
         this.editLabelChanges = false;
@@ -56,8 +57,8 @@ export class ModalsHandler {
             //hideSettingsModal();
             this.hideAllModals();
         });
-        (_d = this.labelContentInput) === null || _d === void 0 ? void 0 : _d.addEventListener('change', () => { this.editLabelChanges = true; console.log("label content change"); });
-        (_e = this.labelFontSizeInput) === null || _e === void 0 ? void 0 : _e.addEventListener('change', () => { this.editLabelChanges = true; console.log("label size change"); });
+        (_d = this.labelContentInput) === null || _d === void 0 ? void 0 : _d.addEventListener('change', () => { this.editLabelChanges = true; });
+        (_e = this.labelFontSizeInput) === null || _e === void 0 ? void 0 : _e.addEventListener('change', () => { this.editLabelChanges = true; });
         (_f = this.settingsAllowSelfLoops) === null || _f === void 0 ? void 0 : _f.addEventListener('change', () => {
             // const v: Vertex | null = graph.checkSelfLoops();
             // if(v)
@@ -67,11 +68,17 @@ export class ModalsHandler {
         (_g = this.settingsAllowParallelEdges) === null || _g === void 0 ? void 0 : _g.addEventListener('change', () => graph.parallelEdges = this.settingsAllowParallelEdges.checked);
         // save button listener for label modal
         (_h = this.saveLabelButton) === null || _h === void 0 ? void 0 : _h.addEventListener('click', () => {
-            if (this.labelContentInput && this.labelFontSizeInput && hover.labelPoint && this.editLabelChanges) {
+            if (this.labelContentInput && this.labelFontSizeInput && (hover.labelPoint || selector.vertices.length > 0) && this.editLabelChanges) {
                 console.log("label save button");
                 stateHandler.saveState();
-                hover.labelPoint.label.content = this.labelContentInput.value;
-                hover.labelPoint.label.fontSize = parseInt(this.labelFontSizeInput.value);
+                const fontSize = parseInt(this.labelFontSizeInput.value);
+                if (hover.labelPoint) {
+                    hover.labelPoint.label.content = this.labelContentInput.value;
+                    hover.labelPoint.label.fontSize = fontSize;
+                }
+                else {
+                    selector.vertices.forEach(v => v.label.fontSize = fontSize);
+                }
                 this.editLabelChanges = false;
                 // checkHovered();
                 myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
@@ -88,27 +95,19 @@ export class ModalsHandler {
                     (_a = this.saveLabelButton) === null || _a === void 0 ? void 0 : _a.click(); // trigger save buttton
                 }
             });
-        // event listener for the close button in the edit label modal
-        if (this.editLabelCloseButton) {
-            this.editLabelCloseButton.addEventListener('click', () => this.hideAllModals());
-        }
-        // event listener for the close button in the settings modal
-        if (this.settingsCloseButton) {
-            this.settingsCloseButton.addEventListener('click', () => this.hideAllModals());
-        }
-        // event listener for the close button in the edit label modal
-        if (this.newGraphCloseButton) {
-            this.newGraphCloseButton.addEventListener('click', () => this.hideAllModals());
-        }
+        // event listeners for close buttons of the modals
+        for (const btn of [this.editLabelCloseButton, this.settingsCloseButton, this.newGraphCloseButton])
+            if (btn)
+                btn.addEventListener('click', () => this.hideAllModals());
         // Allow clicking outside the modal content to close it 
-        if (this.editLabelModal) {
+        /* if (this.editLabelModal) {
             this.editLabelModal.addEventListener('click', (event) => {
                 if (event.target === this.editLabelModal) { // Check if the click was directly on the modal background
                     //hideEditLabelModal();
                     this.hideAllModals();
                 }
             });
-        }
+        } */
         // Show/hide parameter fields depending on selected graph type
         document.querySelectorAll("input[name='graphType']").forEach(radio => {
             radio.addEventListener("change", () => {
@@ -166,13 +165,18 @@ export class ModalsHandler {
         // console.log("hideAllModals");
     }
     // display the edit label modal
-    showEditLabelModal(hoveredLabelPoint) {
-        if (this.editLabelModal && hoveredLabelPoint) {
+    showEditLabelModal(points) {
+        let firstPoint;
+        if (points.length > 0)
+            firstPoint = points[0];
+        else
+            showCustomAlert("No point selected,");
+        if (this.editLabelModal && firstPoint) {
             // console.log("showEditLabelModal");
-            this.labelContentInput.value = hoveredLabelPoint.label.content;
-            this.labelFontSizeInput.value = hoveredLabelPoint.label.fontSize.toString();
+            this.labelContentInput.value = firstPoint.label.content;
+            this.labelFontSizeInput.value = firstPoint.label.fontSize.toString();
             // if the hovered label point is a vertex, don't allow rename
-            this.labelContentInput.disabled = hoveredLabelPoint instanceof Vertex;
+            this.labelContentInput.disabled = firstPoint instanceof Vertex;
             this.editLabelModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
             // If the input is not disabled, focus and select its text
             if (!this.labelContentInput.disabled) {
@@ -181,14 +185,6 @@ export class ModalsHandler {
             }
         }
     }
-    // Allow clicking outside the modal content to close it 
-    /*if (settingsModal) {
-        settingsModal.addEventListener('click', (event) => {
-            if (event.target === settingsModal) { // Check if the click was directly on the modal background
-                hideSettingsModal();
-            }
-        });
-    }*/
     // display the edit label modal
     showSettingsModal(settingsOptions, graph) {
         if (this.settingsModal && this.settingsCrossingsColorInput) {
@@ -205,21 +201,5 @@ export class ModalsHandler {
             this.settingsModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
         }
     }
-    showNewGraphModal() {
-        this.newGraphModal.style.display = 'flex';
-    }
+    showNewGraphModal() { this.newGraphModal.style.display = 'flex'; }
 }
-/*
-//  hide the modal
-function hideEditLabelModal() {
-    if (editLabelModal) {
-        editLabelModal.style.display = 'none';
-    }
-}
-
-//  hide the modal
-function hideSettingsModal() {
-    if (settingsModal) {
-        settingsModal.style.display = 'none';
-    }
-}*/

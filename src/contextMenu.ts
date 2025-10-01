@@ -291,7 +291,7 @@ export class Cmenu
                         if (hover.labelPoint)
                         {
                             // console.log("hover.labelPoint found");
-                            modalsHandler.showEditLabelModal(hover.labelPoint);
+                            modalsHandler.showEditLabelModal([hover.labelPoint]);
                             // FIX: Display a warning message. No console.log
                             // if (hover.labelPoint instanceof Vertex)
                         }

@@ -1,5 +1,5 @@
 export class PaletteHandler {
-    constructor(selector, myCanvasHandler, stateHandler, graph, settingsOptions) {
+    constructor(selector, myCanvasHandler, stateHandler, graph, settingsOptions, modalsHandler) {
         // Palette for vertices
         this.vertexColor = document.getElementById("vertex-color");
         this.vertexShapeButtons = document.querySelectorAll(".shape-button");
@@ -22,11 +22,14 @@ export class PaletteHandler {
         this.showVertexLabels = document.getElementById("vertex-show-labels");
         this.showEdgeLabels = document.getElementById("edge-show-labels");
         this.showBendLabels = document.getElementById("bend-show-labels");
+        // edit labels
+        this.editVertexLabels = document.getElementById("edit-vertex-label-palette");
         this.selector = selector;
         this.myCanvasHandler = myCanvasHandler;
         this.stateHandler = stateHandler;
         this.graph = graph;
         this.settingsOptions = settingsOptions;
+        this.modalsHandler = modalsHandler;
         this.activateEventListeners();
         this.updatePaletteState();
         this.addDashedEdgeEventListeners();
@@ -115,6 +118,8 @@ export class PaletteHandler {
                 this.myCanvasHandler.redraw();
             }
         });
+        // edit labels button
+        this.editVertexLabels.addEventListener("click", () => { this.modalsHandler.showEditLabelModal(this.selector.vertices); });
         // bend color
         this.bendColor.addEventListener("change", () => {
             var _a;

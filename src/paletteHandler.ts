@@ -1,5 +1,6 @@
 import { CanvasHandler } from "./canvasHandler";
 import { Graph } from "./graph";
+import { ModalsHandler } from "./modals";
 import { Selector } from "./selector";
 import { SettingsOptions } from "./settings";
 import { StateHandler } from "./stateHandler";
@@ -32,20 +33,25 @@ export class PaletteHandler
     private showEdgeLabels = document.getElementById("edge-show-labels") as HTMLInputElement;
     private showBendLabels = document.getElementById("bend-show-labels") as HTMLInputElement;
 
+    // edit labels
+    private editVertexLabels = document.getElementById("edit-vertex-label-palette") as HTMLButtonElement;
+
     // helpers
     private selector: Selector;
     private myCanvasHandler: CanvasHandler;
     private stateHandler: StateHandler
     private graph: Graph
     private settingsOptions: SettingsOptions;
+    private modalsHandler: ModalsHandler;
 
-    constructor(selector: Selector, myCanvasHandler: CanvasHandler, stateHandler: StateHandler, graph: Graph, settingsOptions: SettingsOptions)
+    constructor(selector: Selector, myCanvasHandler: CanvasHandler, stateHandler: StateHandler, graph: Graph, settingsOptions: SettingsOptions, modalsHandler: ModalsHandler)
     {
         this.selector = selector;
         this.myCanvasHandler = myCanvasHandler;
         this.stateHandler = stateHandler;
         this.graph = graph;
         this.settingsOptions = settingsOptions;
+        this.modalsHandler = modalsHandler;
         this.activateEventListeners();
         this.updatePaletteState();
         this.addDashedEdgeEventListeners();
@@ -143,6 +149,8 @@ export class PaletteHandler
                 this.myCanvasHandler.redraw();
             }
         })
+        // edit labels button
+        this.editVertexLabels.addEventListener("click", () => {this.modalsHandler.showEditLabelModal(this.selector.vertices) });
 
         // bend color
         this.bendColor.addEventListener("change", () => {
