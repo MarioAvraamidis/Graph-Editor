@@ -103,7 +103,7 @@ export class MouseHandler {
     }
     addEventListeners2(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin) {
         const mouseDragger = new MouseDraggingTool(graph, hover, selector, stateHandler, worldCoords, scaler);
-        const rectangleSelector = new SelectionRectangleTool(graph, selector, worldCoords);
+        const rectangleSelector = new SelectionRectangleTool(graph, selector, scaler, worldCoords, canvas);
         const edgeCreator = new EdgeCreationTool(canvas, graph, bendedEdgeCreator, hover, scaler, stateHandler, settingsOptions, rubbishBin, worldCoords);
         let currentTool = rectangleSelector; // set as currentTool = rectangleSelector first, as the graph is empty
         // mousedown

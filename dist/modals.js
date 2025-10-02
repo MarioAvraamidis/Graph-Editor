@@ -148,6 +148,7 @@ export class ModalsHandler {
             stateHandler.saveState();
             const newGraph = graph.merge(createGraph(graphType === null || graphType === void 0 ? void 0 : graphType.toString(), param, this.settingsOptions.defaultLabelFontSize));
             selector.selectGraph(newGraph);
+            // myCanvasHandler?.fixView(selector);
             myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
             // myCanvasHandler?.fixView(graph,selector);
             createGraph(graphType === null || graphType === void 0 ? void 0 : graphType.toString(), param);

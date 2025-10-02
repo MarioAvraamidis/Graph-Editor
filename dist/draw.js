@@ -135,9 +135,6 @@ export class Drawer {
             const legalChecked = (_d = output.querySelector('#show-legal')) === null || _d === void 0 ? void 0 : _d.checked;
             this.drawCrossings(graph, ctx, selfChecked, neighborChecked, multipleChecked, legalChecked);
         }
-        // If hovering over an edge on add bend mode, show a bend (to add)
-        // if (hover.edge && currentMode === "addBend") 
-        // shapeBend(ctx,mouse.x,mouse.y,bendChars.size,bendChars.color);
         // draw selection rectangle
         if (this.selector.isSelecting) {
             ctx.strokeStyle = "rgba(15, 15, 62, 0.86)";

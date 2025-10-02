@@ -595,7 +595,18 @@ label[for="vertex-show-labels"] {
 
 .context-menu li:hover {
     background-color: #f0f0f0; /* Light gray background on hover */
-}  
+}
+
+/* export button that appears with the selection rectangle  */
+.export-btn-selection-rectangle {
+  padding: 4px 8px;
+  font-size: 12px;
+  background: #ffffffcc;
+  border: 1px solid #888;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 9999;
+}
 
 /* Styles for the Modal */
 .modal {

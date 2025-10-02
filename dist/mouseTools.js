@@ -102,10 +102,12 @@ export class MouseDraggingTool {
     }
 }
 export class SelectionRectangleTool {
-    constructor(graph, selector, worldCoords) {
+    constructor(graph, selector, scaler, worldCoords, canvas) {
         this.graph = graph;
         this.selector = selector;
         this.worldCoords = worldCoords;
+        this.canvas = canvas;
+        this.scaler = scaler;
     }
     onMouseDown(e) {
         // console.log("onMouseDown");
@@ -116,8 +118,16 @@ export class SelectionRectangleTool {
         this.updateSelectionRect(this.selector, this.worldCoords, e, hasDragged);
     }
     onMouseUp(e) {
-        if (this.selector.isSelecting)
+        // if(this.selector.isSelecting)
+        //    this.selector.selectObjectsInRect(this.graph);
+        // show button if selecting rectangle
+        if (this.selector.isSelecting) {
+            // give the option of exporting image
+            const rect = this.selectionRectInCanvasCoords(this.selector, this.scaler);
+            this.showExportButton(e, rect.x, rect.y, rect.width, rect.height, this.canvas);
+            // select objects
             this.selector.selectObjectsInRect(this.graph);
+        }
         // update values
         this.selector.isSelecting = false;
         // console.log("selection onMouseUp");
@@ -131,6 +141,70 @@ export class SelectionRectangleTool {
         // update rectangle position and dimensions
         if (selector.isSelecting)
             selector.updateRectangle(worldCoords);
+    }
+    /**
+     * Show an export button after the selection of a rectangle
+     */
+    showExportButton(e, x, y, w, h, canvas) {
+        const btn = document.createElement("button");
+        btn.textContent = "Export selected rectangle as image";
+        btn.classList.add("export-btn-selection-rectangle");
+        // Position near selection (relative to canvas in DOM)
+        const rect = canvas.getBoundingClientRect();
+        btn.style.position = "absolute";
+        // btn.style.left = rect.left + x + w + 10 + "px"; // 10px offset to the right
+        // btn.style.top = rect.top + y + h + "px";
+        btn.style.left = e.clientX + 10 + "px";
+        btn.style.top = e.clientY + "px";
+        document.body.appendChild(btn);
+        // Timeout remove
+        const timeoutId = setTimeout(() => btn.remove(), 5000);
+        // Export on click
+        btn.addEventListener("click", () => {
+            this.exportSelection(canvas, x, y, w, h);
+            clearTimeout(timeoutId);
+            btn.remove();
+        });
+        // Hide if another mouse action starts
+        const hide = () => {
+            clearTimeout(timeoutId);
+            btn.remove();
+            canvas.removeEventListener("mousedown", hide);
+        };
+        canvas.addEventListener("mousedown", hide);
+    }
+    /** Export the selected part of a canvas as a PNG image
+     */
+    exportSelection(canvas, x, y, w, h) {
+        const dpr = window.devicePixelRatio || 1;
+        const scaleX = canvas.width / canvas.clientWidth;
+        const scaleY = canvas.height / canvas.clientHeight;
+        // Convert CSS → internal pixels
+        const px = x * scaleX;
+        const py = y * scaleY;
+        const pw = w * scaleX;
+        const ph = h * scaleY;
+        // Create offscreen canvas
+        const offCanvas = document.createElement("canvas");
+        offCanvas.width = Math.round(pw);
+        offCanvas.height = Math.round(ph);
+        const offCtx = offCanvas.getContext("2d");
+        // Optional: white background
+        offCtx.fillStyle = "white";
+        offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
+        // Copy selected region
+        offCtx.drawImage(canvas, px, py, pw, ph, 0, 0, offCanvas.width, offCanvas.height);
+        // Export
+        const link = document.createElement("a");
+        link.download = "selection.png";
+        link.href = offCanvas.toDataURL("image/png");
+        link.click();
+    }
+    selectionRectInCanvasCoords(selector, scaler) {
+        const { x, y } = scaler.worldToCanvas(selector.rect.x, selector.rect.y);
+        const width = selector.rect.width * scaler.scale;
+        const height = selector.rect.height * scaler.scale;
+        return { x: x, y: y, width: width, height: height };
     }
 }
 export class EdgeCreationTool {

@@ -136,7 +136,7 @@ export class MouseHandler
     private addEventListeners2(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
     {
         const mouseDragger = new MouseDraggingTool(graph,hover,selector,stateHandler,worldCoords,scaler);
-        const rectangleSelector = new SelectionRectangleTool(graph,selector,worldCoords);
+        const rectangleSelector = new SelectionRectangleTool(graph,selector,scaler,worldCoords,canvas);
         const edgeCreator = new EdgeCreationTool(canvas,graph,bendedEdgeCreator,hover,scaler,stateHandler,settingsOptions,rubbishBin,worldCoords);
         let currentTool: MouseTool = rectangleSelector;     // set as currentTool = rectangleSelector first, as the graph is empty
 
