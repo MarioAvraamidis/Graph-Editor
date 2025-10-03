@@ -53,6 +53,13 @@
 
           <button id="resetViewButton">ResetView</button>
           <button id="fix-view">FixView</button>
+          
+          <div class="file-upload">
+            <input type="file" id="import-input" hidden>
+            <label for="import-input" class="upload-btn">Upload</label>
+          </div>
+
+          <!-- <input type="file" id="import-input" accept=".json"> -->
 
           <div class="export-dropdown">
             <button id="export-btn">Export ▼</button>
@@ -62,7 +69,8 @@
               <a href="#" id="export-image">Export as PNG</a>
             </div>
           </div>
-          <input type="file" id="import-input" accept=".json">
+
+          <button id="layout">Layout</button>
 
           <div class="info">
             Zoom: <span id="currentZoomSpan">100%</span>

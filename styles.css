@@ -169,6 +169,7 @@ body {
     grid-template-columns: 1fr 1fr; /* two equal-width columns */
     gap: 5px; /* spacing between buttons */
     align-items: center;
+    justify-content: center;
     justify-items: stretch;           /* make items stretch equally */
     /* width: 100%;
     box-sizing: border-box;
@@ -202,6 +203,7 @@ body {
     transition: background-color 0.2s ease;
     width: 70%;
     align-self: center;
+    justify-self: center;
 }
 
 #controls button:hover {
@@ -214,6 +216,26 @@ body {
 
 .info {
   align-self: center;
+  justify-self: center;
+}
+
+.upload-btn {
+  display: block;
+  padding: 5px 1px;
+  font-size: 1em;
+  font-family: sans-serif;
+  cursor: pointer;
+  background-color: #e0e0e0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  justify-self: center;
+  text-align: center;
+  width: 70%;
+}
+
+.upload-btn:hover {
+  background-color: #d0d0d0;
 }
 
 /* #controls button {
