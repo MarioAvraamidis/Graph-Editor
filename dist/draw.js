@@ -20,12 +20,8 @@ export class Drawer {
     }
     renderGraph(graph, canvas) {
         if (this.output) {
-            // update scale
-            //      if (myCanvasHandler)
-            //                scale = this.scaler.scale;
-            // const vertexList = graph.vertices.map(v => v.id).join(", ");
-            // const edgeList = graph.edges.map(e => `(${e.points[0].id}-${e.points[1].id})`).join(", ");
-            const crossings_categories = graph.crossingsCategories();
+            // const crossings_categories = graph.crossingsCategories();
+            const report = graph.report();
             const totalCrossingsSpan = document.getElementById("total-crossings");
             const selfCrossingsSpan = document.getElementById("self-crossings");
             const neighborCrossingsSpan = document.getElementById("neighbor-crossings");
@@ -34,19 +30,19 @@ export class Drawer {
             const thrackleNumberSpan = document.getElementById("thrackle-number");
             const curveComplexitySpan = document.getElementById("curve-complexity");
             if (totalCrossingsSpan)
-                totalCrossingsSpan.textContent = `${graph.crossings.length}`;
+                totalCrossingsSpan.textContent = `${report.total}`; //  `${graph.crossings.length}`;
             if (selfCrossingsSpan)
-                selfCrossingsSpan.textContent = `${crossings_categories.self}`;
+                selfCrossingsSpan.textContent = `${report.self}`; // `${crossings_categories.self}`;
             if (neighborCrossingsSpan)
-                neighborCrossingsSpan.textContent = `${crossings_categories.neighbor}`;
+                neighborCrossingsSpan.textContent = `${report.neighbor}`; // `${crossings_categories.neighbor}`;
             if (multipleCrossingsSpan)
-                multipleCrossingsSpan.textContent = `${crossings_categories.multiple}`;
+                multipleCrossingsSpan.textContent = `${report.multiple}`; // `${crossings_categories.multiple}`;
             if (legalCrossingsSpan)
-                legalCrossingsSpan.textContent = `${crossings_categories.legal}`;
+                legalCrossingsSpan.textContent = `${report.legal}`; // `${crossings_categories.legal}`;
             if (thrackleNumberSpan)
-                thrackleNumberSpan.textContent = `${graph.thrackleNumber()}`;
+                thrackleNumberSpan.textContent = `${report.thrackleNum}`; // `${graph.thrackleNumber()}`;
             if (curveComplexitySpan)
-                curveComplexitySpan.textContent = `${graph.curve_complexity}`;
+                curveComplexitySpan.textContent = `${report.cc}`; // `${graph.curve_complexity}`;
             // Apply label colors based on data-color-key for crossings
             const labels = this.output.querySelectorAll('label[data-color-key]');
             labels.forEach(label => {
@@ -69,7 +65,7 @@ export class Drawer {
         // this.paletteHandler.updatePaletteState();       // update palettes state
     }
     // draw the graph
-    drawGraph(canvas, graph, labels = true) {
+    drawGraph(canvas, graph, labels = true, selected = true) {
         var _a, _b, _c, _d;
         // if (localCall)
         // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -80,6 +76,9 @@ export class Drawer {
             throw new Error("Could not get canvas rendering context");
         // Draw edges first
         graph.edges.forEach(edge => { this.drawEdge(ctx, edge); });
+        // highlight selected items
+        if (selected)
+            this.highlightSelected(ctx);
         // Highlight crossing edges of selected edges
         const highlightCrossEdges = document.getElementById("highlight-crossing-edges").checked;
         if (highlightCrossEdges)
@@ -226,8 +225,8 @@ export class Drawer {
         if (labels)
             this.showPointLabel(ctx, v);
         // add an orange circle around a selected vertex
-        if (this.selector.vertices.includes(v))
-            this.drawShape(ctx, v.x, v.y, v.shape, v.size + 2, "#FFA500", false); // scaling in drawShape function
+        // if (this.selector.vertices.includes(v)) 
+        // this.drawShape(ctx, v.x, v.y, v.shape, v.size+2, "#FFA500", false);  // scaling in drawShape function
     }
     // display the label of the given point
     showPointLabel(ctx, p) {
@@ -298,8 +297,8 @@ export class Drawer {
         ctx.stroke();
         ctx.lineWidth = 2 / this.scaler.scale;
         // add a dashed circle around a selected bend
-        if (this.selector.bends.includes(bend))
-            this.showSelectedPoint(ctx, bend);
+        // if (this.selector.bends.includes(bend)) 
+        // this.showSelectedPoint(ctx, bend);
         // label
         this.showPointLabel(ctx, bend);
     }
@@ -397,18 +396,18 @@ export class Drawer {
             }
             ctx.stroke();
             // if the edge is selected, highlight it with a dashed colored line
-            if (this.selector.edges.includes(edge)) // can be implemented faster by drawing all the selected edges first and then the others, so there's no need to check all the selector.vertices array for each edge
-             {
+            /* if (this.selector.edges.includes(edge))   // can be implemented faster by drawing all the selected edges first and then the others, so there's no need to check all the selector.vertices array for each edge
+            {
                 ctx.beginPath();
                 ctx.moveTo(v1.x, v1.y);
-                for (let i = 0; i < bends.length; i++)
-                    ctx.lineTo(bends[i].x, bends[i].y);
+                for (let i=0;i<bends.length;i++)
+                    ctx.lineTo(bends[i].x,bends[i].y);
                 ctx.lineTo(v2.x, v2.y);
                 ctx.strokeStyle = "orange";
-                ctx.setLineDash([5 / this.scaler.scale, 3 / this.scaler.scale]); // dashed line
-                ctx.lineWidth = (edge.thickness + 1) / this.scaler.scale;
+                ctx.setLineDash([5/this.scaler.scale, 3/this.scaler.scale]); // dashed line
+                ctx.lineWidth = (edge.thickness+1)/this.scaler.scale;
                 ctx.stroke();
-            }
+            } */
             //reset
             ctx.setLineDash([]);
             ctx.lineWidth = edge.thickness / this.scaler.scale;
@@ -417,6 +416,27 @@ export class Drawer {
                 this.drawBend(ctx, bend);
             this.showEdgeLabel(ctx, edge);
         }
+    }
+    highlightSelected(ctx) {
+        this.selector.vertices.forEach(v => this.drawShape(ctx, v.x, v.y, v.shape, v.size + 2, "#FFA500", false)); // scaling in drawShape function)
+        this.selector.bends.forEach(b => this.showSelectedPoint(ctx, b));
+        this.selector.edges.forEach(e => {
+            const v1 = e.points[0];
+            const v2 = e.points[1];
+            const bends = e.bends;
+            ctx.beginPath();
+            ctx.moveTo(v1.x, v1.y);
+            for (let i = 0; i < bends.length; i++)
+                ctx.lineTo(bends[i].x, bends[i].y);
+            ctx.lineTo(v2.x, v2.y);
+            ctx.strokeStyle = "orange";
+            ctx.setLineDash([5 / this.scaler.scale, 3 / this.scaler.scale]); // dashed line
+            ctx.lineWidth = (e.thickness + 1) / this.scaler.scale;
+            ctx.stroke();
+            //reset
+            ctx.setLineDash([]);
+            ctx.lineWidth = e.thickness / this.scaler.scale;
+        });
     }
     // draw a rubbish bin (when creating a new edge)
     drawRubbishBin(ctx, x, y) {

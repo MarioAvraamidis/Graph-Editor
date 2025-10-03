@@ -959,6 +959,19 @@ export class Graph {
         this._curve_complexity = 0;
     }
 
+    public report()
+    {
+        const crossings_categories = this.crossingsCategories();
+        const totalCrossings = this.crossings.length;
+        const selfCrossings = crossings_categories.self;
+        const neighborCrossings = crossings_categories.neighbor;
+        const multipleCrossings = crossings_categories.multiple;
+        const legalCrossings = crossings_categories.legal;
+        const thrackleNumber = this.thrackleNumber();
+        const cc = this.curve_complexity;
+        return {total: totalCrossings, self: selfCrossings, neighbor: neighborCrossings, multiple: multipleCrossings, legal: legalCrossings, thrackleNum: thrackleNumber, cc: cc};
+    }
+
     /**
      * @returns true if the graph is empty (i.e. there are no vertices)
      */

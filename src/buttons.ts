@@ -2,7 +2,7 @@ import { CanvasHandler } from "./canvasHandler.js";
 import { Copier, Selector } from "./selector.js";
 import { Graph } from "./graph.js";
 import { StateHandler } from "./stateHandler.js";
-import { exportCanvasAsImage, exportCanvasAsPdf, exportJSON, restoreGraphFromJSON } from "./exporting.js";
+import { exportCanvasAsImage, exportCanvasAsPdf, exportCanvasWithReportPNG, exportJSON, restoreGraphFromJSON, exportWithReportPDF } from "./exporting.js";
 import { SettingsOptions } from "./settings.js";
 
 export class BtnHandler
@@ -156,13 +156,21 @@ export class BtnHandler
             if(this.myCanvasHandler.ctx)
             {
                 // drawGraph(this.myCanvasHandler.ctx,this.graph,true,false);
-                exportCanvasAsImage();
+                if ((document.getElementById("include-report-in-export") as HTMLInputElement).checked)
+                    exportCanvasWithReportPNG(this.myCanvasHandler.canvas,graph.report(),this.settingsOptions.crossings_colors);
+                else
+                    exportCanvasAsImage(this.myCanvasHandler.canvas);
                 // drawGraph(this.myCanvasHandler.ctx,this.graph);
             }
         });
     
         document.getElementById("export-pdf")!.addEventListener("click", () => {
-            exportCanvasAsPdf(this.myCanvasHandler.canvas);
+            if ((document.getElementById("include-report-in-export") as HTMLInputElement).checked)
+               exportWithReportPDF(this.myCanvasHandler.canvas,graph.report(),this.settingsOptions.crossings_colors);
+            else
+               exportCanvasAsPdf(this.myCanvasHandler.canvas);
+            // const includeReport = (document.getElementById("include-report-in-export") as HTMLInputElement).checked;
+            // exportCanvasAsPdfWithReport(this.myCanvasHandler.canvas,graph.report(),includeReport);
         });
     
     

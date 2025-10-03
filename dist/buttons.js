@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { exportCanvasAsImage, exportCanvasAsPdf, exportJSON, restoreGraphFromJSON } from "./exporting.js";
+import { exportCanvasAsImage, exportCanvasAsPdf, exportCanvasWithReportPNG, exportJSON, restoreGraphFromJSON, exportWithReportPDF } from "./exporting.js";
 export class BtnHandler {
     constructor(canvas, graph, canvasHandler, selector, stateHandler, copier, settingsOptions) {
         // this.graph = graph;
@@ -130,12 +130,20 @@ export class BtnHandler {
         (_j = document.getElementById("export-image")) === null || _j === void 0 ? void 0 : _j.addEventListener("click", () => {
             if (this.myCanvasHandler.ctx) {
                 // drawGraph(this.myCanvasHandler.ctx,this.graph,true,false);
-                exportCanvasAsImage();
+                if (document.getElementById("include-report-in-export").checked)
+                    exportCanvasWithReportPNG(this.myCanvasHandler.canvas, graph.report(), this.settingsOptions.crossings_colors);
+                else
+                    exportCanvasAsImage(this.myCanvasHandler.canvas);
                 // drawGraph(this.myCanvasHandler.ctx,this.graph);
             }
         });
         document.getElementById("export-pdf").addEventListener("click", () => {
-            exportCanvasAsPdf(this.myCanvasHandler.canvas);
+            if (document.getElementById("include-report-in-export").checked)
+                exportWithReportPDF(this.myCanvasHandler.canvas, graph.report(), this.settingsOptions.crossings_colors);
+            else
+                exportCanvasAsPdf(this.myCanvasHandler.canvas);
+            // const includeReport = (document.getElementById("include-report-in-export") as HTMLInputElement).checked;
+            // exportCanvasAsPdfWithReport(this.myCanvasHandler.canvas,graph.report(),includeReport);
         });
         document.getElementById("import-input").addEventListener("change", (e) => __awaiter(this, void 0, void 0, function* () {
             var _a;

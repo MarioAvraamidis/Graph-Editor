@@ -160,10 +160,10 @@ function renderLatexToImage(latex) {
         return img;
     });
 }
-export function exportCanvasAsImage() {
+export function exportCanvasAsImage(canvas) {
     return __awaiter(this, void 0, void 0, function* () {
         // First draw graph normally...
-        const canvas = document.getElementById("graphCanvas");
+        // const canvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
         // Create an off-screen canvas to not affect the visible one
         const exportCanvas = document.createElement("canvas");
         exportCanvas.width = canvas.width;
@@ -191,4 +191,120 @@ export function exportCanvasAsImage() {
         link.href = exportCanvas.toDataURL();
         link.click();
     });
+}
+export function exportCanvasWithReportPNG(mainCanvas, report, colors) {
+    // const mainCanvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
+    // Create final canvas bigger than the main one
+    const finalCanvas = document.createElement("canvas");
+    const reportHeight = 180; // adjust depending on report content
+    finalCanvas.width = mainCanvas.width;
+    finalCanvas.height = mainCanvas.height + reportHeight;
+    const ctx = finalCanvas.getContext("2d");
+    // Fill white background
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+    // Draw main canvas content
+    ctx.drawImage(mainCanvas, 0, 0);
+    // Draw report below
+    const margin = 20;
+    let y = mainCanvas.height + margin;
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText("Report", 10, y);
+    const labelX = 10;
+    const valueX = 180; // fixed column for numbers
+    y += 25;
+    ctx.fillStyle = colors.self;
+    ctx.fillText(`Self X-ings:`, labelX, y);
+    ctx.fillText(report.self, valueX, y);
+    y += 20;
+    ctx.fillStyle = colors.neighbor;
+    ctx.fillText(`Neighbor-edge X-ings:`, labelX, y);
+    ctx.fillText(report.neighbor, valueX, y);
+    y += 20;
+    ctx.fillStyle = colors.multiple;
+    ctx.fillText(`Multiple X-ings:`, labelX, y);
+    ctx.fillText(report.multiple, valueX, y);
+    y += 20;
+    ctx.fillStyle = colors.legal;
+    ctx.fillText(`Legal X-ings:`, labelX, y);
+    ctx.fillText(report.legal, valueX, y);
+    y += 20;
+    ctx.fillStyle = "black";
+    ctx.fillText(`Total X-ings:`, labelX, y);
+    ctx.fillText(report.total, valueX, y);
+    y += 20;
+    ctx.fillText(`Thrackle:`, labelX, y);
+    ctx.fillText(report.thrackleNum, valueX, y);
+    y += 20;
+    ctx.fillText(`Curve Complexity:`, labelX, y);
+    ctx.fillText(report.cc, valueX, y);
+    // Export PNG
+    const link = document.createElement("a");
+    link.download = "graph_with_report.png";
+    link.href = finalCanvas.toDataURL("image/png");
+    link.click();
+}
+// --- PDF Export Function (canvas + report) ---
+export function exportWithReportPDF(canvas, reportData, colors) {
+    if (!canvas) {
+        console.error("Canvas element not found!");
+        return;
+    }
+    // Get the image data from the canvas
+    const imgData = canvas.toDataURL("image/png");
+    // Init jsPDF (landscape A4 in mm)
+    const doc = new window.jspdf.jsPDF("l", "mm", "a4");
+    // Page dimensions
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    // Canvas dimensions
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+    // Scale canvas to fit into ~70% of the page height
+    const maxCanvasHeight = pageHeight * 0.65;
+    const ratio = Math.min(pageWidth / imgWidth, maxCanvasHeight / imgHeight);
+    const scaledWidth = imgWidth * ratio;
+    const scaledHeight = imgHeight * ratio;
+    // Position canvas at top center
+    const x = (pageWidth - scaledWidth) / 2;
+    let y = 10; // top margin
+    doc.addImage(imgData, "PNG", x, y, scaledWidth, scaledHeight);
+    // --- Add report below ---
+    y += scaledHeight + 15; // spacing below canvas
+    const labelX = 20;
+    const valueX = 70;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Report", labelX, y);
+    y += 10;
+    doc.setFontSize(12);
+    const yStep = 6;
+    doc.setTextColor(colors.self);
+    doc.text("Self X-ings :", labelX, y);
+    doc.text(String(reportData.self), valueX, y);
+    y += yStep;
+    doc.setTextColor(colors.neighbor);
+    doc.text("Neighbor-edge X-ings :", labelX, y);
+    doc.text(String(reportData.neighbor), valueX, y);
+    y += yStep;
+    doc.setTextColor(colors.multiple);
+    doc.text("Multiple X-ings :", labelX, y);
+    doc.text(String(reportData.multiple), valueX, y);
+    y += yStep;
+    doc.setTextColor(colors.legal);
+    doc.text("Legal X-ings :", labelX, y);
+    doc.text(String(reportData.legal), valueX, y);
+    y += yStep;
+    doc.setTextColor(0, 0, 0);
+    doc.text("Total X-ings :", labelX, y);
+    doc.text(String(reportData.total), valueX, y);
+    y += yStep;
+    doc.text("Thrackle :", labelX, y);
+    doc.text(String(reportData.thrackleNum), valueX, y);
+    y += yStep;
+    doc.text("Curve Complexity :", labelX, y);
+    doc.text(String(reportData.cc), valueX, y);
+    // Save
+    doc.save("graph_with_report.pdf");
 }
