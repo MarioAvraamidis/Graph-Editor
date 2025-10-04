@@ -242,7 +242,7 @@ export class ModalsHandler {
                 // paramValue = Number(formData.get("numOfCrossings"));
                 // break;
             }
-            console.log("Selected:", selectedOption, "Parameter:", paramValue);
+            // console.log("Selected:", selectedOption, "Parameter:", paramValue);
             stateHandler.saveState();
             if (selectedOption === "path")
                 pathDrawing(graph, paramValue);

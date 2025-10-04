@@ -80,6 +80,8 @@ function checkPath(graph: Graph)
                 isPath = false;
         } */
     }
+    else
+        isPath = false;
 
     return {isPath: isPath, orderedVertices: orderedVertices};
 }

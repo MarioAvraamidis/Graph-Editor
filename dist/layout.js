@@ -63,6 +63,8 @@ function checkPath(graph) {
                 isPath = false;
         } */
     }
+    else
+        isPath = false;
     return { isPath: isPath, orderedVertices: orderedVertices };
 }
 function pathThrackle(graph, orderedVertices) {

@@ -299,7 +299,7 @@ export class ModalsHandler
                 // break;
             }
 
-            console.log("Selected:", selectedOption, "Parameter:", paramValue);
+            // console.log("Selected:", selectedOption, "Parameter:", paramValue);
 
             stateHandler.saveState();
             if(selectedOption === "path")
