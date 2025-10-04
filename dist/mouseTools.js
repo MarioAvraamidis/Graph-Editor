@@ -158,7 +158,7 @@ export class SelectionRectangleTool {
         btn.style.top = e.clientY + "px";
         document.body.appendChild(btn);
         // Timeout remove
-        const timeoutId = setTimeout(() => btn.remove(), 5000);
+        const timeoutId = setTimeout(() => btn.remove(), 3000);
         // Export on click
         btn.addEventListener("click", () => {
             this.exportSelection(canvas, x, y, w, h);

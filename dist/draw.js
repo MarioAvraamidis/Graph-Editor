@@ -74,11 +74,11 @@ export class Drawer {
         const ctx = canvas.getContext("2d");
         if (!ctx)
             throw new Error("Could not get canvas rendering context");
-        // Draw edges first
-        graph.edges.forEach(edge => { this.drawEdge(ctx, edge); });
         // highlight selected items
         if (selected)
             this.highlightSelected(ctx);
+        // Draw edges first
+        graph.edges.forEach(edge => { this.drawEdge(ctx, edge); });
         // Highlight crossing edges of selected edges
         const highlightCrossEdges = document.getElementById("highlight-crossing-edges").checked;
         if (highlightCrossEdges)

@@ -13,22 +13,9 @@ export class Cmenu {
     }
     // Function to hide the context menu (it's activated in mouse.ts)
     hideContextMenu() {
-        /*const menus: HTMLDivElement[] = [contextMenu,this.edgeMenu,this.selectedMenu,this.pointMenu,this.labelMenu];
-        for (const menu in menus)
-                menu.style.display = 'none';*/
-        if (this.contextMenu) {
-            this.contextMenu.style.display = 'none';
-        }
-        if (this.edgeMenu) {
-            this.edgeMenu.style.display = 'none';
-        }
-        if (this.selectedMenu) {
-            this.selectedMenu.style.display = 'none';
-        }
-        if (this.pointMenu)
-            this.pointMenu.style.display = 'none';
-        if (this.labelMenu)
-            this.labelMenu.style.display = 'none';
+        const menus = [this.contextMenu, this.edgeMenu, this.selectedMenu, this.pointMenu, this.labelMenu];
+        for (const menu of menus)
+            (menu).style.display = 'none';
     }
     // Function to show and position the context menu
     showContextMenu(x, y, menu) {

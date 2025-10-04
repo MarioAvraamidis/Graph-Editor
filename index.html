@@ -56,7 +56,7 @@
           
           <div class="file-upload">
             <input type="file" id="import-input" hidden>
-            <label for="import-input" class="upload-btn">Upload</label>
+            <label for="import-input" class="upload-btn">Import</label>
           </div>
 
           <!-- <input type="file" id="import-input" accept=".json"> -->
@@ -70,7 +70,7 @@
             </div>
           </div>
 
-          <button id="layout">Layout</button>
+          <button id="layout-btn">Layout</button>
 
           <div class="info">
             Zoom: <span id="currentZoomSpan">100%</span>
@@ -442,7 +442,7 @@
             </label>
             <div class="parameter" id="param-tree" style="display: none;">
               <label for="treeHeight">Height:</label>
-              <input type="number" id="treeHeight" name="treeHeight" min="1" value="3">
+              <input type="number" id="treeHeight" name="treeHeight" min="0" value="3">
             </div>
 
             <!-- Option 4: Complete Graph -->
@@ -463,6 +463,47 @@
         </div>
       </div>
 
+      
+      <!-- Layout Modal -->
+      <div id="layoutModal" class="modal">
+        <span class="close-button">&times;</span>
+        <div class="modal-content">
+          <h2>Layout</h2>
+
+          <form id="layoutOptionsForm">
+            <label>
+              <input type="radio" name="layoutOption" value="path" required>
+              Path
+            </label>
+            <div class="parameter" id="layout-param-path" style="display: none;">
+              <label for="numOfCrossingsPath">Desired number of crossings:</label>
+              <input type="number" id="numOfCrossingsPath" name="numOfCrossingsPath" min="0" value="0">
+            </div>
+            <br>
+            <label>
+              <input type="radio" name="layoutOption" value="opt2">
+              Option 2
+            </label>
+            <div class="parameter" id="layout-param-opt2" style="display: none;">
+              <label for="paramOpt2">Desired number of crossings:</label>
+              <input type="number" id="paramOpt2" name="paramOpt2" min="0" value="10">
+            </div>
+            <!-- 
+            <br>
+            <label>
+              <input type="radio" name="option" value="opt3">
+              Option 3: <input type="number" name="param3" min="0" value="20">
+            </label>
+            -->
+          </form>
+
+          <div class="modal-actions">
+            <button id="layoutCancelBtn">Cancel</button>
+            <button id="layoutOkBtn">OK</button>
+          </div>
+        </div>
+      </div>
+
 
       <!-- Custom Alert Message -->
       <div id="customAlert" class="custom-alert">
@@ -475,23 +516,3 @@
     <script type="module" src="dist/app.js"></script>
 </body>
 </html>
-
-<!--
-    <!-- Controls for creating graph
-    <div id="controls">
-        <input type="text" id="vertexIdInput" placeholder="Vertex ID" />
-        <button id="add-vertex">New Vertex</button>
-        <button id="delete-vertex">Delete Vertex</button>
-    </div>
-
-    <div>
-        <input type="text" id="edgeFromInput" placeholder="From Vertex" />
-        <input type="text" id="edgeToInput" placeholder="To Vertex" />
-        <!-- <button id="add-edge">Add Edge</button>
-        <button id="delete-edge">Delete Edge</button>
-        <!-- <button id="add-bend"> Add Bend </button>
-        <button id="remove-bend"> Delete Bend </button>
-        <button id="clear-edges"> Clear Edges</button>
-        <button id="clear-bends"> Clear Bends</button>
-    </div>
--->

@@ -6,6 +6,7 @@ import { StateHandler } from "./stateHandler.js";
 import { createGraph } from "./graphCreator.js";
 import { Point, Vertex } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
+import { pathDrawing } from "./layout.js";
 
 export class ModalsHandler
 {
@@ -29,6 +30,9 @@ export class ModalsHandler
     // new graph modal
     private newGraphModal: HTMLElement = document.getElementById('newGraphModal') as HTMLElement;
     private newGraphCloseButton: HTMLElement = this.newGraphModal.querySelector('.close-button') as HTMLElement;
+    // layout modal
+    private layoutModal: HTMLElement = document.getElementById("layoutModal") as HTMLElement;
+    private layoutModalCloseButton: HTMLElement = this.layoutModal.querySelector('.close-button') as HTMLElement;
     // settingsOptions
     public settingsOptions: SettingsOptions;
 
@@ -60,6 +64,7 @@ export class ModalsHandler
         // settingsOptions
         this.settingsOptions = settingsOptions;
         this.addEventListeners(graph,myCanvasHandler,stateHandler,hover,selector);
+        this.activateLayoutModal(graph,stateHandler,myCanvasHandler);
         this.hideAllModals();
     }
 
@@ -92,7 +97,7 @@ export class ModalsHandler
             // if(v)
                // showCustomAlert("Action not implemented. Graph contains self-loop on vertex "+v.id);
             graph.selfLoops = this.settingsAllowSelfLoops.checked;
-        })
+        });
         this.settingsAllowParallelEdges?.addEventListener('change',() => graph.parallelEdges = this.settingsAllowParallelEdges.checked )
 
         // save button listener for label modal
@@ -129,7 +134,7 @@ export class ModalsHandler
                 }
             });
         // event listeners for close buttons of the modals
-        for (const btn of [this.editLabelCloseButton,this.settingsCloseButton, this.newGraphCloseButton])
+        for (const btn of [this.editLabelCloseButton,this.settingsCloseButton, this.newGraphCloseButton, this.layoutModalCloseButton])
             if(btn) btn.addEventListener('click', () => this.hideAllModals());
 
         // Allow clicking outside the modal content to close it 
@@ -206,6 +211,7 @@ export class ModalsHandler
             this.settingsModal.style.display = 'none';
         }
         this.newGraphModal.style.display = 'none';
+        this.layoutModal.style.display = 'none';
         // console.log("hideAllModals");
     }
 
@@ -251,4 +257,80 @@ export class ModalsHandler
     }
 
     public showNewGraphModal() { this.newGraphModal.style.display = 'flex'; }
+
+    private activateLayoutModal(graph: Graph, stateHandler: StateHandler, myCanvasHandler: CanvasHandler)
+    {
+        const modal = document.getElementById("layoutModal") as HTMLDivElement;
+        const openBtn = document.getElementById("layout-btn") as HTMLButtonElement;
+        const cancelBtn = document.getElementById("layoutCancelBtn") as HTMLButtonElement;
+        const okBtn = document.getElementById("layoutOkBtn") as HTMLButtonElement;
+        const form = document.getElementById("layoutOptionsForm") as HTMLFormElement;
+
+        // Show modal
+        openBtn.onclick = () => { modal.style.display = "flex"; };
+
+        // Hide modal
+        cancelBtn.onclick = (e) => {
+            e.preventDefault();
+            modal.style.display = "none";
+        };
+
+        // Apply choice
+        okBtn.onclick = (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const selectedOption = formData.get("layoutOption");
+            let paramValue: number = 0;
+
+            /*if (selectedOption) {
+                paramValue = formData.get("param" + selectedOption.toString().slice(-1)) as string;
+            }*/
+
+            switch (selectedOption) {
+                case "path":
+                    paramValue = Number(formData.get("numOfCrossingsPath"));
+                break;
+                case "opt2":
+                paramValue = Number(formData.get("paramOpt2"));
+                break;
+                // case "opt3":
+                // paramValue = Number(formData.get("numOfCrossings"));
+                // break;
+            }
+
+            console.log("Selected:", selectedOption, "Parameter:", paramValue);
+
+            stateHandler.saveState();
+            if(selectedOption === "path")
+                pathDrawing(graph,paramValue);
+            myCanvasHandler.fixView();
+            myCanvasHandler.redraw();
+
+            modal.style.display = "none";
+        };
+
+        // Show/hide parameter fields depending on selected layout
+        document.querySelectorAll<HTMLInputElement>("input[name='layoutOption']").forEach(radio => {
+            radio.addEventListener("change", () => {
+                // hide all parameter sections
+                document.querySelectorAll<HTMLElement>(".parameter").forEach(div => {
+                    div.style.display = "none";
+                });
+
+                // show only the relevant one
+                const selected = (radio as HTMLInputElement).value;
+                const paramDiv = document.getElementById(`layout-param-${selected}`);
+                if (paramDiv) paramDiv.style.display = "block";
+            });
+        });
+
+        // Close modal if clicking outside
+        /*window.onclick = (e) => {
+            if (e.target === modal) {
+                modal.style.display = "none";
+            }
+        };*/
+
+    }
 }

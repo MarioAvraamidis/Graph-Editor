@@ -208,7 +208,7 @@ export class SelectionRectangleTool implements MouseTool
         document.body.appendChild(btn);
 
         // Timeout remove
-        const timeoutId = setTimeout(() => btn.remove(), 5000);
+        const timeoutId = setTimeout(() => btn.remove(), 3000);
 
         // Export on click
         btn.addEventListener("click", () => {

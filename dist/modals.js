@@ -1,6 +1,7 @@
 import { createGraph } from "./graphCreator.js";
 import { Vertex } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
+import { pathDrawing } from "./layout.js";
 export class ModalsHandler {
     constructor(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector) {
         this.editLabelChanges = false;
@@ -9,6 +10,9 @@ export class ModalsHandler {
         // new graph modal
         this.newGraphModal = document.getElementById('newGraphModal');
         this.newGraphCloseButton = this.newGraphModal.querySelector('.close-button');
+        // layout modal
+        this.layoutModal = document.getElementById("layoutModal");
+        this.layoutModalCloseButton = this.layoutModal.querySelector('.close-button');
         // edit label modal elements
         this.editLabelModal = document.getElementById('editLabelModal');
         this.editLabelCloseButton = this.editLabelModal.querySelector('.close-button');
@@ -35,6 +39,7 @@ export class ModalsHandler {
         // settingsOptions
         this.settingsOptions = settingsOptions;
         this.addEventListeners(graph, myCanvasHandler, stateHandler, hover, selector);
+        this.activateLayoutModal(graph, stateHandler, myCanvasHandler);
         this.hideAllModals();
     }
     addEventListeners(graph, myCanvasHandler, stateHandler, hover, selector) {
@@ -96,7 +101,7 @@ export class ModalsHandler {
                 }
             });
         // event listeners for close buttons of the modals
-        for (const btn of [this.editLabelCloseButton, this.settingsCloseButton, this.newGraphCloseButton])
+        for (const btn of [this.editLabelCloseButton, this.settingsCloseButton, this.newGraphCloseButton, this.layoutModalCloseButton])
             if (btn)
                 btn.addEventListener('click', () => this.hideAllModals());
         // Allow clicking outside the modal content to close it 
@@ -163,6 +168,7 @@ export class ModalsHandler {
             this.settingsModal.style.display = 'none';
         }
         this.newGraphModal.style.display = 'none';
+        this.layoutModal.style.display = 'none';
         // console.log("hideAllModals");
     }
     // display the edit label modal
@@ -203,4 +209,66 @@ export class ModalsHandler {
         }
     }
     showNewGraphModal() { this.newGraphModal.style.display = 'flex'; }
+    activateLayoutModal(graph, stateHandler, myCanvasHandler) {
+        const modal = document.getElementById("layoutModal");
+        const openBtn = document.getElementById("layout-btn");
+        const cancelBtn = document.getElementById("layoutCancelBtn");
+        const okBtn = document.getElementById("layoutOkBtn");
+        const form = document.getElementById("layoutOptionsForm");
+        // Show modal
+        openBtn.onclick = () => { modal.style.display = "flex"; };
+        // Hide modal
+        cancelBtn.onclick = (e) => {
+            e.preventDefault();
+            modal.style.display = "none";
+        };
+        // Apply choice
+        okBtn.onclick = (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const selectedOption = formData.get("layoutOption");
+            let paramValue = 0;
+            /*if (selectedOption) {
+                paramValue = formData.get("param" + selectedOption.toString().slice(-1)) as string;
+            }*/
+            switch (selectedOption) {
+                case "path":
+                    paramValue = Number(formData.get("numOfCrossingsPath"));
+                    break;
+                case "opt2":
+                    paramValue = Number(formData.get("paramOpt2"));
+                    break;
+                // case "opt3":
+                // paramValue = Number(formData.get("numOfCrossings"));
+                // break;
+            }
+            console.log("Selected:", selectedOption, "Parameter:", paramValue);
+            stateHandler.saveState();
+            if (selectedOption === "path")
+                pathDrawing(graph, paramValue);
+            myCanvasHandler.fixView();
+            myCanvasHandler.redraw();
+            modal.style.display = "none";
+        };
+        // Show/hide parameter fields depending on selected layout
+        document.querySelectorAll("input[name='layoutOption']").forEach(radio => {
+            radio.addEventListener("change", () => {
+                // hide all parameter sections
+                document.querySelectorAll(".parameter").forEach(div => {
+                    div.style.display = "none";
+                });
+                // show only the relevant one
+                const selected = radio.value;
+                const paramDiv = document.getElementById(`layout-param-${selected}`);
+                if (paramDiv)
+                    paramDiv.style.display = "block";
+            });
+        });
+        // Close modal if clicking outside
+        /*window.onclick = (e) => {
+            if (e.target === modal) {
+                modal.style.display = "none";
+            }
+        };*/
+    }
 }
