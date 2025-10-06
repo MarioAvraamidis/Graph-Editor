@@ -6,7 +6,7 @@ import { StateHandler } from "./stateHandler.js";
 import { createGraph } from "./graphCreator.js";
 import { Point, Vertex } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
-import { pathDrawing } from "./layout.js";
+import { circularPathDrawing, linearPathDrawing } from "./layout.js";
 
 export class ModalsHandler
 {
@@ -288,11 +288,11 @@ export class ModalsHandler
             }*/
 
             switch (selectedOption) {
-                case "path":
-                    paramValue = Number(formData.get("numOfCrossingsPath"));
+                case "linearPath":
+                    paramValue = Number(formData.get("numOfCrossingsLinearPath"));
                 break;
-                case "opt2":
-                paramValue = Number(formData.get("paramOpt2"));
+                case "circularPath":
+                    paramValue = Number(formData.get("numOfCrossingsCircularPath"));
                 break;
                 // case "opt3":
                 // paramValue = Number(formData.get("numOfCrossings"));
@@ -302,8 +302,10 @@ export class ModalsHandler
             // console.log("Selected:", selectedOption, "Parameter:", paramValue);
 
             stateHandler.saveState();
-            if(selectedOption === "path")
-                pathDrawing(graph,paramValue);
+            if(selectedOption === "linearPath")
+                linearPathDrawing(graph,paramValue);
+            else if (selectedOption === "circularPath")
+                circularPathDrawing(graph,paramValue);
             myCanvasHandler.fixView();
             myCanvasHandler.redraw();
 

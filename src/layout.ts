@@ -2,25 +2,87 @@ import { showCustomAlert } from "./alert.js";
 import { Graph } from "./graph.js";
 import { Bend, Vertex } from "./graphElements.js";
 
+/**
+ * Create a straight line drawing of the path with the desired number of crossings. The vertices are place around a circle
+ * The vertices are first placed in linear order and produce a drawing with the given number of crossings.
+ * After that they are placed around the circle.
+ * 
+ * @param graph 
+ * @param crossings 
+ */
+export function circularPathDrawing(graph: Graph, crossings: number)
+{
+    const xDist = linearPathDrawing(graph,crossings);
+    let newVertex: Vertex = new Vertex("");
+    if (xDist === -1)
+        return;
+    // create a x-sorted array of the vertices in the linear drawing
+    const sorted: Vertex[] = [];
+    graph.vertices.forEach(v => sorted.push(v));
+    const len = graph.vertices.length;
+    // handle even n case (add a temporary vertex so that the circle placement looks like an odd circle drawing)
+    if (len%2 === 0)
+    {
+        newVertex = new Vertex("NEWVerTeX",len*xDist,0);
+        graph.addVertex(newVertex);
+        sorted.push(newVertex);
+    }
+    // sort the vertices
+    graph.vertices.forEach( v => sorted[v.x/xDist] = v);
+    // circle placement
+    graph.makeCircle(0,0,300,sorted);
+    graph.removeBends();
+    // remove the temporary vertex
+    if (len%2 === 0)
+        graph.deleteVertex(newVertex);
+}
 
-export function pathDrawing(graph: Graph, crossings: number)
+/**
+ * Place the vertices and edges of the graph (if it's path) so that the number of crossings in the drawing is the given.
+ * Also check if the given graph is a path and that the given number of crossings is between 0 and thrackleBound(path)
+ * 
+ * @param graph 
+ * @param crossings 
+ */
+export function linearPathDrawing(graph: Graph, crossings: number)
 {
     const xDist: number = 100;
     // console.log("pathDrawing. crossings = ",crossings);
     const checkP = checkPath(graph);
     if (!checkP.isPath)
+    {
         showCustomAlert("The graph is not path.");
+        return -1;
+    }
     else if( crossings > graph.thrackleNumber())
+    {
         showCustomAlert("The number you entered is greater than the path's thrackle.");
+        return -1;
+    }
     else if (crossings === 0)
     {
-        graph.removeBends();
+        graph.moveVertex(checkP.orderedVertices[0],0,0,false);
         addRemainingVertices(graph,1,checkP.orderedVertices,xDist);
+        graph.updateCrossings();
+        return xDist;
     }
     else
+    {
         drawPathWithCrossings(graph,checkP.orderedVertices,crossings,xDist);
+        return xDist;
+    }
 }
 
+/**
+ * Given a graph (path), the vertices in order of their appearance on the path, a number of crossings and a x-distance value,
+ * produce a linear drawing of the path with the given number of crossings.
+ * The x-distance between consecutive vertices is xDist.
+ * 
+ * @param graph 
+ * @param orderedVertices 
+ * @param crossings 
+ * @param xDist 
+ */
 function drawPathWithCrossings(graph: Graph, orderedVertices: Vertex[], crossings: number, xDist: number)
 {
     const nn = Math.ceil((5+Math.sqrt(25-4*(6-2*crossings)))/2);
@@ -38,76 +100,12 @@ function drawPathWithCrossings(graph: Graph, orderedVertices: Vertex[], crossing
 }
 
 /**
- * Check if the given graph is a path. The graph must be simple, i.e. no parallel edges, loops and not directed
+ * Produce a thrackle of the given graph (path)
  * 
  * @param graph 
- * @returns 
+ * @param orderedVertices 
+ * @param xDist 
  */
-function checkPath(graph: Graph)
-{
-    const vertices = graph.vertices;
-    let isPath: boolean = true;
-    let current: Vertex | null = null;
-    let prev: Vertex | null = null;
-    let orderedVertices: Vertex[] = [];
-
-    for (const v of vertices)
-    {
-        if (v.neighbors.length > 2 || v.neighbors.length === 0)
-        {
-            isPath = false;
-            // console.log("vertex "+v.id+" not vertex of a path");
-            break;
-        }
-        else if (v.neighbors.length === 1)
-        {
-            current = v;
-            // console.log("found first vertex "+v.id);
-            break;
-        }
-    }
-
-    if (isPath && current)
-    {
-        orderedVertices.push(current);
-        prev = current;
-        current = current.neighbors[0];
-        while (current.neighbors.length === 2)
-        {
-            // console.log("current: "+current.id);
-            // push current in the array
-            orderedVertices.push(current);
-            // check which of the neighbors is the previous
-            if ( prev === current.neighbors[0] )
-            {
-                prev = current;                     // update prev
-                current = current?.neighbors[1];    // update current
-            }
-            else
-            {
-                prev = current;                     // update prev
-                current = current?.neighbors[0];    // update current
-            }
-        }
-        // console.log("Process stopped. Current = "+current.id);
-        if ( orderedVertices.length !== vertices.length-1)
-            isPath = false;
-        else
-            orderedVertices.push(current);
-        /* else
-        {
-            if (current.neighbors.length === 1)
-                orderedVertices.push(current);
-            else
-                isPath = false;
-        } */
-    }
-    else
-        isPath = false;
-
-    return {isPath: isPath, orderedVertices: orderedVertices};
-}
-
 function pathThrackle(graph: Graph, orderedVertices: Vertex[], xDist: number)
 {
     graph.removeBends();                                    // remove bends from the graph
@@ -116,8 +114,12 @@ function pathThrackle(graph: Graph, orderedVertices: Vertex[], xDist: number)
     graph.updateCrossings();                                // update crossings
 }
 
+/**
+ * Place the remaining vertices at the right side of the last used vertex. Move to the right the other used vertices if needed.
+ */
 function addRemainingVertices(graph: Graph, nn: number, orderedVertices: Vertex[], xDist: number)
 {
+    graph.removeBends(false);
     const diff = orderedVertices.length - nn;
     // first move the vertices at the right of the last used vertex more to the right
     for (let i=0;i<nn-1;i++)
@@ -125,9 +127,13 @@ function addRemainingVertices(graph: Graph, nn: number, orderedVertices: Vertex[
             graph.moveVertex(orderedVertices[i],orderedVertices[i].x+diff*xDist,orderedVertices[i].y,false);
     // place the remaining vertices at the right of the last used vertex
     for (let i=nn;i<orderedVertices.length;i++)
-        graph.moveVertex(orderedVertices[i],orderedVertices[nn-1].x+(i-nn+1)*xDist,orderedVertices[nn-1].y);
+        graph.moveVertex(orderedVertices[i],orderedVertices[nn-1].x+(i-nn+1)*xDist,orderedVertices[nn-1].y,false);
 }
 
+/**
+ * Given a graph (path) and a subset of its vertices, produce a drawing with these vertices with the given number of crossings.
+ * If the subset has n vertices, the number of crossings should belong between the thrackle bounds of P_{n-1} and P_n
+ */
 function drawBetweenThrackles(graph: Graph, usedVertices: Vertex[], crossings: number, xDist: number)
 {
     const n = usedVertices.length;
@@ -136,11 +142,14 @@ function drawBetweenThrackles(graph: Graph, usedVertices: Vertex[], crossings: n
     if ( crossings <= (n-3)*(n-4)/2 || crossings > thrackleBound)
         return;
     const dx = thrackleBound-crossings;
-    graph.removeBends();
+    // graph.removeBends();
     verticesInitialPlacement(graph,usedVertices,xDist);  // initial vertices' placement
     swapVertices(graph,usedVertices,dx);                 // make the necessary swaps
 }
 
+/**
+ * Place firstly the odd vertices of the given graph (path) in increasing order and then the even vertices in increasing order
+ */
 function verticesInitialPlacement(graph: Graph, orderedVertices: Vertex[], xDist: number)
 {
     let x = 0;
@@ -158,6 +167,11 @@ function verticesInitialPlacement(graph: Graph, orderedVertices: Vertex[], xDist
     }
 }
 
+/**
+ * Given a graph (path), a subset of its vertices and a number dx, perform the necessary swaps between the vertices so that
+ * the number of crossings is reduced by dx.
+ * We assume that the initial drawing of the graph was a thrackle
+ */
 function swapVertices(graph: Graph, usedVertices: Vertex[], dx: number)
 {
     const n = usedVertices.length;
@@ -176,6 +190,9 @@ function swapVertices(graph: Graph, usedVertices: Vertex[], dx: number)
     }
 }
 
+/**
+ * Add bends to the edges of the graph (path) so that they take (somehow) the shape of a semi-circle
+ */
 function addBends(graph: Graph, usedVertices: Vertex[], xDist: number)
 {
     let x,y: number;
@@ -208,4 +225,64 @@ function addBends(graph: Graph, usedVertices: Vertex[], xDist: number)
             bend = graph.getEdgeByVertices(v1,v2)?.bends[0] as Bend;
         graph.moveBend(bend,bend.x,Math.min(bend.y+reduce,0));
     }
+}
+
+/**
+ * Check if the given graph is a path. The graph must be simple, i.e. no parallel edges, loops and not directed
+ * 
+ * @param graph 
+ * @returns 
+ */
+function checkPath(graph: Graph)
+{
+    const vertices = graph.vertices;
+    let isPath: boolean = true;
+    let current: Vertex | null = null;
+    let prev: Vertex | null = null;
+    let orderedVertices: Vertex[] = [];
+
+    for (const v of vertices)
+    {
+        if (v.neighbors.length > 2 || v.neighbors.length === 0)
+        {
+            isPath = false;
+            break;
+        }
+        else if (v.neighbors.length === 1)
+        {
+            current = v;
+            break;
+        }
+    }
+
+    if (isPath && current)
+    {
+        orderedVertices.push(current);
+        prev = current;
+        current = current.neighbors[0];
+        while (current.neighbors.length === 2)
+        {
+            // push current in the array
+            orderedVertices.push(current);
+            // check which of the neighbors is the previous
+            if ( prev === current.neighbors[0] )
+            {
+                prev = current;                     // update prev
+                current = current?.neighbors[1];    // update current
+            }
+            else
+            {
+                prev = current;                     // update prev
+                current = current?.neighbors[0];    // update current
+            }
+        }
+        if ( orderedVertices.length !== vertices.length-1)
+            isPath = false;
+        else
+            orderedVertices.push(current);
+    }
+    else
+        isPath = false;
+
+    return {isPath: isPath, orderedVertices: orderedVertices};
 }
