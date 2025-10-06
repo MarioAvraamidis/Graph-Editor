@@ -116,8 +116,9 @@ export class ModalsHandler {
         // Show/hide parameter fields depending on selected graph type
         document.querySelectorAll("input[name='graphType']").forEach(radio => {
             radio.addEventListener("change", () => {
+                var _a;
                 // hide all parameter sections
-                document.querySelectorAll(".parameter").forEach(div => {
+                (_a = document.getElementById("newGraphModal")) === null || _a === void 0 ? void 0 : _a.querySelectorAll(".parameter").forEach(div => {
                     div.style.display = "none";
                 });
                 // show only the relevant one
@@ -255,8 +256,9 @@ export class ModalsHandler {
         // Show/hide parameter fields depending on selected layout
         document.querySelectorAll("input[name='layoutOption']").forEach(radio => {
             radio.addEventListener("change", () => {
+                var _a;
                 // hide all parameter sections
-                document.querySelectorAll(".parameter").forEach(div => {
+                (_a = document.getElementById("layoutModal")) === null || _a === void 0 ? void 0 : _a.querySelectorAll(".parameter").forEach(div => {
                     div.style.display = "none";
                 });
                 // show only the relevant one

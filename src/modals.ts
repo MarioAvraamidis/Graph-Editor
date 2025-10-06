@@ -151,7 +151,7 @@ export class ModalsHandler
         document.querySelectorAll<HTMLInputElement>("input[name='graphType']").forEach(radio => {
             radio.addEventListener("change", () => {
                 // hide all parameter sections
-                document.querySelectorAll<HTMLElement>(".parameter").forEach(div => {
+                document.getElementById("newGraphModal")?.querySelectorAll<HTMLElement>(".parameter").forEach(div => {
                 div.style.display = "none";
                 });
 
@@ -316,7 +316,7 @@ export class ModalsHandler
         document.querySelectorAll<HTMLInputElement>("input[name='layoutOption']").forEach(radio => {
             radio.addEventListener("change", () => {
                 // hide all parameter sections
-                document.querySelectorAll<HTMLElement>(".parameter").forEach(div => {
+                document.getElementById("layoutModal")?.querySelectorAll<HTMLElement>(".parameter").forEach(div => {
                     div.style.display = "none";
                 });
 

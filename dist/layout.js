@@ -1,5 +1,13 @@
 import { showCustomAlert } from "./alert.js";
 import { Vertex } from "./graphElements.js";
+/**
+ * Create a straight line drawing of the path with the desired number of crossings. The vertices are place around a circle
+ * The vertices are first placed in linear order and produce a drawing with the given number of crossings.
+ * After that they are placed around the circle.
+ *
+ * @param graph
+ * @param crossings
+ */
 export function circularPathDrawing(graph, crossings) {
     const xDist = linearPathDrawing(graph, crossings);
     let newVertex = new Vertex("");
@@ -16,13 +24,6 @@ export function circularPathDrawing(graph, crossings) {
         sorted.push(newVertex);
     }
     // sort the vertices
-    /*let pos: number;
-    for (let i=0;i<len;i++)
-    {
-        pos = Math.floor(graph.vertices[i].x/xDist);
-        sorted[pos] = graph.vertices[i];
-        // console.log("vertex "+graph.vertices[i].id+" at place "+pos);
-    }*/
     graph.vertices.forEach(v => sorted[v.x / xDist] = v);
     // circle placement
     graph.makeCircle(0, 0, 300, sorted);
@@ -33,6 +34,7 @@ export function circularPathDrawing(graph, crossings) {
 }
 /**
  * Place the vertices and edges of the graph (if it's path) so that the number of crossings in the drawing is the given.
+ * Also check if the given graph is a path and that the given number of crossings is between 0 and thrackleBound(path)
  *
  * @param graph
  * @param crossings
@@ -60,6 +62,16 @@ export function linearPathDrawing(graph, crossings) {
         return xDist;
     }
 }
+/**
+ * Given a graph (path), the vertices in order of their appearance on the path, a number of crossings and a x-distance value,
+ * produce a linear drawing of the path with the given number of crossings.
+ * The x-distance between consecutive vertices is xDist.
+ *
+ * @param graph
+ * @param orderedVertices
+ * @param crossings
+ * @param xDist
+ */
 function drawPathWithCrossings(graph, orderedVertices, crossings, xDist) {
     const nn = Math.ceil((5 + Math.sqrt(25 - 4 * (6 - 2 * crossings))) / 2);
     // select the vertices that will be used in the drawing of the path P_n'
@@ -74,12 +86,22 @@ function drawPathWithCrossings(graph, orderedVertices, crossings, xDist) {
     addBends(graph, usedVertices, xDist);
     graph.updateCrossings();
 }
+/**
+ * Produce a thrackle of the given graph (path)
+ *
+ * @param graph
+ * @param orderedVertices
+ * @param xDist
+ */
 function pathThrackle(graph, orderedVertices, xDist) {
     graph.removeBends(); // remove bends from the graph
     verticesInitialPlacement(graph, orderedVertices, xDist); // vertex placement
     addBends(graph, orderedVertices, xDist); // add bends to the edges
     graph.updateCrossings(); // update crossings
 }
+/**
+ * Place the remaining vertices at the right side of the last used vertex. Move to the right the other used vertices if needed.
+ */
 function addRemainingVertices(graph, nn, orderedVertices, xDist) {
     graph.removeBends(false);
     const diff = orderedVertices.length - nn;
@@ -91,6 +113,10 @@ function addRemainingVertices(graph, nn, orderedVertices, xDist) {
     for (let i = nn; i < orderedVertices.length; i++)
         graph.moveVertex(orderedVertices[i], orderedVertices[nn - 1].x + (i - nn + 1) * xDist, orderedVertices[nn - 1].y, false);
 }
+/**
+ * Given a graph (path) and a subset of its vertices, produce a drawing with these vertices with the given number of crossings.
+ * If the subset has n vertices, the number of crossings should belong between the thrackle bounds of P_{n-1} and P_n
+ */
 function drawBetweenThrackles(graph, usedVertices, crossings, xDist) {
     const n = usedVertices.length;
     const thrackleBound = (n - 2) * (n - 3) / 2;
@@ -102,6 +128,9 @@ function drawBetweenThrackles(graph, usedVertices, crossings, xDist) {
     verticesInitialPlacement(graph, usedVertices, xDist); // initial vertices' placement
     swapVertices(graph, usedVertices, dx); // make the necessary swaps
 }
+/**
+ * Place firstly the odd vertices of the given graph (path) in increasing order and then the even vertices in increasing order
+ */
 function verticesInitialPlacement(graph, orderedVertices, xDist) {
     let x = 0;
     let y = 0;
@@ -115,6 +144,11 @@ function verticesInitialPlacement(graph, orderedVertices, xDist) {
         x += xDist;
     }
 }
+/**
+ * Given a graph (path), a subset of its vertices and a number dx, perform the necessary swaps between the vertices so that
+ * the number of crossings is reduced by dx.
+ * We assume that the initial drawing of the graph was a thrackle
+ */
 function swapVertices(graph, usedVertices, dx) {
     const n = usedVertices.length;
     if (dx % 2 == 1) {
@@ -129,6 +163,9 @@ function swapVertices(graph, usedVertices, dx) {
         graph.swapVertices(usedVertices[n - 1], usedVertices[n - 3], false);
     }
 }
+/**
+ * Add bends to the edges of the graph (path) so that they take (somehow) the shape of a semi-circle
+ */
 function addBends(graph, usedVertices, xDist) {
     var _a, _b;
     let x, y;
