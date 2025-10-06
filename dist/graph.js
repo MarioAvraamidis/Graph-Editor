@@ -109,6 +109,13 @@ export class Graph {
                 this.updateCrossings();
         }
     }
+    // swap the coordinates of the 2 given vertices
+    swapVertices(v1, v2, update = true) {
+        const x1 = v1.x;
+        const y1 = v1.y;
+        this.moveVertex(v1, v2.x, v2.y, update);
+        this.moveVertex(v2, x1, y1, update);
+    }
     // return the vertex near a specified (x,y) location (at distance < dist from (x,y) )
     // first check the array of vertices given
     // scale is used because the zoom scale might not be 1, but the vertices are shown at a fixed size regardless of the zoom
