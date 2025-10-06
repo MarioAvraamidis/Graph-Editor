@@ -5,7 +5,7 @@ import { Bend, Vertex } from "./graphElements.js";
 
 export function pathDrawing(graph: Graph, crossings: number)
 {
-    const xDist: number = 50;
+    const xDist: number = 100;
     // console.log("pathDrawing. crossings = ",crossings);
     const checkP = checkPath(graph);
     if (!checkP.isPath)
@@ -13,7 +13,10 @@ export function pathDrawing(graph: Graph, crossings: number)
     else if( crossings > graph.thrackleNumber())
         showCustomAlert("The number you entered is greater than the path's thrackle.");
     else if (crossings === 0)
+    {
+        graph.removeBends();
         addRemainingVertices(graph,1,checkP.orderedVertices,xDist);
+    }
     else
         drawPathWithCrossings(graph,checkP.orderedVertices,crossings,xDist);
 }
@@ -122,7 +125,7 @@ function addRemainingVertices(graph: Graph, nn: number, orderedVertices: Vertex[
             graph.moveVertex(orderedVertices[i],orderedVertices[i].x+diff*xDist,orderedVertices[i].y,false);
     // place the remaining vertices at the right of the last used vertex
     for (let i=nn;i<orderedVertices.length;i++)
-        graph.moveVertex(orderedVertices[i],orderedVertices[nn-1].x+(i-nn+1)*xDist,orderedVertices[i].y);
+        graph.moveVertex(orderedVertices[i],orderedVertices[nn-1].x+(i-nn+1)*xDist,orderedVertices[nn-1].y);
 }
 
 function drawBetweenThrackles(graph: Graph, usedVertices: Vertex[], crossings: number, xDist: number)
@@ -136,8 +139,6 @@ function drawBetweenThrackles(graph: Graph, usedVertices: Vertex[], crossings: n
     graph.removeBends();
     verticesInitialPlacement(graph,usedVertices,xDist);  // initial vertices' placement
     swapVertices(graph,usedVertices,dx);                 // make the necessary swaps
-    // addBends(graph,orderedVertices,xDist);                  // add bends
-    // graph.updateCrossings();                                // update crossings
 }
 
 function verticesInitialPlacement(graph: Graph, orderedVertices: Vertex[], xDist: number)
@@ -154,6 +155,24 @@ function verticesInitialPlacement(graph: Graph, orderedVertices: Vertex[], xDist
     {
         graph.moveVertex(orderedVertices[i],x,y);
         x += xDist;
+    }
+}
+
+function swapVertices(graph: Graph, usedVertices: Vertex[], dx: number)
+{
+    const n = usedVertices.length;
+    if (dx%2==1)
+    {
+        const k = (dx-1)/2;
+        for (let i=1;i<=k+1;i++)
+            graph.swapVertices(usedVertices[0],usedVertices[2*i],false);
+    }
+    else if (dx >= 2)
+    {
+        const k = dx/2;
+        for (let i=1;i<=k;i++)
+            graph.swapVertices(usedVertices[0],usedVertices[2*i],false);
+        graph.swapVertices(usedVertices[n-1],usedVertices[n-3],false);
     }
 }
 
@@ -188,23 +207,5 @@ function addBends(graph: Graph, usedVertices: Vertex[], xDist: number)
         else   // edge v1-v2 is smaller
             bend = graph.getEdgeByVertices(v1,v2)?.bends[0] as Bend;
         graph.moveBend(bend,bend.x,Math.min(bend.y+reduce,0));
-    }
-}
-
-function swapVertices(graph: Graph, usedVertices: Vertex[], dx: number)
-{
-    const n = usedVertices.length;
-    if (dx%2==1)
-    {
-        const k = (dx-1)/2;
-        for (let i=1;i<=k+1;i++)
-            graph.swapVertices(usedVertices[0],usedVertices[2*i],false);
-    }
-    else if (dx >= 2)
-    {
-        const k = dx/2;
-        for (let i=1;i<=k;i++)
-            graph.swapVertices(usedVertices[0],usedVertices[2*i],false);
-        graph.swapVertices(usedVertices[n-1],usedVertices[n-3],false);
     }
 }

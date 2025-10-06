@@ -1,14 +1,16 @@
 import { showCustomAlert } from "./alert.js";
 export function pathDrawing(graph, crossings) {
-    const xDist = 50;
+    const xDist = 100;
     // console.log("pathDrawing. crossings = ",crossings);
     const checkP = checkPath(graph);
     if (!checkP.isPath)
         showCustomAlert("The graph is not path.");
     else if (crossings > graph.thrackleNumber())
         showCustomAlert("The number you entered is greater than the path's thrackle.");
-    else if (crossings === 0)
+    else if (crossings === 0) {
+        graph.removeBends();
         addRemainingVertices(graph, 1, checkP.orderedVertices, xDist);
+    }
     else
         drawPathWithCrossings(graph, checkP.orderedVertices, crossings, xDist);
 }
@@ -99,7 +101,7 @@ function addRemainingVertices(graph, nn, orderedVertices, xDist) {
             graph.moveVertex(orderedVertices[i], orderedVertices[i].x + diff * xDist, orderedVertices[i].y, false);
     // place the remaining vertices at the right of the last used vertex
     for (let i = nn; i < orderedVertices.length; i++)
-        graph.moveVertex(orderedVertices[i], orderedVertices[nn - 1].x + (i - nn + 1) * xDist, orderedVertices[i].y);
+        graph.moveVertex(orderedVertices[i], orderedVertices[nn - 1].x + (i - nn + 1) * xDist, orderedVertices[nn - 1].y);
 }
 function drawBetweenThrackles(graph, usedVertices, crossings, xDist) {
     const n = usedVertices.length;
