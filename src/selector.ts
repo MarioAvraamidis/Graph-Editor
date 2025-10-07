@@ -254,15 +254,23 @@ export class Copier
     }
 
     // Check if the 2 vertices of the selector.edges are selected. If not, return false
-    private checkSelected(selector: Selector)
+    private checkEdgesSelected(selector: Selector)
     {
         for (const e of selector.edges)
         {
-            const v1 = e.points[0];
-            const v2 = e.points[1];
-            if (v1 instanceof Vertex && !selector.vertices.includes(v1) || v2 instanceof Vertex && !selector.vertices.includes(v2))
-                return false;   // fail
+            const v1 = e.points[0] as Vertex;
+            const v2 = e.points[1] as Vertex;
+            if (!selector.vertices.includes(v1) || !selector.vertices.includes(v2))
+                return false;
         }
+        return true;
+    }
+
+    private checkBendsSelected(selector: Selector)
+    {
+        for (const b of selector.bends)
+            if (!selector.edges.includes(b.edge))
+                return false;
         return true;
     }
 
@@ -276,9 +284,14 @@ export class Copier
     {
         // check if both vertices of the selected edges are selected
         // if not, inform the user to select the vertices of the selected edges in order to copy an edge
-        if (!this.checkSelected(selector))
+        if (!this.checkEdgesSelected(selector))
         {
-            showCustomAlert("Select both vertices of the selected edges");
+            showCustomAlert("Select both vertices of the selected edges.");
+            return;
+        }
+        if (!this.checkBendsSelected(selector))
+        {
+            showCustomAlert("Bends cannot be copied if their edges are not selected.")
             return;
         }
         // if the user chose copy from the context menu, save the position of the click
