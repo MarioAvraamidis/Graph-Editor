@@ -210,7 +210,7 @@ export class CanvasHandler {
     addEventListeners() {
         var _a, _b;
         this.canvas.addEventListener('wheel', this.handleMouseWheel.bind(this));
-        document.addEventListener('keydown', this.handleKeyDown.bind(this));
+        // document.addEventListener('keydown', this.handleKeyDown.bind(this));
         (_a = document.getElementById('zoomInButton')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', () => this.zoom(this.scaler.ZOOM_FACTOR));
         (_b = document.getElementById('zoomOutButton')) === null || _b === void 0 ? void 0 : _b.addEventListener('click', () => this.zoom(1 / this.scaler.ZOOM_FACTOR));
         // document.getElementById('resetViewButton')?.addEventListener('click', () => this.resetView());

@@ -269,7 +269,7 @@ export class CanvasHandler {
 
     private addEventListeners(): void {
         this.canvas.addEventListener('wheel', this.handleMouseWheel.bind(this));
-        document.addEventListener('keydown', this.handleKeyDown.bind(this));
+        // document.addEventListener('keydown', this.handleKeyDown.bind(this));
         document.getElementById('zoomInButton')?.addEventListener('click', () => this.zoom(this.scaler.ZOOM_FACTOR));
         document.getElementById('zoomOutButton')?.addEventListener('click', () => this.zoom(1 / this.scaler.ZOOM_FACTOR));
         // document.getElementById('resetViewButton')?.addEventListener('click', () => this.resetView());
@@ -287,7 +287,7 @@ export class CanvasHandler {
         }
     }
 
-    private handleKeyDown(event: KeyboardEvent): void {
+    public handleKeyDown(event: KeyboardEvent): void {
         let moved = false;
         // Pan speed is independent of current zoom, as it's added to translateX/Y in CSS pixels
         const actualPanStep = this.scaler.PAN_STEP; // This value is already in CSS pixels

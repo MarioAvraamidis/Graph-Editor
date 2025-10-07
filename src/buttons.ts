@@ -91,6 +91,8 @@ export class BtnHandler
                 // checkHovered();
                 this.myCanvasHandler?.redraw();
             }
+            else
+                this.myCanvasHandler.handleKeyDown(e);
         });
     }
 

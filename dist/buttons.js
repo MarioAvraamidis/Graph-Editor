@@ -73,6 +73,8 @@ export class BtnHandler {
                 // checkHovered();
                 (_c = this.myCanvasHandler) === null || _c === void 0 ? void 0 : _c.redraw();
             }
+            else
+                this.myCanvasHandler.handleKeyDown(e);
         });
     }
     addButtonsEventListeners(graph) {
