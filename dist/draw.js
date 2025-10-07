@@ -65,7 +65,7 @@ export class Drawer {
         // this.paletteHandler.updatePaletteState();       // update palettes state
     }
     // draw the graph
-    drawGraph(canvas, graph, labels = true, selected = true) {
+    drawGraph(canvas, graph, labels = true) {
         var _a, _b, _c, _d;
         // if (localCall)
         // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -74,11 +74,9 @@ export class Drawer {
         const ctx = canvas.getContext("2d");
         if (!ctx)
             throw new Error("Could not get canvas rendering context");
-        // highlight selected items
-        if (selected)
-            this.highlightSelected(ctx);
         // Draw edges first
         graph.edges.forEach(edge => { this.drawEdge(ctx, edge); });
+        this.highlightSelectedEdges(ctx);
         // Highlight crossing edges of selected edges
         const highlightCrossEdges = document.getElementById("highlight-crossing-edges").checked;
         if (highlightCrossEdges)
@@ -94,9 +92,12 @@ export class Drawer {
             else
                 this.drawVertex(ctx, vertex, labels);
         });
-        // show information for the hovering objects
-        // hover.check(scale);
-        // this.infoBoxHandler.showHoveredInfo(canvas);
+        // draw bends
+        for (const edge of graph.edges)
+            for (const bend of edge.bends)
+                this.drawBend(ctx, bend);
+        // highlight selected points
+        this.highlightSelectedPoints(ctx);
         // Draw a temporary edge from starting vertex to mouse position and a rubbish bin to discard the new edge if necessary
         if (this.bendedEdgeCreator.creatingEdge && this.bendedEdgeCreator.startingVertex) {
             // console.log("startingVertex:", startingVertex.id);
@@ -413,14 +414,16 @@ export class Drawer {
             ctx.setLineDash([]);
             ctx.lineWidth = edge.thickness / this.scaler.scale;
             // draw bends
-            for (const bend of edge.bends)
-                this.drawBend(ctx, bend);
+            // for (const bend of edge.bends)
+            // this.drawBend(ctx,bend);
             this.showEdgeLabel(ctx, edge);
         }
     }
-    highlightSelected(ctx) {
+    highlightSelectedPoints(ctx) {
         this.selector.vertices.forEach(v => this.drawShape(ctx, v.x, v.y, v.shape, v.size + 2, "#FFA500", false)); // scaling in drawShape function)
         this.selector.bends.forEach(b => this.showSelectedPoint(ctx, b));
+    }
+    highlightSelectedEdges(ctx) {
         this.selector.edges.forEach(e => {
             const v1 = e.points[0];
             const v2 = e.points[1];
@@ -432,7 +435,7 @@ export class Drawer {
             ctx.lineTo(v2.x, v2.y);
             ctx.strokeStyle = "orange";
             ctx.setLineDash([5 / this.scaler.scale, 3 / this.scaler.scale]); // dashed line
-            ctx.lineWidth = (e.thickness + 3) / this.scaler.scale;
+            ctx.lineWidth = (e.thickness + 1) / this.scaler.scale;
             ctx.stroke();
             //reset
             ctx.setLineDash([]);
