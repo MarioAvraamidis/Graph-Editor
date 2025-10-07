@@ -168,7 +168,7 @@ export class SelectionRectangleTool implements MouseTool
         {
             // give the option of exporting image
             const rect = this.selectionRectInCanvasCoords(this.selector,this.scaler);
-            this.showExportButton(e,rect.x,rect.y,rect.width,rect.height,this.canvas);
+            this.showExportButton(e,rect.x+1,rect.y+1,rect.width-2,rect.height-2,this.canvas);
             // select objects
             this.selector.selectObjectsInRect(this.graph);
         }
@@ -189,35 +189,51 @@ export class SelectionRectangleTool implements MouseTool
             selector.updateRectangle(worldCoords);
     }
 
+    private selectionRectInCanvasCoords(selector: Selector, scaler: Scaler)
+    {
+        const {x,y} = scaler.worldToCanvas(selector.rect.x,selector.rect.y);
+        const width = selector.rect.width * scaler.scale;
+        const height = selector.rect.height * scaler.scale;
+        return {x: x, y: y, width: width, height: height};
+    }
+
     /**
-     * Show an export button after the selection of a rectangle
+     * Capture a selection area of the canvas immediately and show export button.
      */
-    private showExportButton(e: MouseEvent, x: number, y: number, w: number, h: number, canvas: HTMLCanvasElement) {
+    private showExportButton(
+        e: MouseEvent,
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        canvas: HTMLCanvasElement
+    ) {
+        // 1️⃣ Capture the selection now (before anything changes)
+        const imgDataUrl = this.captureSelectionImage(canvas, x, y, w, h);
+
+        // 2️⃣ Create and show the export button
         const btn = document.createElement("button");
         btn.textContent = "Export selected rectangle as image";
         btn.classList.add("export-btn-selection-rectangle");
 
-        // Position near selection (relative to canvas in DOM)
-        const rect = canvas.getBoundingClientRect();
+        // const rect = canvas.getBoundingClientRect();
         btn.style.position = "absolute";
-        // btn.style.left = rect.left + x + w + 10 + "px"; // 10px offset to the right
-        // btn.style.top = rect.top + y + h + "px";
         btn.style.left = e.clientX + 10 + "px";
         btn.style.top = e.clientY + "px";
 
         document.body.appendChild(btn);
 
-        // Timeout remove
+        // 3️⃣ Timeout remove
         const timeoutId = setTimeout(() => btn.remove(), 3000);
 
-        // Export on click
+        // 4️⃣ Click to export the stored image
         btn.addEventListener("click", () => {
-            this.exportSelection(canvas, x, y, w, h);
+            this.downloadStoredImage(imgDataUrl);
             clearTimeout(timeoutId);
             btn.remove();
         });
 
-        // Hide if another mouse action starts
+        // 5️⃣ Hide if another mouse action starts
         const hide = () => {
             clearTimeout(timeoutId);
             btn.remove();
@@ -227,9 +243,16 @@ export class SelectionRectangleTool implements MouseTool
     }
 
 
-    /** Export the selected part of a canvas as a PNG image
+    /**
+     * Capture the selected part of a canvas immediately as a data URL.
      */
-    private exportSelection(canvas: HTMLCanvasElement, x: number, y: number, w: number, h: number) {
+    private captureSelectionImage(
+        canvas: HTMLCanvasElement,
+        x: number,
+        y: number,
+        w: number,
+        h: number
+    ): string {
         const dpr = window.devicePixelRatio || 1;
         const scaleX = canvas.width / canvas.clientWidth;
         const scaleY = canvas.height / canvas.clientHeight;
@@ -253,21 +276,20 @@ export class SelectionRectangleTool implements MouseTool
         // Copy selected region
         offCtx.drawImage(canvas, px, py, pw, ph, 0, 0, offCanvas.width, offCanvas.height);
 
-        // Export
+        return offCanvas.toDataURL("image/png");
+    }
+
+
+    /**
+     * Download a stored PNG image.
+     */
+    private downloadStoredImage(dataUrl: string) {
         const link = document.createElement("a");
         link.download = "selection.png";
-        link.href = offCanvas.toDataURL("image/png");
+        link.href = dataUrl;
         link.click();
     }
 
-
-    private selectionRectInCanvasCoords(selector: Selector, scaler: Scaler)
-    {
-        const {x,y} = scaler.worldToCanvas(selector.rect.x,selector.rect.y);
-        const width = selector.rect.width * scaler.scale;
-        const height = selector.rect.height * scaler.scale;
-        return {x: x, y: y, width: width, height: height};
-    }
 }
 
 export class EdgeCreationTool implements MouseTool
