@@ -456,12 +456,15 @@ export class Drawer
             ctx.strokeStyle = edge.color;
             // increase thickness if edge === hover.edge
             if (this.hover.edge === edge)
+            {
                 ctx.lineWidth = (edge.thickness+2)/this.scaler.scale;
+
+            }
             // highlight if the edge is one of the edges of a hovering crossing
             if (this.hover.crossing && this.hover.crossingEdges.includes(edge))
             {
-                ctx.lineWidth = (edge.thickness+2)/this.scaler.scale;                   // increase thickness
-                ctx.strokeStyle = this.crossingColor(this.hover.crossing);   // highlight the edge with the color of the crossing
+                ctx.lineWidth = (edge.thickness+2)/this.scaler.scale;       // increase thickness
+                ctx.strokeStyle = this.crossingColor(this.hover.crossing);  // highlight the edge with the color of the crossing
                 ctx.setLineDash([]);                                // no dashed line
             }
             else if (highlight === 1)   // highlight crossing edges of selected edges
@@ -478,7 +481,7 @@ export class Drawer
             }
             ctx.stroke();
             // if the edge is selected, highlight it with a dashed colored line
-            /* if (this.selector.edges.includes(edge))   // can be implemented faster by drawing all the selected edges first and then the others, so there's no need to check all the selector.vertices array for each edge
+            /*if (this.selector.edges.includes(edge))   // can be implemented faster by drawing all the selected edges first and then the others, so there's no need to check all the selector.vertices array for each edge
             {
                 ctx.beginPath();
                 ctx.moveTo(v1.x, v1.y);
@@ -489,7 +492,7 @@ export class Drawer
                 ctx.setLineDash([5/this.scaler.scale, 3/this.scaler.scale]); // dashed line
                 ctx.lineWidth = (edge.thickness+1)/this.scaler.scale;
                 ctx.stroke();
-            } */
+            }*/
             //reset
             ctx.setLineDash([]);
             ctx.lineWidth = edge.thickness/this.scaler.scale;
@@ -515,7 +518,7 @@ export class Drawer
             ctx.lineTo(v2.x, v2.y);
             ctx.strokeStyle = "orange";
             ctx.setLineDash([5/this.scaler.scale, 3/this.scaler.scale]); // dashed line
-            ctx.lineWidth = (e.thickness+1)/this.scaler.scale;
+            ctx.lineWidth = (e.thickness+3)/this.scaler.scale;
             ctx.stroke();
             //reset
             ctx.setLineDash([]);

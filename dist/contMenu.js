@@ -15,6 +15,7 @@ export class ContMenu {
                 { label: "Add Bend", action: "addBend" },
                 { label: "Show Label", action: "showEdgeLabel" },
                 { label: "Hide Label", action: "hideEdgeLabel" },
+                { label: "Edit Label", action: "editEdgeLabel" },
                 { label: "Delete Edge", action: "deleteEdge" },
             ],
             selected: [
@@ -155,6 +156,9 @@ export class ContMenu {
                     (_f = this.myCanvasHandler) === null || _f === void 0 ? void 0 : _f.redraw();
                 }
                 break;
+            case "editEdgeLabel":
+                if (this.hover.edge)
+                    this.modalsHandler.showEditLabelModal([this.hover.edge]);
             // selected options
             case "copySelected":
                 this.copier.copySelected(this.selector, true);

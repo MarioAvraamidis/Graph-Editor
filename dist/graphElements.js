@@ -232,10 +232,6 @@ export class Edge extends LineSegment {
         this._color = "#898989"; // open gray
         this._dashed = false;
         this._thickness = 2;
-        /*private _label: string;
-        showLabel: boolean = false;
-        labelOffsetX: number = 20;
-        labelOffsetY: number = 20;*/
         // position of the label (reference point)
         this.labelPosX = 0;
         this.labelPosY = 0;

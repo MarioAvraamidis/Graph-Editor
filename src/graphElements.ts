@@ -307,11 +307,6 @@ export class Edge extends LineSegment
     private _thickness: number = 2;
     // labeling
     label: Label;
-    /*private _label: string;
-    showLabel: boolean = false;
-    labelOffsetX: number = 20;
-    labelOffsetY: number = 20;*/
-    
     // position of the label (reference point)
     labelPosX: number = 0;
     labelPosY: number = 0;

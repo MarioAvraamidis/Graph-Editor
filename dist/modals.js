@@ -5,7 +5,7 @@ import { circularPathDrawing, linearPathDrawing } from "./layout.js";
 export class ModalsHandler {
     constructor(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector) {
         this.editLabelChanges = false;
-        this.editLabelPoints = [];
+        this.editLabelElements = [];
         this.settingsCrossingsColorInput = []; // crossings colors
         this.settingsCrossingEdgesColorInput = []; // crossing edges colors
         // new graph modal
@@ -74,7 +74,7 @@ export class ModalsHandler {
         (_g = this.settingsAllowParallelEdges) === null || _g === void 0 ? void 0 : _g.addEventListener('change', () => graph.parallelEdges = this.settingsAllowParallelEdges.checked);
         // save button listener for label modal
         (_h = this.saveLabelButton) === null || _h === void 0 ? void 0 : _h.addEventListener('click', () => {
-            if (this.labelContentInput && this.labelFontSizeInput && (this.editLabelPoints.length > 0) && this.editLabelChanges) {
+            if (this.labelContentInput && this.labelFontSizeInput && (this.editLabelElements.length > 0) && this.editLabelChanges) {
                 console.log("label save button");
                 stateHandler.saveState();
                 const fontSize = parseInt(this.labelFontSizeInput.value);
@@ -87,9 +87,9 @@ export class ModalsHandler {
                 {
                     selector.vertices.forEach( v => v.label.fontSize = fontSize);
                 } */
-                if (this.editLabelPoints.length === 1)
-                    this.editLabelPoints[0].label.content = this.labelContentInput.value;
-                this.editLabelPoints.forEach(p => p.label.fontSize = fontSize);
+                if (this.editLabelElements.length === 1)
+                    this.editLabelElements[0].label.content = this.labelContentInput.value;
+                this.editLabelElements.forEach(p => p.label.fontSize = fontSize);
                 this.editLabelChanges = false;
                 // checkHovered();
                 myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.redraw();
@@ -179,20 +179,20 @@ export class ModalsHandler {
         // console.log("hideAllModals");
     }
     // display the edit label modal
-    showEditLabelModal(points) {
-        // update editLabelPoints
-        this.editLabelPoints = points;
-        let firstPoint;
-        if (points.length > 0)
-            firstPoint = points[0];
+    showEditLabelModal(elements) {
+        // update editLabelElements
+        this.editLabelElements = elements;
+        let firstElement;
+        if (elements.length > 0)
+            firstElement = elements[0];
         else
             showCustomAlert("No point selected.");
-        if (this.editLabelModal && firstPoint) {
+        if (this.editLabelModal && firstElement) {
             // console.log("showEditLabelModal");
-            this.labelContentInput.value = firstPoint.label.content;
-            this.labelFontSizeInput.value = firstPoint.label.fontSize.toString();
+            this.labelContentInput.value = firstElement.label.content;
+            this.labelFontSizeInput.value = firstElement.label.fontSize.toString();
             // if the hovered label point is a vertex, don't allow rename
-            this.labelContentInput.disabled = firstPoint instanceof Vertex;
+            this.labelContentInput.disabled = firstElement instanceof Vertex;
             this.editLabelModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
             // If the input is not disabled, focus and select its text
             if (!this.labelContentInput.disabled) {

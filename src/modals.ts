@@ -4,7 +4,7 @@ import { Graph } from "./graph.js";
 import { Hover, Selector } from "./selector.js";
 import { StateHandler } from "./stateHandler.js";
 import { createGraph } from "./graphCreator.js";
-import { Point, Vertex } from "./graphElements.js";
+import { Edge, Point, Vertex } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
 import { circularPathDrawing, linearPathDrawing } from "./layout.js";
 
@@ -17,7 +17,7 @@ export class ModalsHandler
     private labelFontSizeInput: HTMLInputElement;
     private saveLabelButton: HTMLButtonElement;
     private editLabelChanges: boolean = false;
-    private editLabelPoints: Point[] = [];
+    private editLabelElements: (Point|Edge)[] = [];
     // settings modal
     private settingsModal: HTMLElement;
     private settingsCloseButton: HTMLElement; // HTMLButtonElement
@@ -103,7 +103,7 @@ export class ModalsHandler
 
         // save button listener for label modal
         this.saveLabelButton?.addEventListener('click', () => {
-            if (this.labelContentInput && this.labelFontSizeInput && (this.editLabelPoints.length > 0) && this.editLabelChanges)
+            if (this.labelContentInput && this.labelFontSizeInput && (this.editLabelElements.length > 0) && this.editLabelChanges)
             {
                 console.log("label save button");
                 stateHandler.saveState();
@@ -117,9 +117,9 @@ export class ModalsHandler
                 {
                     selector.vertices.forEach( v => v.label.fontSize = fontSize);
                 } */
-                if (this.editLabelPoints.length === 1)
-                    this.editLabelPoints[0].label.content = this.labelContentInput.value;
-                this.editLabelPoints.forEach( p => p.label.fontSize = fontSize);
+                if (this.editLabelElements.length === 1)
+                    this.editLabelElements[0].label.content = this.labelContentInput.value;
+                this.editLabelElements.forEach( p => p.label.fontSize = fontSize);
                 this.editLabelChanges = false;
                 // checkHovered();
                 myCanvasHandler?.redraw();
@@ -220,20 +220,20 @@ export class ModalsHandler
     }
 
     // display the edit label modal
-    public showEditLabelModal(points: Point[]) {
-        // update editLabelPoints
-        this.editLabelPoints = points;
-        let firstPoint;
-        if (points.length > 0)
-            firstPoint = points[0];
+    public showEditLabelModal(elements: (Point|Edge)[]) {
+        // update editLabelElements
+        this.editLabelElements = elements;
+        let firstElement;
+        if (elements.length > 0)
+            firstElement = elements[0];
         else showCustomAlert("No point selected.");
-        if (this.editLabelModal && firstPoint) {
+        if (this.editLabelModal && firstElement) {
             
             // console.log("showEditLabelModal");
-            this.labelContentInput.value = firstPoint.label.content;
-            this.labelFontSizeInput.value = firstPoint.label.fontSize.toString();
+            this.labelContentInput.value = firstElement.label.content;
+            this.labelFontSizeInput.value = firstElement.label.fontSize.toString();
             // if the hovered label point is a vertex, don't allow rename
-            this.labelContentInput.disabled = firstPoint instanceof Vertex;
+            this.labelContentInput.disabled = firstElement instanceof Vertex;
 
             this.editLabelModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
 
