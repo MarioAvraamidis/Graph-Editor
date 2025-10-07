@@ -182,6 +182,7 @@ function addBends(graph, usedVertices, xDist) {
     }
     // adjust bends so that no edge parts overlap
     const reduce = xDist / Math.exp(0.8);
+    let sign; // variable which helps moving the bends on the x-axis for a more clear drawing
     for (let i = 1; i < usedVertices.length - 1; i++) {
         v0 = usedVertices[i - 1];
         v1 = usedVertices[i];
@@ -189,12 +190,21 @@ function addBends(graph, usedVertices, xDist) {
         // compute dx's
         dx1 = Math.abs(v1.x - v0.x);
         dx2 = Math.abs(v2.x - v1.x);
+        sign = 1;
         // move the bend of the smallest edge a little bit lower
         if (dx1 < dx2) // edge v0-v1 is smaller
+         {
             bend = (_a = graph.getEdgeByVertices(v0, v1)) === null || _a === void 0 ? void 0 : _a.bends[0];
+            if (v0.x < v1.x)
+                sign = -1;
+        }
         else // edge v1-v2 is smaller
+         {
             bend = (_b = graph.getEdgeByVertices(v1, v2)) === null || _b === void 0 ? void 0 : _b.bends[0];
-        graph.moveBend(bend, bend.x, Math.min(bend.y + reduce, 0));
+            if (v2.x < v1.x)
+                sign = -1;
+        }
+        graph.moveBend(bend, bend.x + sign * reduce, Math.min(bend.y + reduce / 2, 0));
     }
 }
 /**
