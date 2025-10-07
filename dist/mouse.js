@@ -129,7 +129,9 @@ export class MouseHandler {
         });
         // mousemove
         canvas.addEventListener('mousemove', (e) => {
-            // console.log("currentTool:",currentTool);
+            // don't consider mouse move when context menu is active
+            if (cmenu.showingContextMenu)
+                return;
             this.mainUpdates(canvas, hover, worldCoords, scaler, e);
             // update mouse position
             this._mouse = this.getMousePos(canvas, e);

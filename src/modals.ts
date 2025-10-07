@@ -17,6 +17,7 @@ export class ModalsHandler
     private labelFontSizeInput: HTMLInputElement;
     private saveLabelButton: HTMLButtonElement;
     private editLabelChanges: boolean = false;
+    private editLabelPoints: Point[] = [];
     // settings modal
     private settingsModal: HTMLElement;
     private settingsCloseButton: HTMLElement; // HTMLButtonElement
@@ -102,12 +103,12 @@ export class ModalsHandler
 
         // save button listener for label modal
         this.saveLabelButton?.addEventListener('click', () => {
-            if (this.labelContentInput && this.labelFontSizeInput && (hover.labelPoint || selector.vertices.length > 0) && this.editLabelChanges)
+            if (this.labelContentInput && this.labelFontSizeInput && (this.editLabelPoints.length > 0) && this.editLabelChanges)
             {
                 console.log("label save button");
                 stateHandler.saveState();
                 const fontSize = parseInt(this.labelFontSizeInput.value)
-                if (hover.labelPoint)
+                /*if (hover.labelPoint)
                 {
                     hover.labelPoint.label.content = this.labelContentInput.value;
                     hover.labelPoint.label.fontSize = fontSize;
@@ -115,7 +116,10 @@ export class ModalsHandler
                 else
                 {
                     selector.vertices.forEach( v => v.label.fontSize = fontSize);
-                }
+                } */
+                if (this.editLabelPoints.length === 1)
+                    this.editLabelPoints[0].label.content = this.labelContentInput.value;
+                this.editLabelPoints.forEach( p => p.label.fontSize = fontSize);
                 this.editLabelChanges = false;
                 // checkHovered();
                 myCanvasHandler?.redraw();
@@ -217,6 +221,8 @@ export class ModalsHandler
 
     // display the edit label modal
     public showEditLabelModal(points: Point[]) {
+        // update editLabelPoints
+        this.editLabelPoints = points;
         let firstPoint;
         if (points.length > 0)
             firstPoint = points[0];

@@ -10,6 +10,7 @@ import { SettingsOptions } from "./settings.js";
 import { RubbishBin } from "./rubbishBin.js";
 import { MouseTool, EdgeCreationTool, MouseDraggingTool, SelectionRectangleTool } from "./mouseTools.js";
 import { BendedEdgeCreator } from "./edgeCreator.js";
+import { ContMenu } from "./contMenu.js";
 
 export class MouseHandler
 {
@@ -36,7 +37,7 @@ export class MouseHandler
 
     get mouse() { return this._mouse; }
 
-    constructor(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
+    constructor(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: ContMenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
     {
         // this.addEventListeners(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
         this.addEventListeners2(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
@@ -133,7 +134,7 @@ export class MouseHandler
         });
     }
 
-    private addEventListeners2(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: Cmenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
+    private addEventListeners2(graph: Graph,canvas: HTMLCanvasElement, worldCoords: Coords, cmenu: ContMenu, hover: Hover, selector: Selector, stateHandler: StateHandler, paletteHandler: PaletteHandler, settingsOptions: SettingsOptions, scaler: Scaler, myCanvasHandler: CanvasHandler, bendedEdgeCreator: BendedEdgeCreator, rubbishBin: RubbishBin)
     {
         const mouseDragger = new MouseDraggingTool(graph,hover,selector,stateHandler,worldCoords,scaler);
         const rectangleSelector = new SelectionRectangleTool(graph,selector,scaler,worldCoords,canvas);
@@ -162,7 +163,9 @@ export class MouseHandler
         });
         // mousemove
         canvas.addEventListener('mousemove', (e) => {
-            // console.log("currentTool:",currentTool);
+            // don't consider mouse move when context menu is active
+            if (cmenu.showingContextMenu)
+                return;
             this.mainUpdates(canvas,hover,worldCoords,scaler,e);
             // update mouse position
             this._mouse = this.getMousePos(canvas, e);

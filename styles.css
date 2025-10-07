@@ -619,6 +619,25 @@ label[for="vertex-show-labels"] {
     background-color: #f0f0f0; /* Light gray background on hover */
 }
 
+.cont-menu {
+  display: none;
+  position: absolute;
+  background: white;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 5px 0;
+  list-style: none;
+  z-index: 1000;
+}
+.cont-menu li {
+  padding: 6px 14px;
+  cursor: pointer;
+}
+.cont-menu li:hover {
+  background: #eee;
+}
+
 /* export button that appears with the selection rectangle  */
 .export-btn-selection-rectangle {
   padding: 4px 8px;

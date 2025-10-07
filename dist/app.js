@@ -7,20 +7,21 @@ import { StateHandler } from "./stateHandler.js";
 import { Selector, Copier, Hover } from "./selector.js";
 import { BtnHandler } from "./buttons.js";
 import { PaletteHandler } from "./paletteHandler.js";
-import { Cmenu } from "./contextMenu.js";
 import { MouseHandler } from "./mouse.js";
 import { Drawer } from "./draw.js";
 import { SettingsOptions } from "./settings.js";
 import { setOverlayCanvas } from "./overlayCanvas.js";
 import { RubbishBin } from "./rubbishBin.js";
 import { BendedEdgeCreator } from "./edgeCreator.js";
+import { ContMenu } from "./contMenu.js";
 let graph = new Graph(); // Create a graph instance
 let stateHandler; // undo/redo utilities
 let hover; // hovered objects
 let selector; // selected items
 let copier; // copy selected items
 let btnHandler; // buttons handler
-let cmenu; // context menus
+// let cmenu: Cmenu;               // context menus
+let contMenu; // context menu
 let drawer; // drawing
 let scaler; // zoom
 let rubbishBin; // rubbish bin when creating bended edge
@@ -58,8 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
         modalsHandler = new ModalsHandler(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector);
         paletteHandler = new PaletteHandler(selector, myCanvasHandler, stateHandler, graph, settingsOptions, modalsHandler);
         btnHandler = new BtnHandler(canvas, graph, myCanvasHandler, selector, stateHandler, copier, settingsOptions);
-        cmenu = new Cmenu(graph, worldCoords, canvas, copier, selector, stateHandler, myCanvasHandler, modalsHandler, hover);
-        mouseHandler = new MouseHandler(graph, canvas, worldCoords, cmenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
+        // cmenu = new Cmenu(graph,worldCoords,canvas,copier,selector,stateHandler,myCanvasHandler,modalsHandler,hover);
+        contMenu = new ContMenu(graph, worldCoords, canvas, copier, selector, stateHandler, myCanvasHandler, modalsHandler, hover, scaler);
+        // mouseHandler = new MouseHandler(graph,canvas,worldCoords,cmenu,hover,selector,stateHandler,paletteHandler,settingsOptions,scaler,myCanvasHandler,bendedEdgeCreator, rubbishBin);
+        mouseHandler = new MouseHandler(graph, canvas, worldCoords, contMenu, hover, selector, stateHandler, paletteHandler, settingsOptions, scaler, myCanvasHandler, bendedEdgeCreator, rubbishBin);
         myCanvasHandler.redraw();
         // Example: If your graph data changes later (not due to zoom/pan),
         // and you need to force a redraw, you can call it like this:

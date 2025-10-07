@@ -76,14 +76,11 @@ export class Cmenu {
                     case "clear-canvas":
                         if (!graph.isEmpty()) {
                             stateHandler.saveState();
-                            // graph.replace(new Graph());
                             graph.clear();
                             hover.check(myCanvasHandler.getScale());
                             myCanvasHandler === null || myCanvasHandler === void 0 ? void 0 : myCanvasHandler.fixView(selector);
-                            //myCanvasHandler?.redraw();
                         }
                         break;
-                    // Add more cases for other actions
                     case "paste":
                         if (copier.canPaste()) {
                             stateHandler.saveState();
