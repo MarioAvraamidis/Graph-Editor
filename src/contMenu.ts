@@ -4,7 +4,7 @@ import { Graph } from "./graph.js";
 import { ModalsHandler } from "./modals.js";
 import { Copier, Hover, Selector } from "./selector.js";
 import { StateHandler } from "./stateHandler.js";
-import { Vertex } from "./graphElements.js";
+import { Edge, Point, Vertex } from "./graphElements.js";
 
 export class ContMenu
 {
@@ -41,6 +41,7 @@ export class ContMenu
             { label: "Copy Selected", action: "copySelected" },
             { label: "Show Labels", action: "showSelectedLabels"},
             { label: "Hide Labels", action: "hideSelectedLabels"},
+            { label: "Edit Labels", action: "editSelectedLabels"},
             { label: "Delete Selected", action: "deleteSelected"},
         ],
         labels: [
@@ -48,7 +49,7 @@ export class ContMenu
             { label: "Edit Label", action: "editLabel"},
         ],
         void: [
-            { label: "Paste Selected", action: "paste"},
+            { label: "Paste", action: "paste"},
             { label: "Clear Canvas", action: "clear-canvas"},
         ]
     };
@@ -214,8 +215,6 @@ export class ContMenu
                 this.myCanvasHandler?.redraw();
                 break;
             case "hideSelectedLabels":
-                if (this.selector.points.length > 0)
-                {
                     // stateHandler.saveState(); if not commented, state is saved twice for some reason. If commented, looks to work fine
                     for (const point of this.selector.points)
                         point.label.showLabel = false;
@@ -223,7 +222,12 @@ export class ContMenu
                         edge.label.showLabel = false;
                     // this.hover.check(this.myCanvasHandler.getScale());
                     this.myCanvasHandler?.redraw();
-                }
+                break;
+            case "editSelectedLabels":
+                const elements: (Point|Edge)[] = [];
+                this.selector.points.forEach(p => elements.push(p));
+                this.selector.edges.forEach(e => elements.push(e));
+                this.modalsHandler.showEditLabelModal(elements);
                 break;
             // point options
             case "showPointLabel":
@@ -247,6 +251,7 @@ export class ContMenu
             case "editPointLabel":
                 if (this.hover.point)
                     this.modalsHandler.showEditLabelModal([this.hover.point]);
+                break;
             // label options
             case "editLabel":
                 if (this.hover.labelPoint)

@@ -22,6 +22,7 @@ export class ContMenu {
                 { label: "Copy Selected", action: "copySelected" },
                 { label: "Show Labels", action: "showSelectedLabels" },
                 { label: "Hide Labels", action: "hideSelectedLabels" },
+                { label: "Edit Labels", action: "editSelectedLabels" },
                 { label: "Delete Selected", action: "deleteSelected" },
             ],
             labels: [
@@ -29,7 +30,7 @@ export class ContMenu {
                 { label: "Edit Label", action: "editLabel" },
             ],
             void: [
-                { label: "Paste Selected", action: "paste" },
+                { label: "Paste", action: "paste" },
                 { label: "Clear Canvas", action: "clear-canvas" },
             ]
         };
@@ -180,15 +181,19 @@ export class ContMenu {
                 (_h = this.myCanvasHandler) === null || _h === void 0 ? void 0 : _h.redraw();
                 break;
             case "hideSelectedLabels":
-                if (this.selector.points.length > 0) {
-                    // stateHandler.saveState(); if not commented, state is saved twice for some reason. If commented, looks to work fine
-                    for (const point of this.selector.points)
-                        point.label.showLabel = false;
-                    for (const edge of this.selector.edges)
-                        edge.label.showLabel = false;
-                    // this.hover.check(this.myCanvasHandler.getScale());
-                    (_j = this.myCanvasHandler) === null || _j === void 0 ? void 0 : _j.redraw();
-                }
+                // stateHandler.saveState(); if not commented, state is saved twice for some reason. If commented, looks to work fine
+                for (const point of this.selector.points)
+                    point.label.showLabel = false;
+                for (const edge of this.selector.edges)
+                    edge.label.showLabel = false;
+                // this.hover.check(this.myCanvasHandler.getScale());
+                (_j = this.myCanvasHandler) === null || _j === void 0 ? void 0 : _j.redraw();
+                break;
+            case "editSelectedLabels":
+                const elements = [];
+                this.selector.points.forEach(p => elements.push(p));
+                this.selector.edges.forEach(e => elements.push(e));
+                this.modalsHandler.showEditLabelModal(elements);
                 break;
             // point options
             case "showPointLabel":
@@ -211,6 +216,7 @@ export class ContMenu {
             case "editPointLabel":
                 if (this.hover.point)
                     this.modalsHandler.showEditLabelModal([this.hover.point]);
+                break;
             // label options
             case "editLabel":
                 if (this.hover.labelPoint)

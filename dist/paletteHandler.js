@@ -24,6 +24,8 @@ export class PaletteHandler {
         this.showBendLabels = document.getElementById("bend-show-labels");
         // edit labels
         this.editVertexLabels = document.getElementById("edit-vertex-label-palette");
+        this.editEdgeLabels = document.getElementById("edit-edge-label-palette");
+        this.editBendLabels = document.getElementById("edit-bend-label-palette");
         this.selector = selector;
         this.myCanvasHandler = myCanvasHandler;
         this.stateHandler = stateHandler;
@@ -120,6 +122,8 @@ export class PaletteHandler {
         });
         // edit labels button
         this.editVertexLabels.addEventListener("click", () => { this.modalsHandler.showEditLabelModal(this.selector.vertices); });
+        this.editEdgeLabels.addEventListener("click", () => { this.modalsHandler.showEditLabelModal(this.selector.edges); });
+        this.editBendLabels.addEventListener("click", () => { this.modalsHandler.showEditLabelModal(this.selector.bends); });
         // bend color
         this.bendColor.addEventListener("change", () => {
             var _a;

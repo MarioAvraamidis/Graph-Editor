@@ -35,6 +35,8 @@ export class PaletteHandler
 
     // edit labels
     private editVertexLabels = document.getElementById("edit-vertex-label-palette") as HTMLButtonElement;
+    private editEdgeLabels = document.getElementById("edit-edge-label-palette") as HTMLButtonElement;
+    private editBendLabels = document.getElementById("edit-bend-label-palette") as HTMLButtonElement;
 
     // helpers
     private selector: Selector;
@@ -151,6 +153,8 @@ export class PaletteHandler
         })
         // edit labels button
         this.editVertexLabels.addEventListener("click", () => {this.modalsHandler.showEditLabelModal(this.selector.vertices) });
+        this.editEdgeLabels.addEventListener("click", () => {this.modalsHandler.showEditLabelModal(this.selector.edges) });
+        this.editBendLabels.addEventListener("click", () => {this.modalsHandler.showEditLabelModal(this.selector.bends) });
 
         // bend color
         this.bendColor.addEventListener("change", () => {

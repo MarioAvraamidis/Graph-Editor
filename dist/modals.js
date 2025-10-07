@@ -185,14 +185,16 @@ export class ModalsHandler {
         let firstElement;
         if (elements.length > 0)
             firstElement = elements[0];
-        else
-            showCustomAlert("No point selected.");
+        else {
+            showCustomAlert("No relevant items selected.");
+            return;
+        }
         if (this.editLabelModal && firstElement) {
             // console.log("showEditLabelModal");
             this.labelContentInput.value = firstElement.label.content;
             this.labelFontSizeInput.value = firstElement.label.fontSize.toString();
             // if the hovered label point is a vertex, don't allow rename
-            this.labelContentInput.disabled = firstElement instanceof Vertex;
+            this.labelContentInput.disabled = firstElement instanceof Vertex || elements.length > 1;
             this.editLabelModal.style.display = 'flex'; // Use 'flex' to activate the centering via CSS
             // If the input is not disabled, focus and select its text
             if (!this.labelContentInput.disabled) {
