@@ -103,15 +103,17 @@ export class ContMenu {
             return "void";
     }
     handleContextAction(action) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
         switch (action) {
             // void options
             case "clear-canvas":
                 if (!this.graph.isEmpty()) {
                     this.stateHandler.saveState();
                     this.graph.clear();
+                    this.selector.selectAll(this.graph);
                     // this.hover.check(this.myCanvasHandler.getScale());
-                    (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.fixView(this.selector);
+                    // this.myCanvasHandler?.fixView(this.selector);
+                    this.myCanvasHandler.resetView();
                 }
                 break;
             case "paste":
@@ -119,7 +121,7 @@ export class ContMenu {
                     this.stateHandler.saveState();
                     this.copier.pasteSelected(this.graph, this.selector, false);
                     // this.hover.check(this.myCanvasHandler.getScale());
-                    (_b = this.myCanvasHandler) === null || _b === void 0 ? void 0 : _b.redraw();
+                    (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
                 }
                 break;
             // edge options
@@ -133,20 +135,20 @@ export class ContMenu {
                 // set it free
                 this.hover.edge = null;
                 // renderGraph();
-                (_c = this.myCanvasHandler) === null || _c === void 0 ? void 0 : _c.redraw();
+                (_b = this.myCanvasHandler) === null || _b === void 0 ? void 0 : _b.redraw();
                 break;
             case "deleteEdge":
                 this.stateHandler.saveState();
                 this.graph.deleteEdgee(this.hover.edge); // this.edgeMenu appears only when an edge is hovered, so hover.edge is not null
                 // this.hover.check(this.myCanvasHandler.getScale());
-                (_d = this.myCanvasHandler) === null || _d === void 0 ? void 0 : _d.redraw();
+                (_c = this.myCanvasHandler) === null || _c === void 0 ? void 0 : _c.redraw();
                 break;
             case "showEdgeLabel":
                 if (this.hover.edge && !this.hover.edge.label.showLabel) {
                     this.stateHandler.saveState();
                     this.hover.edge.label.showLabel = true;
                     // this.hover.check(this.myCanvasHandler.getScale());
-                    (_e = this.myCanvasHandler) === null || _e === void 0 ? void 0 : _e.redraw();
+                    (_d = this.myCanvasHandler) === null || _d === void 0 ? void 0 : _d.redraw();
                 }
                 break;
             case "hideEdgeLabel":
@@ -154,7 +156,7 @@ export class ContMenu {
                     this.stateHandler.saveState();
                     this.hover.edge.label.showLabel = false;
                     // this.hover.check(this.myCanvasHandler.getScale());
-                    (_f = this.myCanvasHandler) === null || _f === void 0 ? void 0 : _f.redraw();
+                    (_e = this.myCanvasHandler) === null || _e === void 0 ? void 0 : _e.redraw();
                 }
                 break;
             case "editEdgeLabel":
@@ -169,7 +171,7 @@ export class ContMenu {
                 // stateHandler.saveState();
                 this.selector.deleteSelectedObjects(this.graph);
                 // this.hover.check(this.myCanvasHandler.getScale());
-                (_g = this.myCanvasHandler) === null || _g === void 0 ? void 0 : _g.redraw();
+                (_f = this.myCanvasHandler) === null || _f === void 0 ? void 0 : _f.redraw();
                 break;
             case "showSelectedLabels":
                 // stateHandler.saveState();     if not commented, state is saved twice for some reason. If commented, looks to work fine
@@ -178,7 +180,7 @@ export class ContMenu {
                 for (const edge of this.selector.edges)
                     edge.label.showLabel = true;
                 // this.hover.check(this.myCanvasHandler.getScale());
-                (_h = this.myCanvasHandler) === null || _h === void 0 ? void 0 : _h.redraw();
+                (_g = this.myCanvasHandler) === null || _g === void 0 ? void 0 : _g.redraw();
                 break;
             case "hideSelectedLabels":
                 // stateHandler.saveState(); if not commented, state is saved twice for some reason. If commented, looks to work fine
@@ -187,7 +189,7 @@ export class ContMenu {
                 for (const edge of this.selector.edges)
                     edge.label.showLabel = false;
                 // this.hover.check(this.myCanvasHandler.getScale());
-                (_j = this.myCanvasHandler) === null || _j === void 0 ? void 0 : _j.redraw();
+                (_h = this.myCanvasHandler) === null || _h === void 0 ? void 0 : _h.redraw();
                 break;
             case "editSelectedLabels":
                 const elements = [];
@@ -202,7 +204,7 @@ export class ContMenu {
                     this.stateHandler.saveState();
                     this.hover.point.label.showLabel = true;
                     // this.hover.check(this.myCanvasHandler.getScale());
-                    (_k = this.myCanvasHandler) === null || _k === void 0 ? void 0 : _k.redraw();
+                    (_j = this.myCanvasHandler) === null || _j === void 0 ? void 0 : _j.redraw();
                 }
                 break;
             case "hidePointLabel":
@@ -210,7 +212,7 @@ export class ContMenu {
                     this.stateHandler.saveState();
                     this.hover.point.label.showLabel = false;
                     // this.hover.check(this.myCanvasHandler.getScale());
-                    (_l = this.myCanvasHandler) === null || _l === void 0 ? void 0 : _l.redraw();
+                    (_k = this.myCanvasHandler) === null || _k === void 0 ? void 0 : _k.redraw();
                 }
                 break;
             case "editPointLabel":
@@ -227,7 +229,7 @@ export class ContMenu {
                     this.stateHandler.saveState();
                     this.hover.labelPoint.label.showLabel = false;
                     // this.hover.check(this.myCanvasHandler.getScale());
-                    (_m = this.myCanvasHandler) === null || _m === void 0 ? void 0 : _m.redraw();
+                    (_l = this.myCanvasHandler) === null || _l === void 0 ? void 0 : _l.redraw();
                 }
             default:
                 console.warn("Unknown action:", action);

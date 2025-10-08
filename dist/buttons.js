@@ -172,7 +172,6 @@ export class BtnHandler {
         }));
     }
     addCheckBoxesEventListeners() {
-        var _a;
         const output = document.getElementById("output");
         let checkboxes = output === null || output === void 0 ? void 0 : output.querySelectorAll('input[type="checkbox"]');
         checkboxes === null || checkboxes === void 0 ? void 0 : checkboxes.forEach(checkbox => {
@@ -184,14 +183,14 @@ export class BtnHandler {
             });
         });
         // event-listener for other highlighting crossing edges checkboxes
-        for (const id of ["highlight-crossing-edges", "highlight-non-crossing-edges"]) {
-            (_a = document.getElementById(id)) === null || _a === void 0 ? void 0 : _a.addEventListener('change', () => {
-                var _a;
+        /* for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
+        {
+            document.getElementById(id)?.addEventListener('change', () => {
                 if (this.myCanvasHandler.ctx)
                     // drawGraph(ctx, graph, true);
-                    (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
-            });
-        }
+                    this.myCanvasHandler?.redraw();
+            })
+        } */
     }
     undo(graph) {
         var _a;

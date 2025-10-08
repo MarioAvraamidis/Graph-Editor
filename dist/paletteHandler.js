@@ -38,7 +38,7 @@ export class PaletteHandler {
         this.collapse();
     }
     activateEventListeners() {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         // using palettes
         this.vertexColor.addEventListener("change", () => {
             var _a;
@@ -198,6 +198,15 @@ export class PaletteHandler {
             // renderGraph();
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });
+        // event-listener for other highlighting crossing edges checkboxes
+        for (const id of ["highlight-crossing-edges", "highlight-non-crossing-edges"]) {
+            (_e = document.getElementById(id)) === null || _e === void 0 ? void 0 : _e.addEventListener('change', () => {
+                var _a;
+                if (this.myCanvasHandler.ctx)
+                    // drawGraph(ctx, graph, true);
+                    (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
+            });
+        }
     }
     collapse() {
         for (const palette of [this.vertexPalette, this.edgePalette, this.bendPalette])

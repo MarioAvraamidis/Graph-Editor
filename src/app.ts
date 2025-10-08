@@ -7,14 +7,14 @@ import { StateHandler } from "./stateHandler.js";
 import { Selector, Copier, Hover } from "./selector.js";
 import { BtnHandler } from "./buttons.js";
 import { PaletteHandler } from "./paletteHandler.js";
-import { Cmenu } from "./contextMenu.js";
+import { Cmenu } from "./contextMenu2.js";
 import { MouseHandler } from "./mouse.js";
 import { Drawer } from "./draw.js";
 import { SettingsOptions } from "./settings.js";
 import { setOverlayCanvas } from "./overlayCanvas.js";
 import { RubbishBin } from "./rubbishBin.js";
 import { BendedEdgeCreator } from "./edgeCreator.js";
-import { ContMenu } from "./contMenu.js";
+import { ContMenu } from "./contextMenu.js";
 
 let graph = new Graph();        // Create a graph instance
 let stateHandler: StateHandler; // undo/redo utilities
