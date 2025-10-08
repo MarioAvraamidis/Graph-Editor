@@ -17,16 +17,8 @@
 
 <body>
     <div class="top-bar">
-      <h1>CCrossings</h1>
-        <!-- <div id="mode-buttons" class="mode-container">
-          <button id="mode-select" class="mode-button active">Select</button>
-          <button id="mode-add-bend" class="mode-button">Add Bend</button>
-          <!-- <button id="mode-create-edge" class="mode-button">Create Edge</button>
-        </div> -->
-      
+      <h1>CC-Crossings</h1>
     </div>
-    <!-- The canvas for drawing -->
-    <!-- <canvas id="graphCanvas" width="1000" height="500" style="border:1px solid #000;"></canvas> -->
 
     <div class="main-container">
 
@@ -39,7 +31,6 @@
             <canvas id="overlayCanvas"></canvas>
           </div>
         </div>
-
 
         <div id="controls">
           <button id="settingsBtn">Settings</button>
@@ -59,8 +50,6 @@
             <label for="import-input" class="upload-btn">Import</label>
           </div>
 
-          <!-- <input type="file" id="import-input" accept=".json"> -->
-
           <div class="export-dropdown">
             <button id="export-btn">Export ▼</button>
             <div class="export-menu">
@@ -75,8 +64,8 @@
           <div class="info">
             Zoom: <span id="currentZoomSpan">100%</span>
           </div>
-        </div>
 
+        </div>
 
         <div id="output">
           <h3>Report</h3>
@@ -116,18 +105,16 @@
               <input type="checkbox" id="include-report-in-export" >
               <label class="ticked-label-part" for="include-report-in-export">Include Report at exporting </label>
           </div>
+
         </div>
+
       </div>
 
-
-        <div id="canvas-container">
-            
-            <canvas id="graphCanvas"></canvas> 
-        </div>
+      <div id="canvas-container">
+          <canvas id="graphCanvas"></canvas> 
+      </div>
 
         <div class="palette-container">
-            <!--  <input type="text" id="vertexIdInput" placeholder="Vertex ID" />
-                <button id="add-vertex">New Vertex</button> -->
             <!-- Vertex Palette -->
             <div id="vertex-palette" class="palette">
               <div class="palette-header">

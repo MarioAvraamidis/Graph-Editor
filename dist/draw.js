@@ -118,10 +118,6 @@ export class Drawer {
             ctx.lineWidth = 2 / this.scaler.scale;
             // draw the rubbish bin
             if (this.bendedEdgeCreator.creatingEdge) {
-                // const rect = canvas.getBoundingClientRect();
-                // const binPos = this.scaler.screenToWorld(rect.right-this.rubbishBin.radius,rect.top+this.rubbishBin.radius);
-                // this.rubbishBin.pos = this.scaler.screenToWorld(rect.right-this.rubbishBin.radius,rect.top+this.rubbishBin.radius);
-                // if (binPos)
                 this.rubbishBin.updatePos(canvas, this.scaler);
                 this.drawRubbishBin(ctx, this.rubbishBin.pos.x, this.rubbishBin.pos.y);
             }
@@ -225,9 +221,6 @@ export class Drawer {
         // Draw label
         if (labels)
             this.showPointLabel(ctx, v);
-        // add an orange circle around a selected vertex
-        // if (this.selector.vertices.includes(v)) 
-        // this.drawShape(ctx, v.x, v.y, v.shape, v.size+2, "#FFA500", false);  // scaling in drawShape function
     }
     // display the label of the given point
     showPointLabel(ctx, p) {
@@ -297,10 +290,6 @@ export class Drawer {
         ctx.strokeStyle = "black";
         ctx.stroke();
         ctx.lineWidth = 2 / this.scaler.scale;
-        // add a dashed circle around a selected bend
-        // if (this.selector.bends.includes(bend)) 
-        // this.showSelectedPoint(ctx, bend);
-        // label
         this.showPointLabel(ctx, bend);
     }
     // add a dashed circle around a selected point
@@ -339,9 +328,6 @@ export class Drawer {
         ctx.fillStyle = color;
         if (fill)
             ctx.fill();
-        // ctx.strokeStyle = "#2980b9";
-        //if ( (hover.vertex === vertex && !draggingVertex) || draggingVertex === vertex) // bold line for hovered vertex or dragging vertex
-        //  ctx.lineWidth = 4;
         ctx.stroke();
     }
     shapeBend(ctx, x, y, rad, color) {
@@ -375,9 +361,8 @@ export class Drawer {
             ctx.lineTo(v2.x, v2.y);
             ctx.strokeStyle = edge.color;
             // increase thickness if edge === hover.edge
-            if (this.hover.edge === edge) {
+            if (this.hover.edge === edge)
                 ctx.lineWidth = (edge.thickness + 2) / this.scaler.scale;
-            }
             // highlight if the edge is one of the edges of a hovering crossing
             if (this.hover.crossing && this.hover.crossingEdges.includes(edge)) {
                 ctx.lineWidth = (edge.thickness + 2) / this.scaler.scale; // increase thickness
@@ -397,25 +382,9 @@ export class Drawer {
                 ctx.setLineDash([]);
             }
             ctx.stroke();
-            // if the edge is selected, highlight it with a dashed colored line
-            /*if (this.selector.edges.includes(edge))   // can be implemented faster by drawing all the selected edges first and then the others, so there's no need to check all the selector.vertices array for each edge
-            {
-                ctx.beginPath();
-                ctx.moveTo(v1.x, v1.y);
-                for (let i=0;i<bends.length;i++)
-                    ctx.lineTo(bends[i].x,bends[i].y);
-                ctx.lineTo(v2.x, v2.y);
-                ctx.strokeStyle = "orange";
-                ctx.setLineDash([5/this.scaler.scale, 3/this.scaler.scale]); // dashed line
-                ctx.lineWidth = (edge.thickness+1)/this.scaler.scale;
-                ctx.stroke();
-            }*/
             //reset
             ctx.setLineDash([]);
             ctx.lineWidth = edge.thickness / this.scaler.scale;
-            // draw bends
-            // for (const bend of edge.bends)
-            // this.drawBend(ctx,bend);
             this.showEdgeLabel(ctx, edge);
         }
     }
