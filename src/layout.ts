@@ -296,3 +296,8 @@ function checkPath(graph: Graph)
 
     return {isPath: isPath, orderedVertices: orderedVertices};
 }
+
+/* export function runNewAlgorithm(graph: Graph, parameter: number)
+{
+    
+} */

@@ -13,7 +13,7 @@ import { SettingsOptions } from "./settings.js";
 import { setOverlayCanvas } from "./overlayCanvas.js";
 import { RubbishBin } from "./rubbishBin.js";
 import { BendedEdgeCreator } from "./edgeCreator.js";
-import { ContMenu } from "./contMenu.js";
+import { ContMenu } from "./contextMenu.js";
 let graph = new Graph(); // Create a graph instance
 let stateHandler; // undo/redo utilities
 let hover; // hovered objects

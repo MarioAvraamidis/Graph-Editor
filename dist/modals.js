@@ -1,7 +1,7 @@
 import { createGraph } from "./graphCreator.js";
 import { Vertex } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
-import { circularPathDrawing, linearPathDrawing } from "./layout.js";
+import { circularPathDrawing, linearPathDrawing, runNewAlgorithm } from "./layout.js";
 export class ModalsHandler {
     constructor(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector) {
         this.editLabelChanges = false;
@@ -239,26 +239,21 @@ export class ModalsHandler {
             const formData = new FormData(form);
             const selectedOption = formData.get("layoutOption");
             let paramValue = 0;
-            /*if (selectedOption) {
-                paramValue = formData.get("param" + selectedOption.toString().slice(-1)) as string;
-            }*/
+            stateHandler.saveState();
             switch (selectedOption) {
                 case "linearPath":
                     paramValue = Number(formData.get("numOfCrossingsLinearPath"));
+                    linearPathDrawing(graph, paramValue);
                     break;
                 case "circularPath":
                     paramValue = Number(formData.get("numOfCrossingsCircularPath"));
+                    circularPathDrawing(graph, paramValue);
                     break;
-                // case "opt3":
-                // paramValue = Number(formData.get("numOfCrossings"));
-                // break;
+                case "newAlgorithm":
+                    paramValue = Number(formData.get("newAlgorithmParameter"));
+                    runNewAlgorithm(graph, paramValue);
+                    break;
             }
-            // console.log("Selected:", selectedOption, "Parameter:", paramValue);
-            stateHandler.saveState();
-            if (selectedOption === "linearPath")
-                linearPathDrawing(graph, paramValue);
-            else if (selectedOption === "circularPath")
-                circularPathDrawing(graph, paramValue);
             myCanvasHandler.fixView();
             myCanvasHandler.redraw();
             modal.style.display = "none";

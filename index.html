@@ -260,46 +260,6 @@
     <!-- Crossing info box -->
     <div id="crossing-info" style="position: absolute; display: none; background: #fff; border: 1px solid #ccc; padding: 4px; font-size: 12px; border-radius: 4px; pointer-events: none;"></div>
 
-    <!-- Context menu -->
-    <div id="contextMenu" class="context-menu">
-      <ul>
-        <li data-action="clear-canvas">Clear Canvas</li>
-        <li data-action="paste">Paste</li>
-      </ul>
-    </div>
-    <!-- Edge menu -->
-     <div id="edgeMenu" class="context-menu">
-      <ul>
-        <li data-action="addBend">Add Bend</li>
-        <li data-action="deleteEdge">Delete Edge</li>
-        <li data-action="showLabel"> Show Label</li>
-        <li data-action="hideLabel"> Hide Label</li>
-      </ul>
-    </div>
-    <!-- Copy menu -->
-     <div id="selectedMenu" class="context-menu">
-      <ul>
-        <li data-action="copySelected">Copy Selected</li>
-        <li data-action="deleteSelected">Delete</li>
-        <li data-action="showLabels"> Show Labels</li>
-        <li data-action="hideLabels"> Hide Labels</li>
-      </ul>
-    </div>
-    <!-- Crossing menu -->
-     <div id="pointMenu" class="context-menu">
-      <ul>
-        <li data-action="showLabel"> Show Label </li>
-        <li data-action="hideLabel"> Hide Label </li>
-      </ul>
-     </div>
-    <!-- Label menu -->
-     <div id="labelMenu" class="context-menu">
-      <ul>
-        <li data-action="editLabel"> Edit Label </li>
-        <li data-action="hideLabel"> Hide Label </li>
-      </ul>
-     </div>
-
     <ul id="contMenu" class="cont-menu"></ul>
 
     <!-- Settings modal -->
@@ -476,12 +436,16 @@
               <label for="numOfCrossingsCircularPath">Desired number of crossings:</label>
               <input type="number" id="numOfCrossingsCircularPath" name="numOfCrossingsCircularPath" min="0" value="0">
             </div>
-            <!-- 
+            <!-- Add the option for the new algorithm here
             <br>
             <label>
-              <input type="radio" name="option" value="opt3">
-              Option 3: <input type="number" name="param3" min="0" value="20">
+              <input type="radio" name="layoutOption" value="newAlgorithm">
+              New Algorithm
             </label>
+            <div class="parameter" id="layout-param-newAlgorithm" style="display: none;">
+              <label for="newAlgorithmParameter">Desired number of crossings:</label>
+              <input type="number" id="newAlgorithmParameter" name="newAlgorithmParameter" min="0" value="0">
+            </div>
             -->
           </form>
 

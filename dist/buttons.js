@@ -178,19 +178,8 @@ export class BtnHandler {
             checkbox.addEventListener('change', () => {
                 var _a;
                 (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
-                // if(ctx)
-                // drawGraph(ctx, graph, true);
             });
         });
-        // event-listener for other highlighting crossing edges checkboxes
-        /* for (const id of ["highlight-crossing-edges","highlight-non-crossing-edges"])
-        {
-            document.getElementById(id)?.addEventListener('change', () => {
-                if (this.myCanvasHandler.ctx)
-                    // drawGraph(ctx, graph, true);
-                    this.myCanvasHandler?.redraw();
-            })
-        } */
     }
     undo(graph) {
         var _a;
