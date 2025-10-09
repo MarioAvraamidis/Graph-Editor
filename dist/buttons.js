@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { exportCanvasAsImage, exportCanvasAsPdf, exportCanvasWithReportPNG, exportJSON, restoreGraphFromJSON, exportWithReportPDF } from "./exporting.js";
+import { showCustomAlert } from "./alert.js";
 export class BtnHandler {
     constructor(canvas, graph, canvasHandler, selector, stateHandler, copier, settingsOptions) {
         // this.graph = graph;
@@ -78,7 +79,7 @@ export class BtnHandler {
         });
     }
     addButtonsEventListeners(graph) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         // Undo button
         (_a = document.getElementById("undo-button")) === null || _a === void 0 ? void 0 : _a.addEventListener("click", () => {
             // console.log("Undo Btn");
@@ -107,6 +108,16 @@ export class BtnHandler {
             // renderGraph();
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });
+        // swap the 2 selected points of the graph
+        (_e = document.getElementById("swap-points-btn")) === null || _e === void 0 ? void 0 : _e.addEventListener("click", () => {
+            if (this.selector.points.length === 2) {
+                this.stateHandler.saveState();
+                graph.swapPoints(this.selector.points[0], this.selector.points[1]);
+                this.myCanvasHandler.redraw();
+            }
+            else
+                showCustomAlert("To swap the coordinates of 2 points, only 2 points must be selected.");
+        });
         /*document.getElementById("new-circle")?.addEventListener("click", () => {
             this.stateHandler.saveState();
             const tree = graph.merge(newBinaryTree(5));
@@ -115,7 +126,7 @@ export class BtnHandler {
             this.myCanvasHandler?.redraw();
         });*/
         // make the graph straight line
-        (_e = document.getElementById("clear-bends")) === null || _e === void 0 ? void 0 : _e.addEventListener("click", () => {
+        (_f = document.getElementById("clear-bends")) === null || _f === void 0 ? void 0 : _f.addEventListener("click", () => {
             var _a;
             this.stateHandler.saveState();
             graph.removeBends();
@@ -123,13 +134,13 @@ export class BtnHandler {
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });
         // set up listener for fix view
-        (_f = document.getElementById('fix-view')) === null || _f === void 0 ? void 0 : _f.addEventListener('click', () => this.myCanvasHandler.fixView(this.selector));
+        (_g = document.getElementById('fix-view')) === null || _g === void 0 ? void 0 : _g.addEventListener('click', () => this.myCanvasHandler.fixView(this.selector));
         // listener for reset view in CanvasHandler.ts
-        (_g = document.getElementById('resetViewButton')) === null || _g === void 0 ? void 0 : _g.addEventListener('click', () => this.myCanvasHandler.resetView());
-        (_h = document.getElementById("export-json-btn")) === null || _h === void 0 ? void 0 : _h.addEventListener("click", () => {
+        (_h = document.getElementById('resetViewButton')) === null || _h === void 0 ? void 0 : _h.addEventListener('click', () => this.myCanvasHandler.resetView());
+        (_j = document.getElementById("export-json-btn")) === null || _j === void 0 ? void 0 : _j.addEventListener("click", () => {
             exportJSON(graph);
         });
-        (_j = document.getElementById("export-image")) === null || _j === void 0 ? void 0 : _j.addEventListener("click", () => {
+        (_k = document.getElementById("export-image")) === null || _k === void 0 ? void 0 : _k.addEventListener("click", () => {
             if (this.myCanvasHandler.ctx) {
                 // drawGraph(this.myCanvasHandler.ctx,this.graph,true,false);
                 if (document.getElementById("include-report-in-export").checked)

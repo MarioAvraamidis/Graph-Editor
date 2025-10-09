@@ -118,6 +118,21 @@ export class Graph {
         this.moveVertex(v1, v2.x, v2.y, update);
         this.moveVertex(v2, x1, y1, update);
     }
+    // swap the coordinates of the 2 given points
+    swapPoints(p1, p2, update = true) {
+        const x1 = p1.x;
+        const y1 = p1.y;
+        // move p1
+        if (p1 instanceof Vertex)
+            this.moveVertex(p1, p2.x, p2.y, update);
+        else if (p1 instanceof Bend)
+            this.moveBend(p1, p2.x, p2.y, update);
+        // move p2
+        if (p2 instanceof Vertex)
+            this.moveVertex(p2, x1, y1, update);
+        else if (p2 instanceof Bend)
+            this.moveBend(p2, x1, y1, update);
+    }
     // return the vertex near a specified (x,y) location (at distance < dist from (x,y) )
     // first check the array of vertices given
     // scale is used because the zoom scale might not be 1, but the vertices are shown at a fixed size regardless of the zoom

@@ -4,6 +4,7 @@ import { Graph } from "./graph.js";
 import { StateHandler } from "./stateHandler.js";
 import { exportCanvasAsImage, exportCanvasAsPdf, exportCanvasWithReportPNG, exportJSON, restoreGraphFromJSON, exportWithReportPDF } from "./exporting.js";
 import { SettingsOptions } from "./settings.js";
+import { showCustomAlert } from "./alert.js";
 
 export class BtnHandler
 {
@@ -127,6 +128,18 @@ export class BtnHandler
             // renderGraph();
             this.myCanvasHandler?.redraw();
         });
+
+        // swap the 2 selected points of the graph
+        document.getElementById("swap-points-btn")?.addEventListener("click", () => {
+            if (this.selector.points.length === 2)
+            {
+                this.stateHandler.saveState();
+                graph.swapPoints(this.selector.points[0],this.selector.points[1]);
+                this.myCanvasHandler.redraw();
+            }
+            else
+                showCustomAlert("To swap the coordinates of 2 points, only 2 points must be selected.");
+        })
 
         /*document.getElementById("new-circle")?.addEventListener("click", () => {
             this.stateHandler.saveState();

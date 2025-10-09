@@ -309,24 +309,15 @@ export function starDrawing(graph) {
     else if (graph.vertices.length % 2 === 0)
         showCustomAlert("The circle is not odd.");
     else {
+        const len = graph.vertices.length;
+        // create an array with the vertices in their circular order on the star graph
         let position = 0;
         const circularOrdered = [];
-        const len = graph.vertices.length;
         for (let i = 0; i < len; i++) {
             circularOrdered.push(circle.orderedVertices[position]);
             position = (position + 2) % len;
         }
         graph.makeCircle(0, 0, 250, circularOrdered);
-        /*let angle: number;
-        let position: number = 0;
-        const len = graph.vertices.length;
-        const x0 = 0, y0 = 0, r = 250;
-        graph.removeBends();
-        circle.orderedVertices.forEach( vertex => {
-            position = (position+(len-1)/2)%len;
-            angle = (position / len)* 2 * Math.PI;
-            graph.moveVertex(vertex,x0+Math.cos(angle)*r, y0 + Math.sin(angle)*r);
-        })*/
     }
 }
 /* export function runNewAlgorithm(graph: Graph, parameter: number)
