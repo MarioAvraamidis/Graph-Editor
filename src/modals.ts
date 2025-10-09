@@ -6,7 +6,7 @@ import { StateHandler } from "./stateHandler.js";
 import { createGraph } from "./graphCreator.js";
 import { Edge, Point, Vertex } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
-import { circularPathDrawing, linearPathDrawing, starDrawing } from "./layout.js";
+import { circularPathDrawing, linearPathDrawing, maxRectilinearCircle, starDrawing } from "./layout.js";
 
 export class ModalsHandler
 {
@@ -305,6 +305,9 @@ export class ModalsHandler
                 break;
                 case "starCircle":
                     starDrawing(graph);
+                break;
+                case "maxRectilinearCircle":
+                    maxRectilinearCircle(graph);
                 break;
                 /*case "newAlgorithm":
                     paramValue = Number(formData.get("newAlgorithmParameter"));

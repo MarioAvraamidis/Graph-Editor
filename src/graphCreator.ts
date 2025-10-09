@@ -45,7 +45,7 @@ function newCircle(n: number, labelFontSize: number = 14)
         prev = next;
     }
     circle.addEdge(prev,first);
-    circle.makeCircle(0,0,100);
+    circle.makeCircle(0,0,250);
     return circle;
 }
 

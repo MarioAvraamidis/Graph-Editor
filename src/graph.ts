@@ -723,14 +723,14 @@ export class Graph {
         {
             vert.forEach((vertex,index) => {
                 const angle = (index/ vert.length)*2*Math.PI;
-                this.moveVertex(vertex, x0+Math.cos(angle)*r, y0 + Math.sin(angle)*r);
+                this.moveVertex(vertex, x0-Math.cos(angle)*r, y0 - Math.sin(angle)*r);
             })
         }
         else{
             const nonTempVertices = this._vertices.filter(vertex => !vertex.temporary); // array with the non-temporary vertices
             nonTempVertices.forEach((vertex, index) => {
                 const angle = (index / nonTempVertices.length) * 2 * Math.PI;
-                this.moveVertex(vertex,x0 + Math.cos(angle) * r, y0 + Math.sin(angle) * r,false)    // don't update crossings for each vertex movement
+                this.moveVertex(vertex,x0 - Math.cos(angle) * r, y0 - Math.sin(angle) * r,false)    // don't update crossings for each vertex movement
             });
             this.updateCrossings();
         }

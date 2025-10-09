@@ -376,6 +376,46 @@ export function starDrawing(graph: Graph)
     }
 }
 
+export function maxRectilinearCircle(graph: Graph)
+{
+    const circle = checkCircle(graph);
+    if (!circle.isCircle)
+        showCustomAlert("The graph is not circle.");
+    else if (graph.vertices.length%2 === 1)
+        showCustomAlert("The circle is not even.");
+    else
+    {
+        const len = graph.vertices.length;
+        // create an array with the vertices in their circular order on the star graph
+        let position: number = 1;
+        const circularOrdered: Vertex[] = [];
+        const temp = graph.addNewVertex(0,0);
+        circularOrdered.push(temp);
+        // odd vertices
+        while (position < len/2 )
+        {
+            circularOrdered.push(circle.orderedVertices[position-1]);
+            circularOrdered.push(circle.orderedVertices[len-position-1]);
+            position += 2;
+        }
+        if (len%4 === 2)
+            circularOrdered.push(circle.orderedVertices[len/2-1]);
+        // even vertices
+        circularOrdered.push(circle.orderedVertices[len-1]);    // last vertex
+        position = 2;
+        while( position < len/2 )
+        {
+            circularOrdered.push(circle.orderedVertices[position-1]);
+            circularOrdered.push(circle.orderedVertices[len-position-1]);
+            position += 2;
+        }
+        if (len%4 === 0)
+            circularOrdered.push(circle.orderedVertices[len/2-1]);
+        graph.makeCircle(0,0,250,circularOrdered);
+        graph.deleteVertex(temp);
+    }
+}
+
 /* export function runNewAlgorithm(graph: Graph, parameter: number)
 {
     

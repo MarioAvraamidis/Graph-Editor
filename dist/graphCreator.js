@@ -35,7 +35,7 @@ function newCircle(n, labelFontSize = 14) {
         prev = next;
     }
     circle.addEdge(prev, first);
-    circle.makeCircle(0, 0, 100);
+    circle.makeCircle(0, 0, 250);
     return circle;
 }
 function newBinaryTree(h, labelFontSize = 14, xDiff = 20, yDiff = 50) {
