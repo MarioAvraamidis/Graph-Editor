@@ -26,7 +26,7 @@ export function circularPathDrawing(graph, crossings) {
     // sort the vertices
     graph.vertices.forEach(v => sorted[v.x / xDist] = v);
     // circle placement
-    graph.makeCircle(0, 0, 300, sorted);
+    graph.makeCircle(0, 0, 250, sorted);
     graph.removeBends();
     // remove the temporary vertex
     if (len % 2 === 0)
@@ -254,6 +254,72 @@ function checkPath(graph) {
     else
         isPath = false;
     return { isPath: isPath, orderedVertices: orderedVertices };
+}
+function checkCircle(graph) {
+    const vertices = graph.vertices;
+    let isCircle = true;
+    let orderedVertices = [];
+    if (vertices.length < 3)
+        isCircle = false;
+    vertices.forEach(v => { if (v.neighbors.length !== 2)
+        isCircle = false; });
+    if (isCircle) {
+        const first = vertices[0];
+        orderedVertices.push(first);
+        let prev = first;
+        let current = first.neighbors[0];
+        while (current !== first) {
+            // push current in the array
+            orderedVertices.push(current);
+            // check which of the neighbors is the previous
+            if (prev === current.neighbors[0]) {
+                prev = current; // update prev
+                current = current.neighbors[1]; // update current
+            }
+            else {
+                prev = current; // update prev
+                current = current.neighbors[0]; // update current
+            }
+        }
+        if (orderedVertices.length !== vertices.length)
+            isCircle = false;
+    }
+    return { isCircle: isCircle, orderedVertices: orderedVertices };
+}
+function checkCircle2(graph) {
+    if (graph.vertices.length <= 3)
+        return false;
+    const clone = graph.clone();
+    const deleted = clone.vertices[0];
+    if (deleted.neighbors.length !== 2)
+        return false;
+    clone.deleteVertex(deleted);
+    const path = checkPath(clone);
+    if (!path.isPath)
+        return false;
+    const first = path.orderedVertices[0];
+    const last = path.orderedVertices[graph.vertices.length - 2];
+    return (deleted.neighbors[0].id === first.id && deleted.neighbors[1].id === last.id
+        || deleted.neighbors[0].id === last.id && deleted.neighbors[1].id === first.id);
+}
+export function starDrawing(graph) {
+    const circle = checkCircle(graph);
+    if (!circle.isCircle)
+        showCustomAlert("The graph is not circle.");
+    else if (graph.vertices.length % 2 === 0)
+        showCustomAlert("The circle is not odd.");
+    else {
+        let angle;
+        let position = 0;
+        const len = graph.vertices.length;
+        const x0 = 0, y0 = 0, r = 250;
+        graph.removeBends();
+        circle.orderedVertices.forEach(vertex => {
+            position = (position + (len - 1) / 2) % len;
+            angle = (position / len) * 2 * Math.PI;
+            graph.moveVertex(vertex, x0 + Math.cos(angle) * r, y0 + Math.sin(angle) * r);
+        });
+    }
 }
 /* export function runNewAlgorithm(graph: Graph, parameter: number)
 {

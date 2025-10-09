@@ -419,6 +419,7 @@
           <h2>Layout</h2>
 
           <form id="layoutOptionsForm">
+            <!-- Linear Path -->
             <label>
               <input type="radio" name="layoutOption" value="linearPath" required>
               Linear Path
@@ -428,6 +429,7 @@
               <input type="number" id="numOfCrossingsLinearPath" name="numOfCrossingsLinearPath" min="0" value="0">
             </div>
             <br>
+            <!-- Circular Path -->
             <label>
               <input type="radio" name="layoutOption" value="circularPath">
               Circlular Path
@@ -436,6 +438,12 @@
               <label for="numOfCrossingsCircularPath">Desired number of crossings:</label>
               <input type="number" id="numOfCrossingsCircularPath" name="numOfCrossingsCircularPath" min="0" value="0">
             </div>
+            <br>
+            <!-- Star circle -->
+            <label>
+              <input type="radio" name="layoutOption" value="starCircle">
+              Star Circle
+            </label>
             <!-- Add the option for the new algorithm here
             <br>
             <label>
