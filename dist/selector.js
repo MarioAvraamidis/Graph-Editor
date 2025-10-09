@@ -60,9 +60,9 @@ export class Selector {
     deleteSelectedVertices(graph) {
         this.vertices.forEach(v => graph.deleteVertex(v));
         // remove the corresponding edges from selectedEdges
-        this._edges = this.edges.filter(e => e.points[0] instanceof Vertex && !this.vertices.includes(e.points[0]) && e.points[1] instanceof Vertex && !this.vertices.includes(e.points[1]));
+        this._edges = this.edges.filter(e => !this.vertices.includes(e.points[0]) && !this.vertices.includes(e.points[1]));
         // remove the corresponding bends from selectedBends
-        this._bends = this.bends.filter(b => b.edge.points[0] instanceof Vertex && !this.vertices.includes(b.edge.points[0]) && b.edge.points[1] instanceof Vertex && !this.vertices.includes(b.edge.points[1]));
+        this._bends = this.bends.filter(b => !this.vertices.includes(b.edge.points[0]) && !this.vertices.includes(b.edge.points[1]));
         // update selectedVertices
         this.vertices.length = 0;
         this.pointsUpdate();
@@ -75,6 +75,8 @@ export class Selector {
     }
     // deletion of selected edges
     deleteSelectedEdges(graph) {
+        // remove the corresponding bends from selected bends
+        this._bends = this.bends.filter(b => !this.edges.includes(b.edge));
         this.edges.forEach(e => graph.deleteEdgee(e));
         this.edges.length = 0;
         this.pointsUpdate();

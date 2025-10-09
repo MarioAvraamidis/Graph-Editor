@@ -255,6 +255,7 @@ function checkPath(graph) {
         isPath = false;
     return { isPath: isPath, orderedVertices: orderedVertices };
 }
-export function runNewAlgorithm(graph, parameter) {
-    graph.makeCircle(0, 0, parameter);
-}
+/* export function runNewAlgorithm(graph: Graph, parameter: number)
+{
+    
+} */ 

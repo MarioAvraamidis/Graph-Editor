@@ -98,7 +98,9 @@ export class Graph {
         if (vrt)
             this.deleteVertex(vrt);
     }
-    // move a vertex to a specified (x,y) location
+    /**
+     * Move the given vertex to the specified (x,y) location
+     */
     moveVertex(v, x, y, update = true) {
         v.moveTo(x, y);
         // update crossings
@@ -437,14 +439,18 @@ export class Graph {
     }
     // update crossings when moving a bend
     updateCrossingsByBend(b) { this.updateCrossingsByEdge(b.edge); }
-    // move a bend and update the crossings
-    moveBend(b, x, y) {
+    /**
+     * Move the given bend to the given position and update the crossings
+     */
+    moveBend(b, x, y, updateCrossings = true) {
         b.moveTo(x, y);
         // update crossings
-        if (this._effective_crossing_update)
-            this.updateCrossingsByBend(b);
-        else
-            this.updateCrossings();
+        if (updateCrossings) {
+            if (this._effective_crossing_update)
+                this.updateCrossingsByBend(b);
+            else
+                this.updateCrossings();
+        }
     }
     // move a point (vertex or bend)
     movePoint(p, x, y) {
@@ -496,7 +502,12 @@ export class Graph {
         }
         return edgeCrossings;
     }
-    // add a bend to an edge (given the vertices of the edge) to the given coordinates (or to the middlepoint of the vertices if coordinates not given)
+    /**
+     * Add a bend to an edge (given the vertices of the edge)
+     * to the given coordinates (or to the middlepoint of the vertices if coordinates not given)
+     * Also, if onEdge === true, place the bend on the edge, on the point of the edge that is closer to (x,y).
+     * If not, place it on the (x,y) coordinates
+     */
     addBend(v, u, x, y, onEdge = true, updateCrossings = true) {
         let edge = this.getEdgeByVertices(v, u);
         let newBend;
@@ -526,7 +537,9 @@ export class Graph {
             return null;
         }
     }
-    // remove a given bend
+    /**
+     * Remove τηε given bend from the graph
+     */
     removeBend(bend) {
         const edge = bend.edge;
         const index = edge.bends.indexOf(bend);
@@ -537,24 +550,6 @@ export class Graph {
             this.updateCrossings();
         this.updateCurveComplexity();
     }
-    // remove a bend from an edge (given the vertices of the edge) - the bend removed is the last one
-    /* removeBendd(v: Vertex, u: Vertex)
-    {
-        let edge = this.getEdgeByVertices(v,u);
-        if (edge)
-        {
-            edge.removeLastBend();
-            // update curve complexity
-            this.updateCurveComplexity();
-            // update crossings
-            if (this._effective_crossing_update)
-                this.updateCrossingsByEdge(edge);
-            else
-                this.updateCrossings();
-        }
-        else
-            console.log("Edge not found.")
-    }*/
     // compute the thrackle number of the graph
     thrackleNumber() {
         let thrackle = this._edges.length * (this._edges.length + 1);
@@ -630,21 +625,30 @@ export class Graph {
             }
         return null;
     }
-    // check if a given (x,y) point is near any vertex of the graph and return the vertex (at distance < dist)
+    /**
+     * Check if a given (x,y) point is near to any vertex of the graph and return the vertex. Else return null
+     * (near means at distance < vertex.size)
+     */
     isNearVertex(x, y) {
         for (const vertex of this._vertices)
             if (Math.hypot(vertex.x - x, vertex.y - y) < vertex.size + 3)
                 return vertex;
         return null;
     }
-    // check if a given (x,y) point is near any vertex of a given array of vertices and return the vertex (at distance < dist)
+    /**
+     * Check if a given (x,y) point is near to any vertex of the given vertices and return the vertex. Else return null
+     * (near means at distance < vertex.size)
+     */
     isNearVertices(x, y, v) {
         for (const vertex of v)
             if (Math.hypot(vertex.x - x, vertex.y - y) < vertex.size + 3)
                 return vertex;
         return null;
     }
-    // check if a given (x,y) point is near any bends of the graph and return the bend (at distance < dist)
+    /**
+     * Check if a given (x,y) point is near to any bend of the graph and return the bend. Else return null
+     * (near means at distance < bend.size)
+     */
     isNearBend(x, y, scale = 1) {
         for (const e of this._edges)
             for (const bend of e.bends)
@@ -652,6 +656,10 @@ export class Graph {
                     return bend;
         return null;
     }
+    /**
+     * Check if a given (x,y) point is near to any crossing of the graph and return the graph. Else return null
+     * (near means at distance < crossing.size)
+     */
     isNearCrossing(x, y, scale) {
         for (const cross of this._crossings)
             if (Math.hypot(cross.x - x, cross.y - y) < (cross.size + 2) / scale)
@@ -797,6 +805,10 @@ export class Graph {
         this._crossings.length = 0;
         this._curve_complexity = 0;
     }
+    /**
+     * Report of the graph.
+     * Contains population of all kinds of crossings, the thrackle bound and the curve complexity of the graph
+     */
     report() {
         const crossings_categories = this.crossingsCategories();
         const totalCrossings = this.crossings.length;

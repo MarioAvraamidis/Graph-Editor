@@ -1,7 +1,7 @@
 import { createGraph } from "./graphCreator.js";
 import { Vertex } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
-import { circularPathDrawing, linearPathDrawing, runNewAlgorithm } from "./layout.js";
+import { circularPathDrawing, linearPathDrawing } from "./layout.js";
 export class ModalsHandler {
     constructor(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector) {
         this.editLabelChanges = false;
@@ -249,10 +249,10 @@ export class ModalsHandler {
                     paramValue = Number(formData.get("numOfCrossingsCircularPath"));
                     circularPathDrawing(graph, paramValue);
                     break;
-                case "newAlgorithm":
+                /*case "newAlgorithm":
                     paramValue = Number(formData.get("newAlgorithmParameter"));
-                    runNewAlgorithm(graph, paramValue);
-                    break;
+                    runNewAlgorithm(graph,paramValue);
+                break; */
             }
             myCanvasHandler.fixView();
             myCanvasHandler.redraw();
