@@ -363,16 +363,16 @@ export function starDrawing(graph: Graph)
         showCustomAlert("The circle is not odd.");
     else
     {
-        let angle: number;
-        let position: number = 0;
         const len = graph.vertices.length;
-        const x0 = 0, y0 = 0, r = 250;
-        graph.removeBends();
-        circle.orderedVertices.forEach( vertex => {
-            position = (position+(len-1)/2)%len;
-            angle = (position / len)* 2 * Math.PI;
-            graph.moveVertex(vertex,x0+Math.cos(angle)*r, y0 + Math.sin(angle)*r);
-        })
+        // create an array with the vertices in their circular order on the star graph
+        let position: number = 0;
+        const circularOrdered: Vertex[] = [];
+        for (let i=0;i<len;i++)
+        {
+            circularOrdered.push(circle.orderedVertices[position]);
+            position = (position + 2) % len;
+        }
+        graph.makeCircle(0,0,250,circularOrdered);
     }
 }
 
