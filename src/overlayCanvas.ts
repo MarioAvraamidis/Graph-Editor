@@ -8,6 +8,7 @@ export function setOverlayCanvas(graph: Graph, settingsOptions: SettingsOptions,
 {
     const overlayCanvas = document.getElementById("overlayCanvas") as HTMLCanvasElement;
     const wrapper = document.querySelector(".overlay-wrapper") as HTMLDivElement;
+    const grow = document.getElementById("grow-secondary-canvas") as HTMLInputElement
     wrapper.style.display = 'inline-block'; // make the wrapper visible
     const scaler = new Scaler(overlayCanvas);
     const simpleDrawer = new SimpleDrawer(scaler,settingsOptions);
@@ -28,12 +29,16 @@ export function setOverlayCanvas(graph: Graph, settingsOptions: SettingsOptions,
     })
 
     overlayCanvas.addEventListener("mouseenter", () => {
+        if (!grow.checked)
+            return;
         wrapper.classList.add("grow");
         resizeCanvasToWrapper(overlayCanvas,wrapper);
         setOverlayResolution(overlayCanvas, canvasHandler); // redraw at new CSS size
     });
 
     overlayCanvas.addEventListener("mouseleave", () => {
+        if (!grow.checked)
+            return;
         wrapper.classList.remove("grow");
         resizeCanvasToWrapper(overlayCanvas,wrapper);
         setOverlayResolution(overlayCanvas, canvasHandler); // redraw at normal CSS size

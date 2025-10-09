@@ -138,7 +138,7 @@ export class BtnHandler
                 this.myCanvasHandler.redraw();
             }
             else
-                showCustomAlert("To swap the coordinates of 2 points, only 2 points must be selected.");
+                showCustomAlert("To swap the coordinates of 2 points, exactly 2 points must be selected.");
         })
 
         /*document.getElementById("new-circle")?.addEventListener("click", () => {
