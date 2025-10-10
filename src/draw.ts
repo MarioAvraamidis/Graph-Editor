@@ -360,7 +360,7 @@ export class Drawer
         this.showPointLabel(ctx,bend);
     }
 
-    // add a dashed circle around a selected point
+    // add an orange circle around a selected point
     private showSelectedPoint(ctx: CanvasRenderingContext2D, p: Point)
     {
         ctx.beginPath();

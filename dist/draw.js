@@ -292,7 +292,7 @@ export class Drawer {
         ctx.lineWidth = 2 / this.scaler.scale;
         this.showPointLabel(ctx, bend);
     }
-    // add a dashed circle around a selected point
+    // add an orange circle around a selected point
     showSelectedPoint(ctx, p) {
         ctx.beginPath();
         ctx.arc(p.x, p.y, (p.size + 3) / this.scaler.scale, 0, 2 * Math.PI);

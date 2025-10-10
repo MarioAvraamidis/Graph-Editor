@@ -719,21 +719,13 @@ export class Graph {
     makeCircle(x0=0,y0=0,r=10,vert: Vertex[]=[])
     {
         // place a selected group of vertices in a circle
-        if (vert.length > 0)
-        {
-            vert.forEach((vertex,index) => {
-                const angle = (index/ vert.length)*2*Math.PI;
-                this.moveVertex(vertex, x0-Math.cos(angle)*r, y0 - Math.sin(angle)*r);
-            })
-        }
-        else{
-            const nonTempVertices = this._vertices.filter(vertex => !vertex.temporary); // array with the non-temporary vertices
-            nonTempVertices.forEach((vertex, index) => {
-                const angle = (index / nonTempVertices.length) * 2 * Math.PI;
-                this.moveVertex(vertex,x0 - Math.cos(angle) * r, y0 - Math.sin(angle) * r,false)    // don't update crossings for each vertex movement
-            });
-            this.updateCrossings();
-        }
+        if (vert.length === 0)
+            vert = this._vertices.filter(vertex => !vertex.temporary);
+        vert.forEach((vertex,index) => {
+            const angle = (index/ vert.length)*2*Math.PI;
+            this.moveVertex(vertex, x0-Math.cos(angle)*r, y0 - Math.sin(angle)*r/*,false*/);
+        });
+        // this.updateCrossings();
     }
 
     // place all the non-temporary vertices in a straightline

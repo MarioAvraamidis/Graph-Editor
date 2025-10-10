@@ -2,7 +2,7 @@ import { CanvasHandler } from "./canvasHandler.js";
 import { Graph } from "./graph.js";
 import { SimpleDrawer } from "./simpleDrawer.js";
 import { Scaler } from "./zoomHelpers.js";
-export function setOverlayCanvas(graph, settingsOptions, mainCanvasHandler) {
+export function setOverlayCanvas(graph, settingsOptions, mainCanvasHandler, selector) {
     var _a, _b;
     const overlayCanvas = document.getElementById("overlayCanvas");
     const wrapper = document.querySelector(".overlay-wrapper");
@@ -21,6 +21,7 @@ export function setOverlayCanvas(graph, settingsOptions, mainCanvasHandler) {
         const initial = overlayGraph.clone();
         overlayGraph.replace(graph.clone());
         graph.replace(initial);
+        selector.setNothingSelected();
         canvasHandler.fixView();
         mainCanvasHandler.fixView();
     });
