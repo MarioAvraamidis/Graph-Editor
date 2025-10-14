@@ -189,7 +189,7 @@ export class BtnHandler
         });
     
     
-        document.getElementById("import-input")!.addEventListener("change", async (e) => {
+        document.getElementById("import-input")?.addEventListener("change", async (e) => {
             const input = e.target as HTMLInputElement;
             if (!input.files || input.files.length === 0) return;
         
@@ -209,6 +209,9 @@ export class BtnHandler
             } catch (err) {
                 alert("Failed to load graph: Invalid format");
                 console.error(err);
+            } finally {
+                // ✅ Reset file input so the same file can be uploaded again
+                input.value = "";
             }
         });
     }

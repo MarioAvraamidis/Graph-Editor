@@ -50,6 +50,7 @@ export class ContMenu
         ],
         void: [
             { label: "Paste", action: "paste"},
+            { label: "Select All", action: "selectAll"},
             { label: "Clear Canvas", action: "clear-canvas"},
         ]
     };
@@ -144,8 +145,8 @@ export class ContMenu
                     this.selector.selectAll(this.graph);
                     // this.hover.check(this.myCanvasHandler.getScale());
                     // this.myCanvasHandler?.fixView(this.selector);
-                    this.myCanvasHandler.resetView();
                 }
+                this.myCanvasHandler.resetView();
                 break;
             case "paste":
                 if ( this.copier.canPaste() )
@@ -155,6 +156,10 @@ export class ContMenu
                     // this.hover.check(this.myCanvasHandler.getScale());
                     this.myCanvasHandler?.redraw();
                 }
+                break;
+            case "selectAll":
+                this.selector.selectAll(this.graph);
+                this.myCanvasHandler?.redraw();
                 break;
             // edge options
             case "addBend":

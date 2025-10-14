@@ -363,6 +363,7 @@ export function starDrawing(graph: Graph)
         showCustomAlert("The circle is not odd.");
     else
     {
+        graph.removeBends(false);
         const len = graph.vertices.length;
         // create an array with the vertices in their circular order on the star graph
         let position: number = 0;
@@ -385,6 +386,7 @@ export function maxRectilinearCircle(graph: Graph)
         showCustomAlert("The circle is not even.");
     else
     {
+        graph.removeBends(false);
         const len = graph.vertices.length;
         // create an array with the vertices in their circular order on the star graph
         let position: number = 1;

@@ -597,9 +597,9 @@ export class Graph {
             vert = this._vertices.filter(vertex => !vertex.temporary);
         vert.forEach((vertex, index) => {
             const angle = (index / vert.length) * 2 * Math.PI;
-            this.moveVertex(vertex, x0 - Math.cos(angle) * r, y0 - Math.sin(angle) * r /*,false*/);
+            this.moveVertex(vertex, x0 - Math.cos(angle) * r, y0 - Math.sin(angle) * r, false);
         });
-        // this.updateCrossings();
+        this.updateCrossings();
     }
     // place all the non-temporary vertices in a straightline
     straightLine(xDist = 50, y = 0, vert = []) {

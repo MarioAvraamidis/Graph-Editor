@@ -79,7 +79,7 @@ export class BtnHandler {
         });
     }
     addButtonsEventListeners(graph) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
         // Undo button
         (_a = document.getElementById("undo-button")) === null || _a === void 0 ? void 0 : _a.addEventListener("click", () => {
             // console.log("Undo Btn");
@@ -158,7 +158,7 @@ export class BtnHandler {
             // const includeReport = (document.getElementById("include-report-in-export") as HTMLInputElement).checked;
             // exportCanvasAsPdfWithReport(this.myCanvasHandler.canvas,graph.report(),includeReport);
         });
-        document.getElementById("import-input").addEventListener("change", (e) => __awaiter(this, void 0, void 0, function* () {
+        (_l = document.getElementById("import-input")) === null || _l === void 0 ? void 0 : _l.addEventListener("change", (e) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             const input = e.target;
             if (!input.files || input.files.length === 0)
@@ -179,6 +179,10 @@ export class BtnHandler {
             catch (err) {
                 alert("Failed to load graph: Invalid format");
                 console.error(err);
+            }
+            finally {
+                // ✅ Reset file input so the same file can be uploaded again
+                input.value = "";
             }
         }));
     }
