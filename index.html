@@ -95,7 +95,7 @@
               <span class="value-part" id="total-crossings"></span>
           </div>
           <div class="label-value-pair">
-              <span class="label-part">Thrackle :</span>
+              <span class="label-part">Thrackle Bound :</span>
               <span class="value-part" id="thrackle-number"></span>
           </div>
           <div class="label-value-pair">
@@ -313,7 +313,7 @@
             <!-- Checkbox for growing secondary canvas on hovering-->
              <div class="crossingColors">
                  <label for="grow-secondary-canvas" >Grow secondary canvas on hovering </label>
-                 <input type="checkbox" id="grow-secondary-canvas" checked>
+                 <input type="checkbox" id="grow-secondary-canvas" >
               </div>
             <!--
             <-- Allow loops in the graph
@@ -386,7 +386,7 @@
             </label>
             <div class="parameter" id="param-cycle" style="display: none;">
               <label for="cycleLength">Length:</label>
-              <input type="number" id="cycleLength" name="cycleLength" min="3" value="5">
+              <input type="number" id="cycleLength" name="cycleLength" min="3" value="12">
             </div>
 
             <!-- Option 3: Tree -->
@@ -453,6 +453,10 @@
             <label>
               <input type="radio" name="layoutOption" value="maxRectilinearCircle">
               Max Rectilinear Even Circle
+            </label>
+            <label>
+              <input type="radio" name="layoutOption" value="thrackleEvenCircle">
+              Even Circle Thrackle 
             </label>
             <!-- Add the option for the new algorithm here
             <br>

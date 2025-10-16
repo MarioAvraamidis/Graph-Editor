@@ -595,9 +595,12 @@ export class Graph {
         // place a selected group of vertices in a circle
         if (vert.length === 0)
             vert = this._vertices.filter(vertex => !vertex.temporary);
+        const labelOffset = 20;
         vert.forEach((vertex, index) => {
             const angle = (index / vert.length) * 2 * Math.PI;
             this.moveVertex(vertex, x0 - Math.cos(angle) * r, y0 - Math.sin(angle) * r, false);
+            vertex.label.offsetX = -labelOffset * Math.cos(angle);
+            vertex.label.offsetY = labelOffset * Math.sin(angle);
         });
         this.updateCrossings();
     }

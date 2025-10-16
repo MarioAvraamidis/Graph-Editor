@@ -1,7 +1,7 @@
 import { createGraph } from "./graphCreator.js";
 import { Vertex } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
-import { circularPathDrawing, linearPathDrawing, maxRectilinearCircle, starDrawing } from "./layout.js";
+import { circularPathDrawing, evenCircleThrackle, linearPathDrawing, maxRectilinearCircle, starDrawing } from "./layout.js";
 export class ModalsHandler {
     constructor(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector) {
         this.editLabelChanges = false;
@@ -254,6 +254,9 @@ export class ModalsHandler {
                     break;
                 case "maxRectilinearCircle":
                     maxRectilinearCircle(graph);
+                    break;
+                case "thrackleEvenCircle":
+                    evenCircleThrackle(graph);
                     break;
                 /*case "newAlgorithm":
                     paramValue = Number(formData.get("newAlgorithmParameter"));

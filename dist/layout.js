@@ -357,6 +357,127 @@ export function maxRectilinearCircle(graph) {
         graph.deleteVertex(temp);
     }
 }
+export function evenCircleThrackle(graph) {
+    const circle = checkCircle(graph);
+    if (!circle.isCircle)
+        showCustomAlert("The graph is not circle.");
+    else if (graph.vertices.length % 2 === 1)
+        showCustomAlert("The circle is not even.");
+    else if (graph.vertices.length === 4)
+        showCustomAlert("Thrackle for C4 does not exist.");
+    else {
+        graph.removeBends(false);
+        const len = graph.vertices.length;
+        const vert = circle.orderedVertices;
+        // create an array with the vertices in their circular order on the thrackle
+        const circularOrdered = [];
+        // add a temp vertex to create an odd circle
+        const temp = graph.addNewVertex();
+        circularOrdered.push(temp);
+        // vertices 1 and 2
+        // circularOrdered.push(vert[0]);
+        circularOrdered.push(vert[1]);
+        // vertices 5,7,9, ... , n-1
+        for (let i = 5; i < len; i += 2)
+            circularOrdered.push(vert[i - 1]);
+        // vertex n
+        circularOrdered.push(vert[len - 1]);
+        // vertices 3 and 4
+        circularOrdered.push(vert[2]);
+        circularOrdered.push(vert[3]);
+        // vertices 6,8, ... , n-2
+        for (let i = 6; i < len; i += 2)
+            circularOrdered.push(vert[i - 1]);
+        circularOrdered.push(vert[0]);
+        const radius = 250;
+        graph.makeCircle(0, 0, radius, circularOrdered);
+        graph.deleteVertex(temp);
+        // add bends
+        evenCircleThrackleBends(graph, vert, radius);
+    }
+}
+function evenCircleThrackleBends(graph, orderedVertices, radius) {
+    graph.removeBends(false);
+    const len = graph.vertices.length;
+    const v1 = orderedVertices[0];
+    const v2 = orderedVertices[1];
+    const v3 = orderedVertices[2];
+    const v4 = orderedVertices[3];
+    const v_n = orderedVertices[len - 1];
+    const v_n_1 = orderedVertices[len - 2];
+    const v_n_2 = orderedVertices[len - 3];
+    // edge 3-4 bends
+    const edge34 = graph.getEdgeByVertices(v3, v4);
+    const dist = 2 * radius;
+    const x34 = -1.65 * radius;
+    const y34 = -1.5 * radius;
+    let coords1 = extendPoints(v3.x, v3.y, (v_n.x + v_n_1.x) / 2, (v_n.y + v_n_1.y) / 2, 2 * radius);
+    coords1 = extendPoints(v3.x, v3.y, coords1.x, coords1.y, dist * (y34 - v3.y) / (coords1.y - v3.y));
+    let coords3 = extendPoints(v4.x, v4.y, (v1.x + v_n_2.x) / 2, (v1.y + v_n_2.y) / 2, dist);
+    coords3 = extendPoints(v4.x, v4.y, coords3.x, coords3.y, dist * (v4.x - x34) / (v4.x - coords3.x));
+    let coords2 = { x: coords3.x, y: coords1.y };
+    if (len === 6)
+        coords3.y = v4.y;
+    addBendsToEdge(edge34, [coords1, coords2, coords3], v3);
+    edge34.color = "blue";
+    // edge 1-2 bends
+    const edge12 = graph.getEdgeByVertices(v1, v2);
+    const x12 = 1.3 * radius;
+    const y12 = -1.65 * radius;
+    coords1 = extendPoints(v1.x, v1.y, (v3.x + v4.x) / 2, (v3.y + v4.y) / 2, dist);
+    coords1 = extendPoints(v1.x, v1.y, coords1.x, coords1.y, dist * (x12 - v1.x) / (coords1.x - v1.x));
+    coords2 = { x: coords1.x, y: y12 };
+    coords3 = { x: v2.x, y: coords2.y };
+    if (len === 6)
+        coords1.y = v1.y;
+    addBendsToEdge(edge12, [coords1, coords2, coords3], v1);
+    edge12.color = "#13fb3a";
+    // edge (n-2,n-1) bends
+    const edgeN = graph.getEdgeByVertices(v_n_1, v_n);
+    const xn = -1.5 * radius;
+    const yn = 1.5 * radius;
+    const xNN = coords1.x;
+    coords1 = extendPoints(v_n_1.x, v_n_1.y, (v1.x + v2.x) / 2, (v1.y + v2.y) / 2, dist);
+    coords1 = extendPoints(v_n_1.x, v_n_1.y, coords1.x, coords1.y, dist * (xn - v_n_1.x) / (coords1.x - v_n_1.x));
+    coords2 = { x: coords1.x, y: yn };
+    coords3 = { x: xNN, y: coords2.y };
+    if (len === 6)
+        coords1.y -= radius;
+    addBendsToEdge(edgeN, [coords1, coords2, coords3], v_n_1);
+    edgeN.color = "red";
+    graph.updateCrossings();
+    graph.updateCurveComplexity();
+}
+/**
+ * Add bends to the given edge at the given points
+ * IMPORTANT: update graph's curve complexity when calling this function
+ */
+function addBendsToEdge(edge, points, firstVertex) {
+    if (edge.points[0] === firstVertex)
+        for (const p of points)
+            edge.addBend(p.x, p.y, false);
+    // graph.addBend(firstVertex,edge.points[1] as Vertex,p.x,p.y,false,false); Proper command using graph's methods
+    else
+        for (let i = points.length - 1; i >= 0; i--)
+            edge.addBend(points[i].x, points[i].y, false);
+}
+/**
+ * Starting from (x1,y1), draw a line that passes through (x2,y2) and return the point at distance d from (x1,y1)
+ */
+function extendPoints(x1, y1, x2, y2, d) {
+    // console.log("extendPoints");
+    // console.log("x1 =",x1,"x2 =",x2,"y1 =",y1,"y2 =",y2);
+    const dy = y2 - y1;
+    const dx = x2 - x1;
+    if (dx === 0) {
+        if (y2 > y1)
+            return { x: x1, y: y1 + d };
+        return { x: x1, y: y1 - d };
+    }
+    const angle = Math.abs(Math.atan(dy / dx));
+    // console.log("angle = ",angle);
+    return { x: x1 + d * Math.cos(angle) * Math.sign(x2 - x1), y: y1 + d * Math.sin(angle) * Math.sign(y2 - y1) };
+}
 /* export function runNewAlgorithm(graph: Graph, parameter: number)
 {
     
