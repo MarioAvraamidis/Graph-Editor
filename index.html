@@ -315,6 +315,11 @@
                  <label for="grow-secondary-canvas" >Grow secondary canvas on hovering </label>
                  <input type="checkbox" id="grow-secondary-canvas" >
               </div>
+              <!-- Checkbox for changing colors in layout-->
+             <div class="crossingColors">
+                 <label for="change-colors-in-layout" >Highlight bended edges in Layout </label>
+                 <input type="checkbox" id="change-colors-in-layout" checked >
+              </div>
             <!--
             <-- Allow loops in the graph
              <div class="crossingColors">
@@ -434,7 +439,7 @@
               <label for="numOfCrossingsLinearPath">Desired number of crossings:</label>
               <input type="number" id="numOfCrossingsLinearPath" name="numOfCrossingsLinearPath" min="0" value="0">
             </div>
-            <br>
+            <!-- <br> -->
             <!-- Circular Path -->
             <label>
               <input type="radio" name="layoutOption" value="circularPath">
@@ -444,20 +449,30 @@
               <label for="numOfCrossingsCircularPath">Desired number of crossings:</label>
               <input type="number" id="numOfCrossingsCircularPath" name="numOfCrossingsCircularPath" min="0" value="0">
             </div>
-            <br>
             <!-- Star circle -->
             <label>
               <input type="radio" name="layoutOption" value="starCircle">
               Star Odd Circle
             </label>
+            <!-- Max rectilinear even cycle -->
             <label>
               <input type="radio" name="layoutOption" value="maxRectilinearCircle">
               Max Rectilinear Even Circle
             </label>
+            <!-- Even Circle Thrackle-->
             <label>
               <input type="radio" name="layoutOption" value="thrackleEvenCircle">
               Even Circle Thrackle 
             </label>
+            <!-- Circle with desired number of crossings-->
+            <label>
+              <input type="radio" name="layoutOption" value="circleGivenCrossings">
+              Circle
+            </label>
+            <div class="parameter" id="layout-param-circleGivenCrossings" style="display: none;">
+              <label for="numOfCrossingsCircle"> Desired Number of Crossings:</label>
+              <input type="number" id="numOfCrossingsCircle" name="numOfCrossingsCircle" min="0" value="0">
+            </div>
             <!-- Add the option for the new algorithm here
             <br>
             <label>

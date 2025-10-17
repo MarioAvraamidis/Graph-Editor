@@ -1,7 +1,7 @@
 import { createGraph } from "./graphCreator.js";
 import { Vertex } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
-import { circularPathDrawing, evenCircleThrackle, linearPathDrawing, maxRectilinearCircle, starDrawing } from "./layout.js";
+import { circleDrawing, circularPathDrawing, evenCircleThrackle, linearPathDrawing, maxRectilinearCircle, starDrawing } from "./layout.js";
 export class ModalsHandler {
     constructor(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector) {
         this.editLabelChanges = false;
@@ -258,6 +258,10 @@ export class ModalsHandler {
                 case "thrackleEvenCircle":
                     evenCircleThrackle(graph);
                     break;
+                case "circleGivenCrossings":
+                    paramValue = Number(formData.get("numOfCrossingsCircle"));
+                    circleDrawing(graph, paramValue);
+                    break;
                 /*case "newAlgorithm":
                     paramValue = Number(formData.get("newAlgorithmParameter"));
                     runNewAlgorithm(graph,paramValue);
@@ -267,6 +271,13 @@ export class ModalsHandler {
             myCanvasHandler.redraw();
             modal.style.display = "none";
         };
+        // ok btn when Enter
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && modal.style.display !== "none") {
+                e.preventDefault();
+                okBtn.click(); // trigger save buttton
+            }
+        });
         // Show/hide parameter fields depending on selected layout
         document.querySelectorAll("input[name='layoutOption']").forEach(radio => {
             radio.addEventListener("change", () => {
