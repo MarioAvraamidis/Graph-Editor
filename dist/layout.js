@@ -325,24 +325,35 @@ function oddCircleBetweenThrackles(graph, orderedVertices, ntone) {
     graph.removeBends(false);
     const len = graph.vertices.length;
     let temp = orderedVertices[0]; // temp vertex
+    // create an array with the vertices in their circular order on the star graph
     const circularOrdered = [];
     if (len % 2 === 0) {
         temp = graph.addNewVertex();
         circularOrdered.push(temp);
     }
-    // create an array with the vertices in their circular order on the star graph
-    let position = 2;
-    // add vertices 1,n,n-1,...,ntone+1
+    const middle = Math.ceil((len + ntone) / 2);
+    // add vertex 1
     circularOrdered.push(orderedVertices[0]);
-    for (let i = len; i >= ntone + 1; i--)
+    //for (let i=len;i>=ntone+1;i--)
+    //  circularOrdered.push(orderedVertices[i-1]);
+    // add vertices 1,n,n-1,...,middle+1
+    for (let i = len; i > middle; i--)
         circularOrdered.push(orderedVertices[i - 1]);
-    for (let i = 1; i < ntone; i++) {
-        circularOrdered.push(orderedVertices[position]);
-        position = (position + 2) % ntone;
-    }
+    // add odd vertices
+    for (let i = 3; i < ntone; i += 2)
+        circularOrdered.push(orderedVertices[i - 1]);
+    // vertices middle,middle-1,...,ntone+1
+    for (let i = middle; i > ntone; i--)
+        circularOrdered.push(orderedVertices[i - 1]);
+    // vertex ntone
+    circularOrdered.push(orderedVertices[ntone - 1]);
+    // add even vertices
+    for (let i = 2; i < ntone; i += 2)
+        circularOrdered.push(orderedVertices[i - 1]);
     graph.makeCircle(0, 0, 250, circularOrdered);
     if (len % 2 === 0)
         graph.deleteVertex(temp);
+    return circularOrdered;
 }
 export function maxRectilinearCircle(graph) {
     const circle = checkCircle(graph);
@@ -386,14 +397,116 @@ export function circleDrawing(graph, crossings) {
         showCustomAlert("The graph is not circle.");
     else if (crossings < 0 || crossings > graph.thrackleNumber())
         showCustomAlert("Desired number of crossings out of bounds.");
+    else if (graph.vertices.length === 4) {
+        if (crossings === 2)
+            showCustomAlert("Thrackle for C4 doesn't exist");
+        else {
+            graph.makeCircle(0, 0, 250, circle.orderedVertices);
+            graph.swapPoints(circle.orderedVertices[0], circle.orderedVertices[1]);
+        }
+    }
+    else if (crossings <= 2) {
+        graph.makeCircle(0, 0, 250, circle.orderedVertices);
+        if (crossings > 0)
+            graph.swapPoints(circle.orderedVertices[0], circle.orderedVertices[2]);
+        if (crossings > 1)
+            graph.swapPoints(circle.orderedVertices[0], circle.orderedVertices[1]);
+    }
     else {
         const ntone = Math.ceil((3 + Math.sqrt(9 + 8 * crossings)) / 2);
+        const radius = 250;
+        let circularOrdered;
+        // colors
+        const colors = document.getElementById("change-colors-in-layout");
+        if (colors.checked)
+            graph.edges.forEach(e => e.color = "#878787");
         // console.log("ntone:",ntone);
-        if (ntone % 2 === 0)
-            betweenEvenCircleThrackles(graph, circle.orderedVertices, ntone);
-        else
-            oddCircleBetweenThrackles(graph, circle.orderedVertices, ntone);
+        let dx = ntone * (ntone - 3) / 2 - crossings;
+        let first, second;
+        if (ntone % 2 === 0) {
+            circularOrdered = betweenEvenCircleThrackles(graph, circle.orderedVertices, ntone);
+            first = circle.orderedVertices[1];
+            second = circle.orderedVertices[2];
+        }
+        else {
+            circularOrdered = oddCircleBetweenThrackles(graph, circle.orderedVertices, ntone);
+            first = circle.orderedVertices[2];
+            second = circle.orderedVertices[1];
+        }
+        if (dx % 2 === 1) {
+            dx -= 1;
+        }
+        if (dx > 0)
+            reduceCrossings(graph, ntone, dx, first, second, circularOrdered, radius);
     }
+}
+function findAngle(dy, dx) {
+    let angle = Math.atan(dy / dx);
+    if (dx > 0)
+        angle -= Math.PI;
+    return angle;
+}
+// dx should be even
+function reduceCrossings(graph, ntone, dx, first, second, circularOrdered, radius) {
+    const len = graph.vertices.length;
+    const positions = len + 1 - len % 2;
+    // const v2: Vertex = orderedVertices[1];
+    // const v3: Vertex = orderedVertices[2];
+    const edge23 = graph.getEdgeByVertices(first, second);
+    // angle 
+    let angle = findAngle(first.y, first.x) - 3 * Math.PI / 4;
+    const dist = 1.45 * radius;
+    // 1st bend
+    let coords1 = { x: dist * Math.cos(angle), y: dist * Math.sin(angle) };
+    if (ntone % 2 === 0) {
+        let pos2 = circularOrdered.indexOf(first);
+        let next = circularOrdered[pos2 + 1];
+        let distt = Math.sqrt(Math.pow((first.x / 2 - next.x / 2), 2) + Math.pow((first.y - next.y), 2));
+        coords1 = extendPoints(first.x, first.y, (next.x + first.x) / 2, next.y, distt);
+        let ratio = Math.abs(0.9 * (dist + first.y) / (first.y - coords1.y));
+        coords1 = extendPoints(first.x, first.y, coords1.x, coords1.y, distt * ratio);
+    }
+    let coords2 = coords1;
+    // 2nd bend
+    const limit = ntone - 4 + ntone % 2;
+    // console.log("dx =",dx);
+    if (dx === limit) {
+        if (ntone % 2 === 1) {
+            let angle = findAngle(second.y, second.x) + 3 * Math.PI / 4;
+            coords2 = { x: dist * Math.cos(angle), y: dist * Math.sin(angle) };
+        }
+        else if (len > 6) {
+            const pos3 = circularOrdered.indexOf(second); // position of v3
+            const prev = circularOrdered[pos3 - 1];
+            const prevprev = circularOrdered[pos3 - 2];
+            let dx = prev.x - prevprev.x;
+            let dy = prev.y - prevprev.y;
+            coords2 = { x: prevprev.x + dx / 3, y: prevprev.y + dy / 3 };
+            const ratio = (second.y - coords1.y) / (second.y - coords2.y);
+            coords2.x = second.x - ratio * (second.x - coords2.x);
+            coords2.y = coords1.y;
+        }
+    }
+    else {
+        const posFirst = circularOrdered.indexOf(first);
+        const bet = dx / 2;
+        coords2 = { x: (circularOrdered[posFirst + bet].x + circularOrdered[posFirst + bet + 1].x) / 2, y: (circularOrdered[posFirst + bet].y + circularOrdered[posFirst + bet + 1].y) / 2 };
+        if (2 * dx >= len - 1) {
+            if (ntone % 2 === 0) {
+                const ratio = (second.y - coords1.y) / (second.y - coords2.y);
+                const dist = Math.sqrt(Math.pow((second.x - coords2.x), 2) + Math.pow((second.y - coords2.y), 2));
+                coords2 = extendPoints(second.x, second.y, coords2.x, coords2.y, ratio * dist);
+            }
+            else {
+                let angle = findAngle(second.y, second.x) + 3 * Math.PI / 4;
+                let coords3 = { x: dist * Math.cos(angle), y: dist * Math.sin(angle) };
+                coords2 = lineIntersection(coords1.x, coords1.y, coords3.x, coords3.y, second.x, second.y, coords2.x, coords2.y);
+            }
+        }
+    }
+    addBendsToEdge(edge23, [coords1, coords2], first);
+    graph.updateCrossingsByEdge(edge23);
+    graph.updateCurveComplexity();
 }
 function betweenEvenCircleThrackles(graph, orderedVertices, ntone = graph.vertices.length) {
     graph.removeBends(false);
@@ -443,6 +556,7 @@ function betweenEvenCircleThrackles(graph, orderedVertices, ntone = graph.vertic
     }
     // add bends
     evenCircleThrackleBends(graph, vert, ntone, radius);
+    return circularOrdered;
 }
 function evenCircleThrackleBends(graph, orderedVertices, ntone, radius) {
     graph.removeBends(false);
@@ -507,7 +621,7 @@ function evenCircleThrackleBends(graph, orderedVertices, ntone, radius) {
     // highlight bended edges
     const colors = document.getElementById("change-colors-in-layout");
     if (colors.checked) {
-        graph.edges.forEach(e => e.color = "#878787");
+        // graph.edges.forEach(e => e.color = "#878787")
         edge12.color = "#13fb3a";
         edge34.color = "blue";
         edgeN.color = "red";
@@ -544,6 +658,21 @@ function extendPoints(x1, y1, x2, y2, d) {
     const angle = Math.abs(Math.atan(dy / dx));
     // console.log("angle = ",angle);
     return { x: x1 + d * Math.cos(angle) * Math.sign(x2 - x1), y: y1 + d * Math.sin(angle) * Math.sign(y2 - y1) };
+}
+function lineIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
+    // Compute the determinant
+    const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    /*if (Math.abs(denom) < 1e-10) {
+      // Lines are parallel or coincident
+      return null;
+    }*/
+    const px = ((x1 * y2 - y1 * x2) * (x3 - x4) -
+        (x1 - x2) * (x3 * y4 - y3 * x4)) /
+        denom;
+    const py = ((x1 * y2 - y1 * x2) * (y3 - y4) -
+        (y1 - y2) * (x3 * y4 - y3 * x4)) /
+        denom;
+    return { x: px, y: py };
 }
 export function evenCircleThrackle(graph) {
     const circle = checkCircle(graph);
