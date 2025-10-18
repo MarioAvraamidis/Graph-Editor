@@ -293,11 +293,44 @@ export class ModalsHandler {
                     paramDiv.style.display = "block";
             });
         });
+        this.enableSelectableTooltips();
         // Close modal if clicking outside
         /*window.onclick = (e) => {
             if (e.target === modal) {
                 modal.style.display = "none";
             }
         };*/
+    }
+    // Attach selectable tooltips to all elements with .info-icon
+    enableSelectableTooltips() {
+        const tooltip = document.createElement("div");
+        tooltip.className = "info-tooltip";
+        document.body.appendChild(tooltip);
+        const icons = document.querySelectorAll(".info-icon");
+        icons.forEach(icon => {
+            icon.addEventListener("mouseenter", e => {
+                const target = e.currentTarget;
+                tooltip.textContent = target.dataset.tooltip || "";
+                tooltip.style.display = "block";
+                const rect = target.getBoundingClientRect();
+                tooltip.style.left = `${rect.left + window.scrollX + rect.width / 2}px`;
+                tooltip.style.top = `${rect.top + window.scrollY - tooltip.offsetHeight - 8}px`;
+            });
+            icon.addEventListener("mousemove", e => {
+                // tooltip.style.left = `${e.pageX + 10}px`;
+                // tooltip.style.top = `${e.pageY + 10}px`;
+            });
+            // Only hide when not hovering the tooltip itself
+            icon.addEventListener("mouseleave", () => {
+                // Delay so user can move mouse from icon → tooltip
+                setTimeout(() => {
+                    if (!tooltip.matches(":hover"))
+                        tooltip.style.display = "none";
+                }, 150);
+            });
+        });
+        tooltip.addEventListener("mouseleave", () => {
+            tooltip.style.display = "none";
+        });
     }
 }

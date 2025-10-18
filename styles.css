@@ -741,6 +741,22 @@ label[for="vertex-show-labels"] {
     transition: background-color 0.2s ease;
 }
 
+.info-tooltip {
+  position: absolute;
+  background: #333;
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  max-width: 250px;
+  z-index: 1000;
+  pointer-events: auto;
+  user-select: text; /* ✅ allow selecting and copying */
+  white-space: normal;
+  display: none;
+}
+
+
 .parameter {
   margin-left: 20px;
   margin-bottom: 10px;
