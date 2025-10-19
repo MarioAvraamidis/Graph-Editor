@@ -1,7 +1,8 @@
 import { createGraph } from "./graphCreator.js";
 import { Vertex } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
-import { circleDrawing, circularPathDrawing, evenCircleThrackle, linearPathDrawing, maxRectilinearCircle, starDrawing } from "./layout.js";
+import { circularPathDrawing, linearPathDrawing } from "./layout.js";
+import { circleDrawing, evenCircleThrackle, maxRectilinearCircle, starDrawing } from "./layoutCircles.js";
 export class ModalsHandler {
     constructor(graph, myCanvasHandler, stateHandler, hover, settingsOptions, selector) {
         this.editLabelChanges = false;

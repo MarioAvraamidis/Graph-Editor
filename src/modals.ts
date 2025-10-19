@@ -6,7 +6,8 @@ import { StateHandler } from "./stateHandler.js";
 import { createGraph } from "./graphCreator.js";
 import { Edge, Point, Vertex } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
-import { circleDrawing, circularPathDrawing, evenCircleThrackle, linearPathDrawing, maxRectilinearCircle, starDrawing } from "./layout.js";
+import {  circularPathDrawing,  linearPathDrawing } from "./layout.js";
+import { circleDrawing, evenCircleThrackle, maxRectilinearCircle, starDrawing } from "./layoutCircles.js"
 
 export class ModalsHandler
 {
