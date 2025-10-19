@@ -147,11 +147,13 @@ export function circleDrawing(graph, crossings) {
         if (crossings === 2)
             showCustomAlert("Thrackle for C4 doesn't exist");
         else {
+            graph.removeBends();
             graph.makeCircle(0, 0, 250, circle.orderedVertices);
             graph.swapPoints(circle.orderedVertices[0], circle.orderedVertices[1]);
         }
     }
     else if (crossings <= 2) {
+        graph.removeBends();
         graph.makeCircle(0, 0, 250, circle.orderedVertices);
         if (crossings > 0)
             graph.swapPoints(circle.orderedVertices[0], circle.orderedVertices[2]);
@@ -161,9 +163,8 @@ export function circleDrawing(graph, crossings) {
     else if (crossings === 6 || crossings === 8) {
         const radius = 250;
         let circularOrdered = drawWith6crossings(graph, circle.orderedVertices, radius);
-        if (crossings === 8) {
+        if (crossings === 8)
             edgeAroundNextVertex(graph, circle.orderedVertices[2], circle.orderedVertices[3], circularOrdered, radius);
-        }
     }
     else {
         const ntone = Math.ceil((3 + Math.sqrt(9 + 8 * crossings)) / 2);
@@ -181,7 +182,7 @@ export function circleDrawing(graph, crossings) {
             first = circle.orderedVertices[1];
             second = circle.orderedVertices[2];
         }
-        else if (ntone % 2 === 1) {
+        else {
             circularOrdered = oddCircleBetweenThrackles(graph, circle.orderedVertices, ntone);
             first = circle.orderedVertices[2];
             second = circle.orderedVertices[1];
@@ -224,6 +225,7 @@ function continuousSwap(graph, circularOrdered, first, second) {
     circularOrdered[pos1 + 1] = first;
 }
 function drawWith6crossings(graph, orderedVertices, radius) {
+    graph.removeBends();
     const ntone = 6;
     const circularOrdered = [];
     const len = graph.vertices.length;
