@@ -213,7 +213,7 @@ function addBends(graph, usedVertices, xDist) {
  * @param graph
  * @returns
  */
-function checkPath(graph) {
+export function checkPath(graph) {
     const vertices = graph.vertices;
     let isPath = true;
     let current = null;

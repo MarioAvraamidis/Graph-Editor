@@ -1,5 +1,5 @@
 import { showCustomAlert } from "./alert.js";
-function checkCircle(graph) {
+export function checkCircle(graph) {
     const vertices = graph.vertices;
     let isCircle = true;
     let orderedVertices = [];
@@ -149,7 +149,8 @@ export function circleDrawing(graph, crossings) {
         else {
             graph.removeBends();
             graph.makeCircle(0, 0, 250, circle.orderedVertices);
-            graph.swapPoints(circle.orderedVertices[0], circle.orderedVertices[1]);
+            if (crossings === 1)
+                graph.swapPoints(circle.orderedVertices[0], circle.orderedVertices[1]);
         }
     }
     else if (crossings <= 2) {
@@ -191,7 +192,10 @@ export function circleDrawing(graph, crossings) {
             if (ntone > 6) {
                 continuousSwap(graph, circularOrdered, circle.orderedVertices[3], circle.orderedVertices[5]); // swap vertices 4 and 6
                 if (dx === 1) {
-                    edgeAroundVertex(graph, circle.orderedVertices[5], circle.orderedVertices[6], circle.orderedVertices[3], circularOrdered, radius);
+                    if (ntone > 15)
+                        edgeAroundVertex(graph, circle.orderedVertices[5], circle.orderedVertices[6], circle.orderedVertices[3], circularOrdered, radius);
+                    else
+                        edgeAroundNextVertex(graph, circle.orderedVertices[6], circle.orderedVertices[5], circularOrdered, radius);
                     dx -= 1;
                 }
                 else
@@ -290,7 +294,7 @@ function edgeAroundVertex(graph, v6, v7, v4, circularOrdered, radius) {
     let coords3 = pointAtRatio(v6.x, v6.y, before6.x, before6.y, 2 / 3);
     // let dist = Math.sqrt((v7.x-coords3.x)**2+(v7.y-coords3.y)**2);
     // coords3 = extendPoints(v7.x,v7.y,midBefore6.x,midBefore6.y,dist*1.01);
-    addBendsToEdge(edge67, [coords1, coords2, coords3], v6);
+    addBendsToEdge(graph, edge67, [coords1, coords2, coords3], v6);
     graph.updateCrossingsByEdge(edge67);
     graph.updateCurveComplexity();
 }
@@ -310,7 +314,7 @@ function edge45aroundV2(graph, orderedVertices, circularOrdered, radius) {
     coords1 = extendPoints(0, 0, coords1.x, coords1.y, radius);
     let coords2 = extendPoints(0, 0, v2.x, v2.y, radius * 1.2);
     let coords3 = extendPoints(0, 0, v4.x, v4.y, radius * 1.2);
-    addBendsToEdge(edge45, [coords1, coords2, coords3], v4);
+    addBendsToEdge(graph, edge45, [coords1, coords2, coords3], v4);
     graph.updateCrossingsByEdge(edge45);
     graph.updateCurveComplexity();
 }
@@ -328,7 +332,7 @@ function edgeAroundNextVertex(graph, first, second, circularOrdered, radius) {
     coords1 = extendPoints(0, 0, coords1.x, coords1.y, radius);
     let coords2 = extendPoints(0, 0, after.x, after.y, radius * 1.2);
     let coords3 = extendPoints(0, 0, second.x, second.y, radius * 1.2);
-    addBendsToEdge(edge, [coords1, coords2, coords3], second);
+    addBendsToEdge(graph, edge, [coords1, coords2, coords3], second);
     graph.updateCrossingsByEdge(edge);
     graph.updateCurveComplexity();
 }
@@ -393,7 +397,7 @@ function reduceCrossings(graph, ntone, dx, first, second, circularOrdered, radiu
             }
         }
     }
-    addBendsToEdge(edge23, [coords1, coords2], first);
+    addBendsToEdge(graph, edge23, [coords1, coords2], first);
     // if (ntone%2 === 0)
     // evenCircleThrackleBends(graph,ordered)
     graph.updateCrossingsByEdge(edge23);
@@ -475,7 +479,7 @@ function evenCircleThrackleBends(graph, orderedVertices, ntone, radius) {
     let coords2 = { x: coords3.x, y: coords1.y };
     if (ntone === 6) // && graph.vertices.length === 6
         coords3.y = v4.y;
-    addBendsToEdge(edge34, [coords1, coords2, coords3], v3);
+    addBendsToEdge(graph, edge34, [coords1, coords2, coords3], v3);
     // edge 1-2 bends
     const edge12 = graph.getEdgeByVertices(v1, v2);
     const x12 = 1.3 * radius;
@@ -489,7 +493,7 @@ function evenCircleThrackleBends(graph, orderedVertices, ntone, radius) {
     coords3 = { x: v2.x, y: coords2.y };
     if (ntone === 6 && graph.vertices.length === 6)
         coords1.y = v1.y;
-    addBendsToEdge(edge12, [coords1, coords2, coords3], v1);
+    addBendsToEdge(graph, edge12, [coords1, coords2, coords3], v1);
     // edge (n-2,n-1) bends
     const edgeN = graph.getEdgeByVertices(v_n_1, v_n);
     const xn = -1.5 * radius;
@@ -506,9 +510,9 @@ function evenCircleThrackleBends(graph, orderedVertices, ntone, radius) {
         //coords1.y -= radius;
         coords1.y = Math.max(coords2.y - radius / 2, coords1.y - radius);
     if (coords1.y > coords2.y)
-        addBendsToEdge(edgeN, [coords1, coords3], v_n_1);
+        addBendsToEdge(graph, edgeN, [coords1, coords3], v_n_1);
     else
-        addBendsToEdge(edgeN, [coords1, coords2, coords3], v_n_1);
+        addBendsToEdge(graph, edgeN, [coords1, coords2, coords3], v_n_1);
     // highlight bended edges
     const colors = document.getElementById("change-colors-in-layout");
     if (colors.checked) {
@@ -524,14 +528,17 @@ function evenCircleThrackleBends(graph, orderedVertices, ntone, radius) {
  * Add bends to the given edge at the given points
  * IMPORTANT: update graph's curve complexity when calling this function
  */
-function addBendsToEdge(edge, points, firstVertex) {
+export function addBendsToEdge(graph, edge, points, firstVertex) {
     if (edge.points[0] === firstVertex)
         for (const p of points)
-            edge.addBend(p.x, p.y, false);
-    // graph.addBend(firstVertex,edge.points[1] as Vertex,p.x,p.y,false,false); Proper command using graph's methods
+            // edge.addBend(p.x,p.y,false);
+            graph.addBend(firstVertex, edge.points[1], p.x, p.y, false, false); //  Proper command using graph's methods
     else
         for (let i = points.length - 1; i >= 0; i--)
-            edge.addBend(points[i].x, points[i].y, false);
+            // edge.addBend(points[i].x,points[i].y,false);
+            graph.addBend(firstVertex, edge.points[0], points[i].x, points[i].y, false, false);
+    // update crossings
+    graph.updateCrossingsByEdge(edge);
 }
 /**
  * Starting from (x1,y1), draw a line that passes through (x2,y2) and return the point at distance d from (x1,y1)

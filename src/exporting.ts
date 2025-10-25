@@ -4,6 +4,7 @@ import { Label } from "./labels.js";
 
 function serializeLabel(label: Label) {
   return {
+    content: label.content,
     showLabel: label.showLabel,
     offsetX: label.offsetX,
     offsetY: label.offsetY,

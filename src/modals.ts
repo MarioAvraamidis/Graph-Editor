@@ -8,6 +8,7 @@ import { Edge, Point, Vertex } from "./graphElements.js";
 import { showCustomAlert } from "./alert.js";
 import {  circularPathDrawing,  linearPathDrawing } from "./layout.js";
 import { circleDrawing, evenCircleThrackle, maxRectilinearCircle, starDrawing } from "./layoutCircles.js"
+import { circleLinearPlacement } from "./circleLayoutCC2.js";
 
 export class ModalsHandler
 {
@@ -310,13 +311,18 @@ export class ModalsHandler
                 case "maxRectilinearCircle":
                     maxRectilinearCircle(graph);
                 break;
-                case "thrackleEvenCircle":
-                    evenCircleThrackle(graph);
-                break;
                 case "circleGivenCrossings":
                     paramValue = Number(formData.get("numOfCrossingsCircle"));
                     circleDrawing(graph,paramValue);
                 break;
+                case "linearPlacement":
+                    // paramValue = Number(formData.get("linearPlacementCrossings"));
+                    circleLinearPlacement(graph/*,paramValue*/);
+                break;
+                /*
+                case "thrackleEvenCircle":
+                    evenCircleThrackle(graph);
+                break; */
                 /*case "newAlgorithm":
                     paramValue = Number(formData.get("newAlgorithmParameter"));
                     runNewAlgorithm(graph,paramValue);

@@ -11,6 +11,7 @@ import { Graph } from "./graph.js";
 import { Vertex } from "./graphElements.js";
 function serializeLabel(label) {
     return {
+        content: label.content,
         showLabel: label.showLabel,
         offsetX: label.offsetX,
         offsetY: label.offsetY,
