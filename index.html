@@ -24,6 +24,7 @@
 
       <div id="left-column" >
 
+
         <div class="overlay-wrapper">
           <button id="overlayUpdateBtn" class="overlay-btn">Update</button>
           <button id="overlaySwitchBtn" class="overlay-btn">Switch Graphs</button>
@@ -67,6 +68,8 @@
           </div>
 
         </div>
+
+        <button id="manualButton" class="manual-btn">📘 User Manual</button>
 
         <div id="output">
           <h3>Report</h3>
@@ -429,76 +432,89 @@
         <div class="modal-content">
           <h2>Layout</h2>
 
-          <form id="layoutOptionsForm">
-            <!-- Linear Path -->
-            <label>
-              <input type="radio" name="layoutOption" value="linearPath" required>
-              Linear Path
-              <span class="info-icon" data-tooltip="Giuseppe Di Battista, Giuseppe Liotta, Maurizio Patrignani, Antonios Symvonis, Ioannis
- G. Tollis, Tangling and Untangling Trees on Point-sets">ℹ️</span>
-            </label>
-            <div class="parameter" id="layout-param-linearPath" style="display: none;">
-              <label for="numOfCrossingsLinearPath">Desired number of crossings:</label>
-              <input type="number" id="numOfCrossingsLinearPath" name="numOfCrossingsLinearPath" min="0" value="0">
-            </div>
-            <!-- <br> -->
-            <!-- Circular Path -->
-            <label>
-              <input type="radio" name="layoutOption" value="circularPath">
-              Circlular Path
-              <span class="info-icon" data-tooltip="Giuseppe Di Battista, Giuseppe Liotta, Maurizio Patrignani, Antonios Symvonis, Ioannis
- G. Tollis, Tangling and Untangling Trees on Point-sets">ℹ️</span>
-            </label>
-            <div class="parameter" id="layout-param-circularPath" style="display: none;">
-              <label for="numOfCrossingsCircularPath">Desired number of crossings:</label>
-              <input type="number" id="numOfCrossingsCircularPath" name="numOfCrossingsCircularPath" min="0" value="0">
-            </div>
-            <!-- Max rectilinear even cycle -->
-            <label>
-              <input type="radio" name="layoutOption" value="maxRectilinearCircle">
-              Max Rectilinear Even Circle
-              <span class="info-icon" data-tooltip="H. Furry and D. J. Kleitman, Maximal rectilinear crossing of cycles, Studies in
- Applied Mathematics, 56(2):159–167, 1977">ℹ️</span>
-            </label>
-            <!-- Star circle -->
-            <!-- <label>
-              <input type="radio" name="layoutOption" value="starCircle">
-              Star Odd Circle
-            </label> -->
-            <!-- Even Circle Thrackle-->
-            <!-- <label>
-              <input type="radio" name="layoutOption" value="thrackleEvenCircle">
-              Even Circle Thrackle 
-            </label> -->
-            <!-- Circle with desired number of crossings-->
-            <label>
-              <input type="radio" name="layoutOption" value="circleGivenCrossings">
-              Circle
-            </label>
-            <div class="parameter" id="layout-param-circleGivenCrossings" style="display: none;">
-              <label for="numOfCrossingsCircle"> Desired Number of Crossings:</label>
-              <input type="number" id="numOfCrossingsCircle" name="numOfCrossingsCircle" min="0" value="0">
-            </div>
-            <label>
-              <input type="radio" name="layoutOption" value="linearPlacement">
-              Thrackle with cc=2
-            </label>
-            <!-- <div class="parameter" id="layout-param-linearPlacement" style="display: none;">
-              <label for="linearPlacementCrossings"> Desired Number of Crossings:</label>
-              <input type="number" id="linearPlacementCrossings" name="linearPlacementCrossings" min="0" value="0">
-            </div> -->
-            <!-- Add the option for the new algorithm here
-            <br>
-            <label>
-              <input type="radio" name="layoutOption" value="newAlgorithm">
-              New Algorithm
-              <span class="info-icon" data-tooltip="paste reference here">ℹ️</span>
-            </label>
-            <div class="parameter" id="layout-param-newAlgorithm" style="display: none;">
-              <label for="newAlgorithmParameter">Desired number of crossings:</label>
-              <input type="number" id="newAlgorithmParameter" name="newAlgorithmParameter" min="0" value="0">
-            </div>
-            -->
+          <!-- ===== PATH OPTIONS ===== -->
+          <fieldset class="layout-section">
+            <legend>Path</legend>
+
+            <form id="layoutOptionsForm">
+              <!-- Linear Path -->
+              <label>
+                <input type="radio" name="layoutOption" value="linearPath" required>
+                Linear layout (cc=1)
+                <span class="info-icon" data-tooltip="Giuseppe Di Battista, Giuseppe Liotta, Maurizio Patrignani, Antonios Symvonis, Ioannis
+  G. Tollis, Tangling and Untangling Trees on Point-sets, 2025">ℹ️</span>
+              </label>
+              <div class="parameter" id="layout-param-linearPath" style="display: none;">
+                <label for="numOfCrossingsLinearPath">Desired number of crossings:</label>
+                <input type="number" id="numOfCrossingsLinearPath" name="numOfCrossingsLinearPath" min="0" value="0">
+              </div>
+              <!-- <br> -->
+              <!-- Circular Path -->
+              <label>
+                <input type="radio" name="layoutOption" value="circularPath">
+                Circlular Layout (cc=0)
+                <span class="info-icon" data-tooltip="Giuseppe Di Battista, Giuseppe Liotta, Maurizio Patrignani, Antonios Symvonis, Ioannis
+  G. Tollis, Tangling and Untangling Trees on Point-sets, 2025">ℹ️</span>
+              </label>
+              <div class="parameter" id="layout-param-circularPath" style="display: none;">
+                <label for="numOfCrossingsCircularPath">Desired number of crossings:</label>
+                <input type="number" id="numOfCrossingsCircularPath" name="numOfCrossingsCircularPath" min="0" value="0">
+              </div>
+            </fieldset>
+
+            <!-- ===== CIRCLE OPTIONS ===== -->
+            <fieldset class="layout-section">
+              <legend>Circle</legend>
+
+              <!-- Max rectilinear even cycle -->
+              <label>
+                <input type="radio" name="layoutOption" value="maxRectilinearCircle">
+                Max Rectilinear Layout
+                <span class="info-icon" data-tooltip="H. Furry and D. J. Kleitman, Maximal rectilinear crossing of cycles, Studies in
+  Applied Mathematics, 56(2):159–167, 1977">ℹ️</span>
+              </label>
+              <!-- Star circle -->
+              <!-- <label>
+                <input type="radio" name="layoutOption" value="starCircle">
+                Star Odd Circle
+              </label> -->
+              <!-- Even Circle Thrackle-->
+              <!-- <label>
+                <input type="radio" name="layoutOption" value="thrackleEvenCircle">
+                Even Circle Thrackle 
+              </label> -->
+              <!-- Circle with desired number of crossings-->
+              <label>
+                <input type="radio" name="layoutOption" value="circleGivenCrossings">
+                Circular Layout (cc=3)
+                <span class="info-icon" data-tooltip="Marios Avraamidis, diploma thesis, 2025">ℹ️</span>
+              </label>
+              <div class="parameter" id="layout-param-circleGivenCrossings" style="display: none;">
+                <label for="numOfCrossingsCircle"> Desired Number of Crossings:</label>
+                <input type="number" id="numOfCrossingsCircle" name="numOfCrossingsCircle" min="0" value="0">
+              </div>
+              <label>
+                <input type="radio" name="layoutOption" value="linearPlacement">
+                Thrackle with cc=2
+                <span class="info-icon" data-tooltip="Marios Avraamidis, diploma thesis, 2025">ℹ️</span>
+              </label>
+              <!-- <div class="parameter" id="layout-param-linearPlacement" style="display: none;">
+                <label for="linearPlacementCrossings"> Desired Number of Crossings:</label>
+                <input type="number" id="linearPlacementCrossings" name="linearPlacementCrossings" min="0" value="0">
+              </div> -->
+              <!-- Add the option for the new algorithm here
+              <br>
+              <label>
+                <input type="radio" name="layoutOption" value="newAlgorithm">
+                New Algorithm
+                <span class="info-icon" data-tooltip="paste reference here">ℹ️</span>
+              </label>
+              <div class="parameter" id="layout-param-newAlgorithm" style="display: none;">
+                <label for="newAlgorithmParameter">Desired number of crossings:</label>
+                <input type="number" id="newAlgorithmParameter" name="newAlgorithmParameter" min="0" value="0">
+              </div>
+              -->
+            </fieldset>
           </form>
 
           <div class="modal-actions">

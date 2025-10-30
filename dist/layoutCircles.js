@@ -106,7 +106,7 @@ export function maxRectilinearCircle(graph) {
     if (!circle.isCircle)
         showCustomAlert("The graph is not circle.");
     else if (graph.vertices.length % 2 === 1)
-        showCustomAlert("The circle is not even.");
+        starDrawing(graph);
     else {
         graph.removeBends(false);
         const len = graph.vertices.length;

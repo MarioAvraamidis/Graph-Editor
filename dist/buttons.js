@@ -79,21 +79,25 @@ export class BtnHandler {
         });
     }
     addButtonsEventListeners(graph) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+        // User manual button
+        (_a = document.getElementById("manualButton")) === null || _a === void 0 ? void 0 : _a.addEventListener("click", () => {
+            window.open("assets/manual.pdf", "_blank");
+        });
         // Undo button
-        (_a = document.getElementById("undo-button")) === null || _a === void 0 ? void 0 : _a.addEventListener("click", () => {
+        (_b = document.getElementById("undo-button")) === null || _b === void 0 ? void 0 : _b.addEventListener("click", () => {
             // console.log("Undo Btn");
             this.undo(graph);
         });
         // Redo button
-        (_b = document.getElementById("redo-button")) === null || _b === void 0 ? void 0 : _b.addEventListener("click", () => {
+        (_c = document.getElementById("redo-button")) === null || _c === void 0 ? void 0 : _c.addEventListener("click", () => {
             this.redo(graph);
         });
         // Place vertices in a circle (also remove all the bends)
-        (_c = document.getElementById("circle-placement")) === null || _c === void 0 ? void 0 : _c.addEventListener("click", () => {
+        (_d = document.getElementById("circle-placement")) === null || _d === void 0 ? void 0 : _d.addEventListener("click", () => {
             var _a;
             this.stateHandler.saveState();
-            graph.removeBends(false); // don't update crossings here, but below
+            // graph.removeBends(false);   // don't update crossings here, but below
             if (this.myCanvasHandler.ctx)
                 graph.makeCircle(0, 0, Math.min(this.myCanvasHandler.ctx.canvas.height, this.myCanvasHandler.ctx.canvas.width) / 3, this.selector.vertices);
             // renderGraph();
@@ -101,7 +105,7 @@ export class BtnHandler {
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });
         // make the graph (or the group of selected vertices) clique
-        (_d = document.getElementById("make-clique")) === null || _d === void 0 ? void 0 : _d.addEventListener("click", () => {
+        (_e = document.getElementById("make-clique")) === null || _e === void 0 ? void 0 : _e.addEventListener("click", () => {
             var _a;
             this.stateHandler.saveState();
             graph.addAllEdges(this.selector.vertices, this.settingsOptions.cliqueNewEdgesColor);
@@ -109,7 +113,7 @@ export class BtnHandler {
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });
         // swap the 2 selected points of the graph
-        (_e = document.getElementById("swap-points-btn")) === null || _e === void 0 ? void 0 : _e.addEventListener("click", () => {
+        (_f = document.getElementById("swap-points-btn")) === null || _f === void 0 ? void 0 : _f.addEventListener("click", () => {
             if (this.selector.points.length === 2) {
                 this.stateHandler.saveState();
                 graph.swapPoints(this.selector.points[0], this.selector.points[1]);
@@ -126,7 +130,7 @@ export class BtnHandler {
             this.myCanvasHandler?.redraw();
         });*/
         // make the graph straight line
-        (_f = document.getElementById("clear-bends")) === null || _f === void 0 ? void 0 : _f.addEventListener("click", () => {
+        (_g = document.getElementById("clear-bends")) === null || _g === void 0 ? void 0 : _g.addEventListener("click", () => {
             var _a;
             this.stateHandler.saveState();
             graph.removeBends();
@@ -134,13 +138,13 @@ export class BtnHandler {
             (_a = this.myCanvasHandler) === null || _a === void 0 ? void 0 : _a.redraw();
         });
         // set up listener for fix view
-        (_g = document.getElementById('fix-view')) === null || _g === void 0 ? void 0 : _g.addEventListener('click', () => this.myCanvasHandler.fixView(this.selector));
+        (_h = document.getElementById('fix-view')) === null || _h === void 0 ? void 0 : _h.addEventListener('click', () => this.myCanvasHandler.fixView(this.selector));
         // listener for reset view in CanvasHandler.ts
-        (_h = document.getElementById('resetViewButton')) === null || _h === void 0 ? void 0 : _h.addEventListener('click', () => this.myCanvasHandler.resetView());
-        (_j = document.getElementById("export-json-btn")) === null || _j === void 0 ? void 0 : _j.addEventListener("click", () => {
+        (_j = document.getElementById('resetViewButton')) === null || _j === void 0 ? void 0 : _j.addEventListener('click', () => this.myCanvasHandler.resetView());
+        (_k = document.getElementById("export-json-btn")) === null || _k === void 0 ? void 0 : _k.addEventListener("click", () => {
             exportJSON(graph);
         });
-        (_k = document.getElementById("export-image")) === null || _k === void 0 ? void 0 : _k.addEventListener("click", () => {
+        (_l = document.getElementById("export-image")) === null || _l === void 0 ? void 0 : _l.addEventListener("click", () => {
             if (this.myCanvasHandler.ctx) {
                 // drawGraph(this.myCanvasHandler.ctx,this.graph,true,false);
                 if (document.getElementById("include-report-in-export").checked)
@@ -158,7 +162,7 @@ export class BtnHandler {
             // const includeReport = (document.getElementById("include-report-in-export") as HTMLInputElement).checked;
             // exportCanvasAsPdfWithReport(this.myCanvasHandler.canvas,graph.report(),includeReport);
         });
-        (_l = document.getElementById("import-input")) === null || _l === void 0 ? void 0 : _l.addEventListener("change", (e) => __awaiter(this, void 0, void 0, function* () {
+        (_m = document.getElementById("import-input")) === null || _m === void 0 ? void 0 : _m.addEventListener("change", (e) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             const input = e.target;
             if (!input.files || input.files.length === 0)

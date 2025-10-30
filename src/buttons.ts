@@ -99,6 +99,11 @@ export class BtnHandler
 
     private addButtonsEventListeners(graph: Graph)
     {
+        // User manual button
+        document.getElementById("manualButton")?.addEventListener("click", () => {
+            window.open("assets/manual.pdf", "_blank");
+        });
+
         // Undo button
         document.getElementById("undo-button")?.addEventListener("click", () => {
             // console.log("Undo Btn");
@@ -113,7 +118,7 @@ export class BtnHandler
         // Place vertices in a circle (also remove all the bends)
         document.getElementById("circle-placement")?.addEventListener("click", () => {
             this.stateHandler.saveState();
-            graph.removeBends(false);   // don't update crossings here, but below
+            // graph.removeBends(false);   // don't update crossings here, but below
             if (this.myCanvasHandler.ctx)
                 graph.makeCircle(0,0,Math.min(this.myCanvasHandler.ctx.canvas.height,this.myCanvasHandler.ctx.canvas.width)/3,this.selector.vertices);
             // renderGraph();
