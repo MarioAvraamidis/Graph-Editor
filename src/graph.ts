@@ -828,6 +828,8 @@ export class Graph {
         this.updateCrossings();
     }
 
+    onAction?: () => void; // optional callback reference
+
     // remove all the bends from the graph
     removeBends(updateCrossings: boolean = true)
     {
@@ -835,6 +837,8 @@ export class Graph {
             e.removeBends();
         if (updateCrossings)
             this.updateCrossings();
+        this._curve_complexity = 0;
+        this.onAction?.(); // call callback if defined
     }
 
     getBends()

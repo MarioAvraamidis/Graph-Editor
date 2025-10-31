@@ -99,6 +99,13 @@ export class Selector
         this.pointsUpdate();
     }
 
+    // remove all the bends from selected bends
+    public unselectBends()
+    {
+        this.bends.length = 0;
+        this.pointsUpdate();
+    }
+
     // deletion of selected edges
     public deleteSelectedEdges(graph: Graph)
     {

@@ -42,7 +42,7 @@ export class ModalsHandler {
         // settingsOptions
         this.settingsOptions = settingsOptions;
         this.addEventListeners(graph, myCanvasHandler, stateHandler, hover, selector);
-        this.activateLayoutModal(graph, stateHandler, myCanvasHandler);
+        this.activateLayoutModal(graph, stateHandler, myCanvasHandler, selector);
         this.hideAllModals();
     }
     addEventListeners(graph, myCanvasHandler, stateHandler, hover, selector) {
@@ -222,7 +222,7 @@ export class ModalsHandler {
         }
     }
     showNewGraphModal() { this.newGraphModal.style.display = 'flex'; }
-    activateLayoutModal(graph, stateHandler, myCanvasHandler) {
+    activateLayoutModal(graph, stateHandler, myCanvasHandler, selector) {
         const modal = document.getElementById("layoutModal");
         const openBtn = document.getElementById("layout-btn");
         const cancelBtn = document.getElementById("layoutCancelBtn");
@@ -301,6 +301,8 @@ export class ModalsHandler {
             });
         });
         this.enableSelectableTooltips();
+        // assign callback
+        graph.onAction = () => selector.unselectBends();
         // Close modal if clicking outside
         /*window.onclick = (e) => {
             if (e.target === modal) {

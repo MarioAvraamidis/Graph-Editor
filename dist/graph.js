@@ -686,10 +686,13 @@ export class Graph {
     }
     // remove all the bends from the graph
     removeBends(updateCrossings = true) {
+        var _a;
         for (const e of this._edges)
             e.removeBends();
         if (updateCrossings)
             this.updateCrossings();
+        this._curve_complexity = 0;
+        (_a = this.onAction) === null || _a === void 0 ? void 0 : _a.call(this); // call callback if defined
     }
     getBends() {
         let bends = [];

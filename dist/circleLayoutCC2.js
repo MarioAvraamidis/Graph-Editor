@@ -12,8 +12,8 @@ export function circleLinearPlacement(graph /*, ntone: number*/) {
         let xDist = 100, yDist = 200;
         if (graph.vertices.length < 10)
             yDist = 100;
-        const colors = document.getElementById("change-colors-in-layout");
         // colors
+        const colors = document.getElementById("change-colors-in-layout");
         if (colors.checked)
             graph.edges.forEach(e => e.color = "#878787");
         // if (ntone%2===0)

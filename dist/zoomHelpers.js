@@ -20,8 +20,8 @@ export class Scaler {
         this.translateX = 0;
         this.translateY = 0;
         this._ZOOM_FACTOR = 1.1;
-        this._MIN_SCALE = 0.1;
-        this._MAX_SCALE = 10.0;
+        this._MIN_SCALE = 0.05;
+        this._MAX_SCALE = 50.0;
         this._PAN_STEP = 20;
         this.canvas = canvas;
     }

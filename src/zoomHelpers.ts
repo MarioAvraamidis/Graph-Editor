@@ -24,8 +24,8 @@ export class Scaler
     public translateY: number = 0;
     public canvas: HTMLCanvasElement;
     private readonly _ZOOM_FACTOR: number = 1.1;
-    private readonly _MIN_SCALE: number = 0.1;
-    private readonly _MAX_SCALE: number = 10.0;
+    private readonly _MIN_SCALE: number = 0.05;
+    private readonly _MAX_SCALE: number = 50.0;
     private readonly _PAN_STEP: number = 20;
 
     get ZOOM_FACTOR() { return this._ZOOM_FACTOR; }

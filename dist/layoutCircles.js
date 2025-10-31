@@ -144,6 +144,7 @@ export function circleDrawing(graph, crossings) {
     else if (crossings < 0 || crossings > graph.thrackleNumber())
         showCustomAlert("Desired number of crossings out of bounds.");
     else if (graph.vertices.length === 4) {
+        checkColors(graph);
         if (crossings === 2)
             showCustomAlert("Thrackle for C4 doesn't exist");
         else {
@@ -154,6 +155,7 @@ export function circleDrawing(graph, crossings) {
         }
     }
     else if (crossings <= 2) {
+        checkColors(graph);
         graph.removeBends();
         graph.makeCircle(0, 0, 250, circle.orderedVertices);
         if (crossings > 0)
@@ -162,6 +164,7 @@ export function circleDrawing(graph, crossings) {
             graph.swapPoints(circle.orderedVertices[0], circle.orderedVertices[1]);
     }
     else if (crossings === 6 || crossings === 8) {
+        checkColors(graph);
         const radius = 250;
         let circularOrdered = drawWith6crossings(graph, circle.orderedVertices, radius);
         if (crossings === 8)
@@ -172,9 +175,7 @@ export function circleDrawing(graph, crossings) {
         const radius = 250;
         let circularOrdered = circle.orderedVertices;
         // colors
-        const colors = document.getElementById("change-colors-in-layout");
-        if (colors.checked)
-            graph.edges.forEach(e => e.color = "#878787");
+        checkColors(graph);
         // console.log("ntone:",ntone);
         let dx = ntone * (ntone - 3) / 2 - crossings;
         let first = circle.orderedVertices[1], second = circle.orderedVertices[2];
@@ -215,6 +216,11 @@ export function circleDrawing(graph, crossings) {
         if (dx > 0)
             reduceCrossings(graph, ntone, dx, first, second, circularOrdered, radius);
     }
+}
+function checkColors(graph) {
+    const colors = document.getElementById("change-colors-in-layout");
+    if (colors.checked)
+        graph.edges.forEach(e => e.color = "#878787");
 }
 function continuousSwap(graph, circularOrdered, first, second) {
     let pos1 = circularOrdered.indexOf(first);
@@ -295,6 +301,10 @@ function edgeAroundVertex(graph, v6, v7, v4, circularOrdered, radius) {
     // let dist = Math.sqrt((v7.x-coords3.x)**2+(v7.y-coords3.y)**2);
     // coords3 = extendPoints(v7.x,v7.y,midBefore6.x,midBefore6.y,dist*1.01);
     addBendsToEdge(graph, edge67, [coords1, coords2, coords3], v6);
+    // highlight edge
+    const colors = document.getElementById("change-colors-in-layout");
+    if (colors.checked)
+        edge67.color = "#e0e";
     graph.updateCrossingsByEdge(edge67);
     graph.updateCurveComplexity();
 }
@@ -326,13 +336,16 @@ function edgeAroundNextVertex(graph, first, second, circularOrdered, radius) {
     const after = circularOrdered[(pos2 + 1) % len];
     const afterafter = circularOrdered[(pos2 + 2) % len];
     let coords1 = pointAtRatio(after.x, after.y, afterafter.x, afterafter.y, 1 / 2);
-    // let coords2 = pointAtRatio(v2.x,v2.y,v4.x,v4.y,1/2);
-    // let coords3 = pointAtRatio(v4.x,v4.y,before4.x,before4.y,1/2);
     // extend
     coords1 = extendPoints(0, 0, coords1.x, coords1.y, radius);
     let coords2 = extendPoints(0, 0, after.x, after.y, radius * 1.2);
     let coords3 = extendPoints(0, 0, second.x, second.y, radius * 1.2);
     addBendsToEdge(graph, edge, [coords1, coords2, coords3], second);
+    // highlight edge
+    const colors = document.getElementById("change-colors-in-layout");
+    if (colors.checked)
+        edge.color = "#e0e";
+    // updates
     graph.updateCrossingsByEdge(edge);
     graph.updateCurveComplexity();
 }
@@ -398,6 +411,10 @@ function reduceCrossings(graph, ntone, dx, first, second, circularOrdered, radiu
         }
     }
     addBendsToEdge(graph, edge23, [coords1, coords2], first);
+    // highlight edge
+    const colors = document.getElementById("change-colors-in-layout");
+    if (colors.checked)
+        edge23.color = "#e0e";
     // if (ntone%2 === 0)
     // evenCircleThrackleBends(graph,ordered)
     graph.updateCrossingsByEdge(edge23);
