@@ -1,0 +1,39 @@
+aallroot
+12Vzs#DS@FLbSw
+
+root
+alg031k0n1$M@
+
+Βήματα:
+---------------------------   ΔΙΑΓΡΑΦΗ ΤΡΕΧΟΝΤΩΝ ΑΡΧΕΙΩΝ ----------------------------------
+1. Άνοιξε terminal και γράψε ssh aallroot@aall.math.ntua.gr
+2. Δώσε κωδικό 12Vzs#DS@FLbSw
+3. Πληκτρολόγησε su για να γίνεις superuser (root) για να μπορείς να κάνεις το παρακάτω navigation
+4. nagivate to /var/www/aarg/public_html/demos/thrackles (πληκτρολόγησε cd /var/www/aarg/public_html/demos/thrackles)
+5. sudo rm -rf --preserve-root ./*
+
+------------------------   ΜΕΤΑΦΟΡΑ ΑΡΧΕΙΩΝ (άνοιξε νέο terminal) --------------------------------
+1. sftp aallroot@aall.math.ntua.gr και δώσε κωδικό aallroot
+2. cd /home/aallroot
+3. lcd C:\MARIOS\ΣΕΜΦΕ\Μαθήματα\Διπλωματική
+4. put -r ./WebApp
+
+----------------------- ΦΥΓΕ ΤΟ git ΑΠΟ ΤΟΝ SERVER (terminal 1) ----------------------------------
+1. cd /home/aallroot/WebApp
+2. sudo rm -rf --preserve-root ./.git και βαλε κωδικό
+
+------------------------ ΜΕΤΑΦΕΡΕ ΤΑ ΑΡΧΕΙΑ ΣΤΟ ΣΩΣΤΟ ΜΕΡΟΣ
+1. sudo mv /home/aallroot/WebApp/* /var/www/aarg/public_html/demos/thrackles
+2. cd /home/aallroot
+3. rm -dir ./WebApp
+
+-------------------------- RESTART THE SERVER (terminal 1) -----------------------------------------------
+1. sudo systemctl restart apache2
+
+--------------------------- EXIT FROM BOTH TERMINALS ----------------------------------------
+1. πληκτρολόγησε exit (2 φορές αν χρειαστεί μέχρι να επιστρέψει στο users)
+
+
+
+τσεκαρε που εισαι με pwd
+τσεκαρε περιεχομενο τρέχοντος φακελου με ls
